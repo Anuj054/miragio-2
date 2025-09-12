@@ -8,8 +8,7 @@ import TaskDetailsScreen from '../Screens/task/TaskDetails';
 import TaskSuccessfulScreen from '../Screens/task/TaskSuccessfull';
 import InstructionsScreen from '../Screens/task/Instructions';
 
-import ProfileScreen from '../Screens/profile/UserProfile';
-import EditProfileScreen from '../Screens/profile/EditProfile';
+
 
 import WalletPageScreen from '../Screens/wallet/WalletPage';
 import TransactionsScreen from '../Screens/wallet/Transactions';
@@ -22,7 +21,7 @@ import MorePageScreen from '../Screens/MorePageScreen';
 
 const Tab = createBottomTabNavigator();
 const TaskStack = createNativeStackNavigator();
-const ProfileStack = createNativeStackNavigator();
+
 const WalletStack = createNativeStackNavigator();
 
 // Task Stack Navigator
@@ -36,12 +35,6 @@ const TaskStackNavigator = () => (
 );
 
 // Profile Stack Navigator
-const ProfileStackNavigator = () => (
-    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
-        <ProfileStack.Screen name="UserProfile" component={ProfileScreen} />
-        <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
-    </ProfileStack.Navigator>
-);
 
 // Wallet Stack Navigator
 const WalletStackNavigator = () => (
@@ -77,16 +70,7 @@ const TabNavigator = () => {
                     // ),
                 }}
             />
-            <Tab.Screen
-                name="ProfileTab"
-                component={ProfileStackNavigator}
-                options={{
-                    tabBarLabel: 'Profile',
-                    // tabBarIcon: ({ focused, color, size }) => (
-                    //   <TabBarIcon name="profile" focused={focused} color={color} size={size} />
-                    // ),
-                }}
-            />
+
             <Tab.Screen
                 name="WalletTab"
                 component={WalletStackNavigator}

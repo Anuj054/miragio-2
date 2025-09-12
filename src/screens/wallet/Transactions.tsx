@@ -1,12 +1,584 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import React from 'react';
+import { Image, ScrollView, Text, TouchableOpacity, View, RefreshControl, StatusBar } from "react-native";
+import { useState, useEffect } from "react";
+import { useNavigation } from '@react-navigation/native';
 
-const Transactions = () => {
-    return (
-        <View>
-            <Text>transactions</Text>
-        </View>
-    )
+// Import your assets
+import bg2 from "../../assets/images/bg2.png";
+import { icons } from "../../constants/index";
+import profilephoto from "../../assets/images/profilephoto.png";
+import { Colors } from "../../constants/Colors";
+import NoTransactionsModal from "../../components/NoTransactionsModal";
+import { useUser } from "../../context/UserContext";
+
+// Navigation types
+type NavigationProp = any;
+
+// Type definitions for API response
+interface Submission {
+    id: string;
+    user_id: string;
+    task_id: string;
+    task_image: string;
+    task_url: string;
+    wallet: string;
+    submitted_at: string;
+    task_status: string;
+    updated_at: string;
 }
 
-export default Transactions
+interface SubmissionResponse {
+    status: string;
+    message: string;
+    data: Submission[];
+}
+
+// Type definitions for withdrawal API response
+interface Withdrawal {
+    id: string;
+    user_id: string;
+    withdraw_amount: string;
+    transaction_id: string;
+    withdrawal_status: string;
+    withdrawal_date: string;
+    processed_date: string;
+    payment_method: string;
+    remarks: string;
+    created_at: string;
+    status: string;
+    updated_at: string;
+}
+
+interface WithdrawalResponse {
+    status: string;
+    message: string;
+    data: Withdrawal[];
+}
+
+// Type definitions for transformed transaction
+interface Transaction {
+    id: string;
+    type: string;
+    title: string;
+    description: string;
+    amount: number;
+    iconColor: string;
+    icon: any;
+    date: string;
+    taskId: string;
+    taskUrl: string;
+}
+
+const TransactionsPage = () => {
+    // Navigation for React Native CLI
+    const navigation = useNavigation<NavigationProp>();
+
+    // Get user context
+    const { user, getUserId, isLoggedIn, refreshUserData } = useUser();
+
+    // State for active filter and modal visibility
+    const [activeFilter, setActiveFilter] = useState<string>("All");
+    const [showNoTransactionModal, setShowNoTransactionModal] = useState<boolean>(false);
+    const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [refreshing, setRefreshing] = useState<boolean>(false);
+
+    // Filter options for transaction types
+    const filterOptions: string[] = [
+        'All',
+        'Mirago Rewards',
+        'Withdraw'
+    ];
+
+    // Navigation handlers
+    const handleBackPress = () => {
+        navigation.replace("WalletPage");
+    };
+
+    const handleProfilePress = () => {
+        navigation.replace("UserProfile", { from: "wallet/transactions" });
+    };
+
+    // Function to fetch transactions from API
+    const fetchTransactions = async (): Promise<void> => {
+        try {
+            const userId = getUserId();
+            if (!userId) {
+                console.error("No user ID found. User might not be logged in.");
+                navigation.replace("Welcome");
+                return;
+            }
+
+            console.log("Fetching transactions for user:", userId);
+
+            // API URLs
+            const apiUrls = [
+                "https://netinnovatus.tech/miragiotask/api/api.php", // Current URL
+                "https://netinnovatus.tech/miragio_task/api/api.php"  // Alternative URL
+            ];
+
+            let allTransactionsData: Transaction[] = [];
+
+            // Fetch submissions (rewards)
+            let submissionResponse: Response | null = null;
+            let submissionError: Error | null = null;
+
+            for (const apiUrl of apiUrls) {
+                try {
+                    console.log("Trying submission API URL:", apiUrl);
+
+                    submissionResponse = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            action: "get_submission"
+                        }),
+                    });
+
+                    if (submissionResponse.ok) {
+                        break;
+                    }
+                } catch (error) {
+                    submissionError = error instanceof Error ? error : new Error(String(error));
+                }
+            }
+
+            // Process submissions if successful
+            if (submissionResponse && submissionResponse.ok) {
+                try {
+                    const submissionText = await submissionResponse.text();
+                    console.log("Submission response (first 200 chars):", submissionText.substring(0, 200));
+
+                    if (!submissionText.trim().startsWith('<')) {
+                        const submissionData: SubmissionResponse = JSON.parse(submissionText);
+
+                        if (submissionData.status === "success" && submissionData.data) {
+                            console.log("API returned", submissionData.data.length, "total submissions");
+
+                            const userSubmissions = submissionData.data.filter((submission: Submission) =>
+                                submission.user_id === userId && submission.task_status === "approved"
+                            );
+
+                            console.log("Found", userSubmissions.length, "approved submissions for user");
+
+                            const rewardTransactions: Transaction[] = userSubmissions.map((submission: Submission) => ({
+                                id: `reward_${submission.id}`,
+                                type: 'Mirago Rewards',
+                                title: 'Task Reward',
+                                description: `Approved on ${formatDate(submission.updated_at)}`,
+                                amount: parseInt(submission.wallet) || 0,
+                                iconColor: Colors.light.bgBlueBtn,
+                                icon: icons.transactioncoin || icons.coin,
+                                date: submission.updated_at,
+                                taskId: submission.task_id,
+                                taskUrl: submission.task_url
+                            }));
+
+                            allTransactionsData = [...allTransactionsData, ...rewardTransactions];
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error processing submissions:", error);
+                }
+            }
+
+            // Fetch withdrawals
+            let withdrawalResponse: Response | null = null;
+            let withdrawalError: Error | null = null;
+
+            for (const apiUrl of apiUrls) {
+                try {
+                    console.log("Trying withdrawal API URL:", apiUrl);
+
+                    withdrawalResponse = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            action: "get_Withdrawal"
+                        }),
+                    });
+
+                    if (withdrawalResponse.ok) {
+                        break;
+                    }
+                } catch (error) {
+                    withdrawalError = error instanceof Error ? error : new Error(String(error));
+                }
+            }
+
+            // Process withdrawals if successful
+            if (withdrawalResponse && withdrawalResponse.ok) {
+                try {
+                    const withdrawalText = await withdrawalResponse.text();
+                    console.log("Withdrawal response (first 200 chars):", withdrawalText.substring(0, 200));
+
+                    if (!withdrawalText.trim().startsWith('<')) {
+                        const withdrawalData: WithdrawalResponse = JSON.parse(withdrawalText);
+
+                        if (withdrawalData.status === "success" && withdrawalData.data) {
+                            console.log("API returned", withdrawalData.data.length, "total withdrawals");
+
+                            const userWithdrawals = withdrawalData.data.filter((withdrawal: Withdrawal) =>
+                                withdrawal.user_id === userId
+                            );
+
+                            console.log("Found", userWithdrawals.length, "withdrawals for user");
+
+                            const withdrawalTransactions: Transaction[] = userWithdrawals.map((withdrawal: Withdrawal) => ({
+                                id: `withdraw_${withdrawal.id}`,
+                                type: 'Withdraw',
+                                title: 'Withdrawal',
+                                description: `${withdrawal.withdrawal_status.charAt(0).toUpperCase() + withdrawal.withdrawal_status.slice(1)} - ${withdrawal.payment_method.toUpperCase()}`,
+                                amount: parseFloat(withdrawal.withdraw_amount) || 0,
+                                iconColor: '#FF6B6B',
+                                icon: icons.withdraw || icons.wallet,
+                                date: withdrawal.withdrawal_date,
+                                taskId: withdrawal.transaction_id,
+                                taskUrl: withdrawal.remarks || ''
+                            }));
+
+                            allTransactionsData = [...allTransactionsData, ...withdrawalTransactions];
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error processing withdrawals:", error);
+                }
+            }
+
+            // Sort all transactions by date (newest first)
+            allTransactionsData.sort((a: Transaction, b: Transaction) =>
+                new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
+
+            setAllTransactions(allTransactionsData);
+
+            // Refresh user data to update wallet balance
+            await refreshUserData();
+
+        } catch (error) {
+            console.error("Error fetching transactions:", error);
+            console.error("Error details:", {
+                name: error instanceof Error ? error.name : 'Unknown',
+                message: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : 'No stack trace'
+            });
+            setAllTransactions([]);
+        }
+    };
+
+    // Function to format date for display
+    const formatDate = (dateString: string): string => {
+        try {
+            const date = new Date(dateString);
+            const options: Intl.DateTimeFormatOptions = {
+                day: '2-digit',
+                month: 'long',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            };
+            return date.toLocaleDateString('en-US', options);
+        } catch (error) {
+            return dateString;
+        }
+    };
+
+    // Function to get month and year from transactions
+    const getTransactionMonth = (): string => {
+        if (allTransactions.length > 0) {
+            const latestTransaction = allTransactions[0];
+            const date = new Date(latestTransaction.date);
+            return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        }
+        return new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    };
+
+    // Fetch transactions on component mount
+    useEffect(() => {
+        if (isLoggedIn && getUserId()) {
+            setLoading(true);
+            fetchTransactions().finally(() => setLoading(false));
+        } else {
+            navigation.replace("Welcome");
+        }
+    }, [isLoggedIn, user?.id]);
+
+    // Function to handle pull-to-refresh
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchTransactions();
+        setRefreshing(false);
+    };
+
+    // Filter transactions based on active filter
+    const getFilteredTransactions = (): Transaction[] => {
+        if (activeFilter === 'All') {
+            return allTransactions;
+        }
+        return allTransactions.filter((transaction: Transaction) => transaction.type === activeFilter);
+    };
+
+    const filteredTransactions: Transaction[] = getFilteredTransactions();
+    const hasTransactions: boolean = filteredTransactions.length > 0;
+
+    // Render filter button component
+    const renderFilterButton = (option: string) => (
+        <TouchableOpacity
+            key={option}
+            onPress={() => {
+                setActiveFilter(option);
+                // Show modal if no transactions for this filter
+                const filtered = option === 'All' ? allTransactions : allTransactions.filter((t: Transaction) => t.type === option);
+                if (filtered.length === 0) {
+                    setShowNoTransactionModal(true);
+                }
+            }}
+            className={`px-4 py-2 rounded-full mr-2 mb-2 ${activeFilter === option
+                ? 'border-0'
+                : 'border'
+                }`}
+            style={{
+                backgroundColor: activeFilter === option ? Colors.light.bgBlueBtn : 'transparent',
+                borderColor: activeFilter === option ? 'transparent' : Colors.light.secondaryText,
+            }}
+        >
+            <Text
+                className={`text-sm ${activeFilter === option ? 'font-bold' : 'font-normal'
+                    }`}
+                style={{
+                    color: activeFilter === option ? Colors.light.whiteFefefe : Colors.light.whiteFefefe,
+                }}
+            >
+                {option}
+            </Text>
+        </TouchableOpacity>
+    );
+
+    // Handler to close no transactions modal
+    const handleCloseModal = () => {
+        setShowNoTransactionModal(false);
+    };
+
+    return (
+        <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
+            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+
+            {/* =================== HEADER WITH BACKGROUND IMAGE =================== */}
+            <View className="relative h-32">
+                {/* Background image */}
+                <Image source={bg2} resizeMode="cover" className="w-full h-full absolute" />
+
+                {/* Header overlay content with navigation and profile */}
+                <View className="flex-1 pt-12 pb-4 px-4">
+                    <View className="flex-row items-center justify-between h-12">
+                        {/* Back button - Navigate to wallet page */}
+                        <TouchableOpacity
+                            className="w-10 h-10 items-center justify-center"
+                            onPress={handleBackPress}
+                        >
+                            <Image source={icons.back} className="w-6 h-8" />
+                        </TouchableOpacity>
+
+                        {/* Page title */}
+                        <Text
+                            style={{ color: Colors.light.whiteFfffff }}
+                            className="text-3xl font-semibold"
+                        >
+                            All Transaction
+                        </Text>
+
+                        {/* Profile photo button - Navigate to user profile */}
+                        <TouchableOpacity
+                            style={{ backgroundColor: Colors.light.whiteFfffff }}
+                            className="w-11 h-11 rounded-full items-center justify-center"
+                            onPress={handleProfilePress}
+                        >
+                            <Image
+                                source={profilephoto}
+                                className="h-11 w-11 rounded-full"
+                            />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Header border line */}
+                <View
+                    className="absolute bottom-0 w-full h-[1px]"
+                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                />
+            </View>
+
+            {/* =================== SCROLLABLE CONTENT SECTION =================== */}
+            <ScrollView
+                className="flex-1"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 100 }}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={[Colors.light.bgBlueBtn]}
+                        tintColor={Colors.light.bgBlueBtn}
+                    />
+                }
+            >
+                {/* =================== FILTER BUTTONS SECTION =================== */}
+                <View className="flex-row flex-wrap px-4 py-4 pt-5">
+                    {filterOptions.map(renderFilterButton)}
+                </View>
+
+                {/* =================== LOADING STATE =================== */}
+                {loading && (
+                    <View className="items-center justify-center py-10">
+                        <Text className="text-lg" style={{ color: Colors.light.whiteFfffff }}>
+                            Loading transactions...
+                        </Text>
+                    </View>
+                )}
+
+                {/* =================== DATE HEADER SECTION =================== */}
+                {!loading && hasTransactions && (
+                    <View className="px-4 pb-3">
+                        <Text
+                            className="text-xl font-semibold"
+                            style={{ color: Colors.light.whiteFfffff }}
+                        >
+                            {getTransactionMonth()}
+                        </Text>
+                    </View>
+                )}
+
+                {/* =================== TRANSACTION LIST SECTION =================== */}
+                {!loading && hasTransactions ? (
+                    /* Render transaction items with enhanced styling */
+                    filteredTransactions.map((transaction: Transaction) => (
+                        <View
+                            key={transaction.id}
+                            className="mx-4 mb-3 p-4 rounded-2xl flex-row items-center justify-between"
+                            style={{
+                                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                                borderLeftWidth: 3,
+                                borderLeftColor: transaction.type === 'Withdraw' ? '#FF6B6B' : Colors.light.bgBlueBtn,
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 1 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 2,
+                                elevation: 1,
+                            }}
+                        >
+                            {/* Transaction info section */}
+                            <View className="flex-row items-center flex-1">
+                                {/* Transaction icon */}
+                                <View
+                                    className="w-12 h-12 rounded-xl items-center justify-center mr-4"
+                                    style={{
+                                        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                                    }}
+                                >
+                                    <Image source={transaction.icon} className="w-7 h-7" />
+                                </View>
+                                {/* Transaction details */}
+                                <View className="flex-1">
+                                    <Text
+                                        className="text-lg font-semibold mb-1"
+                                        style={{ color: Colors.light.whiteFfffff }}
+                                    >
+                                        {transaction.title}
+                                    </Text>
+                                    <Text
+                                        className="text-sm"
+                                        style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                                        numberOfLines={1}
+                                    >
+                                        {transaction.description}
+                                    </Text>
+                                    {transaction.taskUrl && transaction.type === 'Mirago Rewards' && (
+                                        <Text
+                                            className="text-xs mt-1"
+                                            style={{ color: 'rgba(255, 255, 255, 0.5)' }}
+                                            numberOfLines={1}
+                                        >
+                                            Task: {transaction.taskUrl}
+                                        </Text>
+                                    )}
+                                    {transaction.taskId && transaction.type === 'Withdraw' && (
+                                        <Text
+                                            className="text-xs mt-1"
+                                            style={{ color: 'rgba(255, 255, 255, 0.5)' }}
+                                            numberOfLines={1}
+                                        >
+                                            ID: {transaction.taskId}
+                                        </Text>
+                                    )}
+                                </View>
+                            </View>
+                            {/* Transaction amount section */}
+                            <View className="flex-row items-center ml-2">
+                                <Text
+                                    className="text-sm mr-1 font-bold"
+                                    style={{
+                                        color: transaction.type === 'Withdraw'
+                                            ? "#FF6B6B"
+                                            : Colors.light.bgGreen
+                                    }}
+                                >
+                                    {transaction.type === 'Withdraw' ? '-' : '+'}
+                                </Text>
+                                <Image source={icons.maincoin} className="w-5 h-5" />
+                                <Text
+                                    className="text-lg font-bold pl-1"
+                                    style={{
+                                        color: transaction.type === 'Withdraw'
+                                            ? "#FF6B6B"
+                                            : Colors.light.bgGreen
+                                    }}
+                                >
+                                    {transaction.amount}
+                                </Text>
+                            </View>
+                        </View>
+                    ))
+                ) : !loading ? (
+                    /* =================== EMPTY STATE SECTION =================== */
+                    <View className="items-center justify-center py-10">
+                        <View
+                            className="w-20 h-20 rounded-full items-center justify-center mb-6"
+                            style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                        >
+                            <Image
+                                source={icons.wallet || icons.coin}
+                                className="w-10 h-10"
+                                style={{ opacity: 0.5 }}
+                            />
+                        </View>
+                        <Text
+                            className="text-2xl font-bold text-center mb-3"
+                            style={{ color: Colors.light.whiteFfffff }}
+                        >
+                            No Transactions Yet
+                        </Text>
+                        <Text
+                            className="text-base text-center px-8"
+                            style={{ color: 'rgba(255, 255, 255, 0.6)' }}
+                        >
+                            Complete and get approved tasks to see your reward transactions here
+                        </Text>
+                    </View>
+                ) : null}
+            </ScrollView>
+
+            {/* =================== NO TRANSACTIONS MODAL =================== */}
+            <NoTransactionsModal
+                visible={showNoTransactionModal}
+                onClose={handleCloseModal}
+                activeFilter={activeFilter}
+            />
+        </View>
+    );
+};
+
+export default TransactionsPage;
