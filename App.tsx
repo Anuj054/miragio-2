@@ -1,4 +1,4 @@
-// App.tsx (Fixed version)
+// App.tsx (Updated with AppNavigator)
 import React from 'react';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -6,10 +6,11 @@ import { StatusBar, useColorScheme } from 'react-native';
 import { UserProvider } from './src/context/UserContext';
 import SplashScreen from './src/components/SplashScreen';
 import AuthNavigator from './src/Navigation/AuthNavigator';
-import RootNavigator from './src/Navigation/RootNavigator';
+import TabNavigator from './src/Navigation/TabNavigator'; // Import TabNavigator directly
 import { useUser } from './src/context/UserContext';
+import type { AppStackParamList } from './src/Navigation/types';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<AppStackParamList>();
 
 // Main App Content Component
 const AppContent = () => {
@@ -28,11 +29,12 @@ const AppContent = () => {
         backgroundColor={colorScheme === 'dark' ? '#000000' : '#ffffff'}
       />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isLoggedIn ? (
+        {!isLoggedIn ? (
+          // Show Auth Navigator when not logged in
           <Stack.Screen name="Auth" component={AuthNavigator} />
-
         ) : (
-          <Stack.Screen name="Root" component={RootNavigator} />
+          // Show Main App (TabNavigator) when logged in
+          <Stack.Screen name="Main" component={TabNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

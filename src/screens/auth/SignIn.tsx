@@ -22,27 +22,20 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'SignIn'>;
 const { width, height } = Dimensions.get('window');
 
 const SignIn = ({ navigation }: Props) => {
-    // Get login function from context
     const { login } = useUser();
 
-    // State for form inputs
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
-    // State for password visibility toggle
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-
-    // State for error message
     const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    // Clear old signup credentials when SignIn component mounts
+
     useEffect(() => {
         clearOldSignupCredentials();
     }, []);
 
     const clearOldSignupCredentials = async () => {
         try {
-            // Clear any leftover signup credentials when user manually goes to login
             await Promise.all([
                 AsyncStorage.removeItem('@signup_data'),
                 AsyncStorage.removeItem('@registration_data'),
@@ -54,19 +47,16 @@ const SignIn = ({ navigation }: Props) => {
         }
     };
 
-    // Toggle password visibility function
     const togglePasswordVisibility = () => {
         setIsPasswordVisible(!isPasswordVisible);
     };
 
-    // Validate form inputs
     const validateForm = () => {
         if (!email.trim()) {
             setErrorMessage("Please enter your email");
             return false;
         }
 
-        // Email validation regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email.trim())) {
             setErrorMessage("Please enter a valid email address");
@@ -81,43 +71,44 @@ const SignIn = ({ navigation }: Props) => {
         return true;
     };
 
-    // Handle navigation functions
     const handleSignUpPress = () => {
         navigation.replace('SignUp');
     };
 
     const handleResetPasswordPress = () => {
-        navigation.replace('ResetPassword');
+        navigation.navigate('ResetPassword');
     };
 
+    // Fixed navigation function based on your structure
     const handleTaskPageNavigation = () => {
-        // Navigate to main app - adjust based on your actual navigation structure
-        // Option 1: If you have a separate main stack
-        // navigation.reset({ index: 0, routes: [{ name: 'MainApp' }] });
+        try {
+            // Navigate to Main navigator, then to TaskTab, then to TaskPage
+            navigation.navigate('Main', {
+                screen: 'TaskTab',
+                params: { screen: 'TaskPage' }
+            });
 
-        // Option 2: If TaskPage is directly in auth stack
-        navigation.navigate('TaskPage'); // Adjust to your actual route name
-
-        // Option 3: If you need to go to a nested navigator
-        // navigation.navigate('MainTabs', { screen: 'TaskPage' });
+        } catch (error) {
+            console.error('Navigation error:', error);
+            setErrorMessage('Navigation failed. Please try again.');
+        }
     };
 
-    // Handle login using context
-    const handleLogin = async () => {
-        // Clear previous error
-        if (isLoading) return;
-        setErrorMessage('');
 
+
+    const handleLogin = async () => {
+        if (isLoading) return;
+
+        setErrorMessage('');
         if (!validateForm()) return;
+
         setIsLoading(true);
 
         try {
-            // Call login function from context
             const result = await login(email.trim(), password.trim());
 
             if (result.success) {
                 setErrorMessage('');
-                // Add a small delay to prevent navigation conflicts
                 setTimeout(() => {
                     handleTaskPageNavigation();
                 }, 100);
@@ -127,12 +118,14 @@ const SignIn = ({ navigation }: Props) => {
         } catch (error) {
             console.error('Login error:', error);
             setErrorMessage('An error occurred. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
         <View className="flex-1 items-center justify-center">
-            {/* =================== BACKGROUND IMAGE =================== */}
+            {/* Background Image */}
             <Image
                 source={bg}
                 resizeMode="cover"
@@ -140,13 +133,13 @@ const SignIn = ({ navigation }: Props) => {
                 style={{ width, height }}
             />
 
-            {/* =================== LOGO SECTION =================== */}
+            {/* Logo */}
             <Image
                 source={logo}
                 className="absolute top-[210px] w-[100px] h-[85px]"
             />
 
-            {/* =================== SIGN IN TITLE AND NAVIGATION =================== */}
+            {/* Title */}
             <Text
                 style={{ color: Colors.light.whiteFfffff }}
                 className="absolute top-[330px] font-extrabold text-3xl"
@@ -171,15 +164,13 @@ const SignIn = ({ navigation }: Props) => {
                     </Text>
                 </TouchableOpacity>
             </View>
-
-            {/* =================== INPUT FIELDS SECTION =================== */}
+            {/* Input Fields */}
             <View className="absolute top-[440px]">
-                {/* Email/Phone input field */}
+                {/* Email Input */}
                 <View
                     style={{ backgroundColor: Colors.light.whiteFfffff }}
                     className="flex flex-row items-center justify-start w-[370px] h-[56px] rounded-[15px] mb-7"
                 >
-                    {/* Mail icon */}
                     {icons && (
                         <Image
                             source={icons.mail}
@@ -202,15 +193,15 @@ const SignIn = ({ navigation }: Props) => {
                         keyboardType="email-address"
                         autoCapitalize="none"
                         autoCorrect={false}
+                        editable={!isLoading}
                     />
                 </View>
 
-                {/* Password input field with visibility toggle */}
+                {/* Password Input */}
                 <View
                     style={{ backgroundColor: Colors.light.whiteFfffff }}
                     className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px]"
                 >
-                    {/* Lock icon */}
                     {icons && (
                         <Image
                             source={icons.lock}
@@ -233,11 +224,12 @@ const SignIn = ({ navigation }: Props) => {
                         }}
                         autoCapitalize="none"
                         autoCorrect={false}
+                        editable={!isLoading}
                     />
-                    {/* Password visibility toggle button */}
                     <TouchableOpacity
                         className="absolute right-3 h-[56px] flex items-center justify-center"
                         onPress={togglePasswordVisibility}
+                        disabled={isLoading}
                     >
                         {icons && (
                             <Image
@@ -248,9 +240,9 @@ const SignIn = ({ navigation }: Props) => {
                     </TouchableOpacity>
                 </View>
 
-                {/* Error message display */}
+                {/* Error Message - FIXED POSITIONING */}
                 {errorMessage ? (
-                    <View className="mt-3 w-[370px]">
+                    <View className="mt-5 w-[370px]">
                         <Text
                             style={{ color: '#EF4444' }}
                             className="text-center text-sm font-medium"
@@ -261,9 +253,9 @@ const SignIn = ({ navigation }: Props) => {
                 ) : null}
             </View>
 
-            {/* =================== FORGOT PASSWORD LINK =================== */}
-            <View className="absolute top-[610px]">
-                <TouchableOpacity onPress={handleResetPasswordPress}>
+            {/* Forgot Password - INCREASED TOP MARGIN */}
+            <View className="absolute top-[630px]">
+                <TouchableOpacity onPress={handleResetPasswordPress} disabled={isLoading}>
                     <Text
                         style={{ color: Colors.light.secondaryText }}
                         className="underline"
@@ -273,10 +265,10 @@ const SignIn = ({ navigation }: Props) => {
                 </TouchableOpacity>
             </View>
 
-            {/* =================== LOGIN BUTTON SECTION =================== */}
-            <View className="absolute top-[650px]">
+            {/* Login Button - INCREASED TOP MARGIN */}
+            <View className="absolute top-[670px]">
                 <CustomGradientButton
-                    text="Login"
+                    text={isLoading ? "Signing In..." : "Login"}
                     width={370}
                     height={56}
                     fontWeight={600}
@@ -284,13 +276,15 @@ const SignIn = ({ navigation }: Props) => {
                     fontSize={18}
                     textColor={Colors.light.whiteFfffff}
                     onPress={handleLogin}
+                    disabled={isLoading}
                     style={{
                         opacity: isLoading ? 0.6 : 1,
                     }}
                 />
             </View>
 
-            {/* =================== FOOTER BRAND NAME =================== */}
+
+            {/* Footer */}
             <View className="absolute bottom-8">
                 <Text
                     style={{ color: Colors.light.whiteFfffff }}
