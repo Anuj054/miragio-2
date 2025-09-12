@@ -81,7 +81,7 @@ const Onboarding = ({ navigation }: Props) => {
                 >
                     <Text
                         style={{ color: Colors.light.whiteFefefe }}
-                        className="text-2xl font-semibold"
+                        className="text-xl font-semibold"
                     >
                         Sign Up
                     </Text>
@@ -94,7 +94,7 @@ const Onboarding = ({ navigation }: Props) => {
                 >
                     <Text
                         style={{ color: Colors.light.whiteFefefe }}
-                        className="text-2xl font-semibold"
+                        className="text-xl font-semibold"
                     >
                         Login
                     </Text>

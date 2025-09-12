@@ -8,10 +8,10 @@ const Stack = createNativeStackNavigator();
 const RootNavigator = () => {
     return (
         <Stack.Navigator
-            initialRouteName="Tabs"
+            initialRouteName="root"
             screenOptions={{ headerShown: false }}
         >
-            <Stack.Screen name="Tabs" component={TabNavigator} />
+            <Stack.Screen name="root" component={TabNavigator} />
             {/* Add other screens that should be accessible from the root */}
         </Stack.Navigator>
     );
