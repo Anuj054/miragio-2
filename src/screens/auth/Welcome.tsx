@@ -63,13 +63,13 @@ const Onboarding = ({ navigation }: Props) => {
 
             <View className="absolute bottom-16 left-0 right-0 items-center px-6">
                 <View className="mb-6">
-                    <Text className="text-3xl font-semibold text-center text-white">
+                    <Text style={{ color: Colors.light.whiteFfffff }} className="text-2xl font-semibold text-center mb-2">
                         Claim Your{' '}
-                        <Text className="font-bold text-blue-500">
+                        <Text style={{ color: Colors.light.blueBgOnboarding }} className="font-bold">
                             Bonus
                         </Text>
                     </Text>
-                    <Text className="text-3xl font-semibold text-center text-white">
+                    <Text style={{ color: Colors.light.whiteFfffff }} className="text-2xl font-semibold text-center">
                         Instantly Upon Signup!
                     </Text>
                 </View>
