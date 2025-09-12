@@ -1,21 +1,22 @@
 // In your Navigation/types.ts
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
-// App-level navigator (highest level)
+// App-level navigator (highest level) - ADD UserProfile here
 export type AppStackParamList = {
     Auth: NavigatorScreenParams<AuthStackParamList>;
     Main: NavigatorScreenParams<TabParamList>;
+    UserProfile: { from?: string };
+    EditProfile: { from?: string };
 };
 
 // Tab Navigator Types  
 export type TabParamList = {
     TaskTab: NavigatorScreenParams<TaskStackParamList>;
-    ProfileTab: NavigatorScreenParams<ProfileStackParamList>;
     WalletTab: NavigatorScreenParams<WalletStackParamList>;
     MoreTab: undefined;
 };
 
-// Auth Stack Types (remove root reference)
+// Auth Stack Types
 export type AuthStackParamList = {
     Welcome: undefined;
     SignIn: undefined;
@@ -27,10 +28,10 @@ export type AuthStackParamList = {
     ResetSuccess: undefined;
     VerifyCode: undefined;
     KycSuccess: undefined;
-    Main: NavigatorScreenParams<TabParamList>; // Add this for navigation
+    Main: NavigatorScreenParams<TabParamList>;
 };
 
-// Rest of your types remain the same...
+// Task Stack Types
 export type TaskStackParamList = {
     TaskPage: undefined;
     TaskDetails: undefined;
@@ -38,11 +39,7 @@ export type TaskStackParamList = {
     Instructions: undefined;
 };
 
-export type ProfileStackParamList = {
-    UserProfile: undefined;
-    EditProfile: undefined;
-};
-
+// Wallet Stack Types (REMOVE UserProfile from here)
 export type WalletStackParamList = {
     WalletPage: undefined;
     Transactions: undefined;

@@ -117,11 +117,11 @@ const WalletPage = () => {
 
     // Navigation handlers
     const handleBackPress = () => {
-        navigation.replace('TaskPage');
+        navigation.navigate('TaskTab', { screen: 'TaskPage' });
     };
 
     const handleProfilePress = () => {
-        navigation.replace('UserProfile', { from: 'wallet/walletpage' });
+        navigation.navigate('UserProfile', { from: 'wallet/walletpage' });
     };
 
     const handleTransactionsPress = () => {

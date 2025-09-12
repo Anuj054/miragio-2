@@ -364,6 +364,7 @@ const WithdrawAmountPage = () => {
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
             {/* Header */}
+            {/* Header */}
             <View className="relative h-32">
                 <Image source={bg2} resizeMode="cover" className="w-full h-full absolute" />
                 <View className="flex-1 pt-12 pb-4 px-4">
@@ -380,24 +381,27 @@ const WithdrawAmountPage = () => {
                             />
                         </TouchableOpacity>
 
-                        {/* Centered title */}
-                        <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium"
-                        >
-                            Withdraw
-                        </Text>
+                        {/* Centered title - Use flex-1 and center alignment */}
+                        <View className="flex-1 items-center">
+                            <Text
+                                style={{ color: Colors.light.whiteFfffff }}
+                                className="text-3xl font-medium"
+                            >
+                                Withdraw
+                            </Text>
+                        </View>
 
-
+                        {/* Right spacer to balance the back button */}
+                        <View className="w-10 h-10" />
                     </View>
                 </View>
-
 
                 <View
                     className="absolute bottom-0 w-full h-[1px]"
                     style={{ backgroundColor: Colors.light.whiteFfffff }}
                 />
             </View>
+
 
             <ScrollView
                 className="flex-1"
@@ -643,7 +647,7 @@ const WithdrawAmountPage = () => {
                     <CustomGradientButton
                         borderRadius={12}
                         height={48}
-                        width={320}
+                        width={350}
                         text={`WITHDRAW ${amount || '0'} COINS`}
                         onPress={handleWithdraw}
                         disabled={
