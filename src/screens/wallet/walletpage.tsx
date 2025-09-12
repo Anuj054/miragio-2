@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const walletpage = () => {
+const WalletPage = () => {
     return (
         <View>
             <Text>walletpage</Text>
@@ -9,4 +9,4 @@ const walletpage = () => {
     )
 }
 
-export default walletpage
+export default WalletPage

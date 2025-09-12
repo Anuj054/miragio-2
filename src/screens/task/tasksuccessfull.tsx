@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const tasksuccessfull = () => {
+const TaskSuccessfull = () => {
     return (
         <View>
             <Text>tasksuccessfull</Text>
@@ -9,4 +9,4 @@ const tasksuccessfull = () => {
     )
 }
 
-export default tasksuccessfull
+export default TaskSuccessfull

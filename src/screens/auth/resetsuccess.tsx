@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const resetsuccess = () => {
+const ResetSuccess = () => {
     return (
         <View>
             <Text>resetsuccess</Text>
@@ -9,4 +9,4 @@ const resetsuccess = () => {
     )
 }
 
-export default resetsuccess
+export default ResetSuccess

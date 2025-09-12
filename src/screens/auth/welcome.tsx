@@ -1,18 +1,10 @@
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-
-import { onboarding } from '../../constants';
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Image, Text, TouchableOpacity, View, Dimensions } from 'react-native';
 import Swiper from 'react-native-swiper';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors } from '../../constants/Colors';
-
-
-// Define your navigation param list
-type AuthStackParamList = {
-    Welcome: undefined;
-    SignUp: undefined;
-    SignIn: undefined;
-};
+import { onboarding } from '../../constants';
+import type { AuthStackParamList } from '../../Navigation/types'
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
 
@@ -20,7 +12,15 @@ const { width, height } = Dimensions.get('window');
 
 const Onboarding = ({ navigation }: Props) => {
     const swiperRef = useRef<Swiper>(null);
-    const [activeIndex, setActiveIndex] = useState<number>(0);
+    const [, setActiveIndex] = useState<number>(0);
+
+    const handleSignUpPress = () => {
+        navigation.replace('SignUp');
+    };
+
+    const handleSignInPress = () => {
+        navigation.replace('SignIn');
+    };
 
     return (
         <View className="flex-1 bg-black">
@@ -76,20 +76,26 @@ const Onboarding = ({ navigation }: Props) => {
 
                 <TouchableOpacity
                     style={{ backgroundColor: Colors.light.bgBlueBtn }}
-                    className=" flex justify-center items-center w-[350px] h-[56px] rounded-[15px] mb-5 "
-                    onPress={() => navigation.replace('SignUp')}
+                    className="flex justify-center items-center w-[350px] h-[56px] rounded-[15px] mb-5"
+                    onPress={handleSignUpPress}
                 >
-                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-2xl font-semibold">
+                    <Text
+                        style={{ color: Colors.light.whiteFefefe }}
+                        className="text-2xl font-semibold"
+                    >
                         Sign Up
                     </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={{ backgroundColor: Colors.light.blackPrimary }}
-                    className=" flex justify-center items-center py-1 w-[350px] h-[56px] rounded-[15px]"
-                    onPress={() => navigation.replace('SignIn')}
+                    className="flex justify-center items-center py-1 w-[350px] h-[56px] rounded-[15px]"
+                    onPress={handleSignInPress}
                 >
-                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-2xl font-semibold  ">
+                    <Text
+                        style={{ color: Colors.light.whiteFefefe }}
+                        className="text-2xl font-semibold"
+                    >
                         Login
                     </Text>
                 </TouchableOpacity>

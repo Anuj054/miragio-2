@@ -3,19 +3,19 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 // Import your tab screens
-import TaskPageScreen from '../screens/task/taskpage';
-import TaskDetailsScreen from '../screens/task/taskdetails';
-import TaskSuccessfulScreen from '../screens/task/tasksuccessfull';
-import InstructionsScreen from '../screens/task/instructions';
+import TaskPageScreen from '../Screens/task/TaskPage';
+import TaskDetailsScreen from '../Screens/task/TaskDetails';
+import TaskSuccessfulScreen from '../Screens/task/TaskSuccessfull';
+import InstructionsScreen from '../Screens/task/Instructions';
 
-import ProfileScreen from '../screens/profile/userprofile';
-import EditProfileScreen from '../screens/profile/editprofile';
+import ProfileScreen from '../Screens/profile/UserProfile';
+import EditProfileScreen from '../Screens/profile/EditProfile';
 
-import WalletPageScreen from '../screens/wallet/walletpage';
-import TransactionsScreen from '../screens/wallet/transactions';
-import WithdrawScreen from '../screens/wallet/withdraw';
+import WalletPageScreen from '../Screens/wallet/WalletPage';
+import TransactionsScreen from '../Screens/wallet/Transactions';
+import WithdrawScreen from '../Screens/wallet/Withdraw';
 
-import MorePageScreen from '../screens/morepage';
+import MorePageScreen from '../Screens/MorePageScreen';
 
 // You can import your custom tab bar icons here
 // import TabBarIcon from '../components/ui/TabBarIcon';

@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const instructions = () => {
+const Instructions = () => {
     return (
         <View>
             <Text>instructions</Text>
@@ -9,4 +9,4 @@ const instructions = () => {
     )
 }
 
-export default instructions
+export default Instructions

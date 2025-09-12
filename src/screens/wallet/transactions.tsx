@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const transactions = () => {
+const Transactions = () => {
     return (
         <View>
             <Text>transactions</Text>
@@ -9,4 +9,4 @@ const transactions = () => {
     )
 }
 
-export default transactions
+export default Transactions

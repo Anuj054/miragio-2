@@ -5,8 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar, useColorScheme } from 'react-native';
 import { UserProvider } from './src/context/UserContext';
 import SplashScreen from './src/components/SplashScreen';
-import AuthNavigator from './src/navigation/AuthNavigator';
-import RootNavigator from './src/navigation/RootNavigator';
+import AuthNavigator from './src/Navigation/AuthNavigator';
+import RootNavigator from './src/Navigation/RootNavigator';
 import { useUser } from './src/context/UserContext';
 
 const Stack = createNativeStackNavigator();
@@ -29,9 +29,10 @@ const AppContent = () => {
       />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isLoggedIn ? (
-          <Stack.Screen name="Root" component={RootNavigator} />
-        ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />
+
+        ) : (
+          <Stack.Screen name="Root" component={RootNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const kycsuccess = () => {
+const KYCSuccess = () => {
     return (
         <View>
             <Text>kycsuccess</Text>
@@ -9,4 +9,4 @@ const kycsuccess = () => {
     )
 }
 
-export default kycsuccess
+export default KYCSuccess

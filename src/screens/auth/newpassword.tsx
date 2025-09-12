@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const newpassword = () => {
+const NewPassword = () => {
     return (
         <View>
             <Text>newpassword</Text>
@@ -9,4 +9,4 @@ const newpassword = () => {
     )
 }
 
-export default newpassword
+export default NewPassword

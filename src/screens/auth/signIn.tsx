@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const SignInScreen = () => {
+const SignIn = () => {
     return (
         <View>
             <Text>SignInScreen</Text>
@@ -9,4 +9,4 @@ const SignInScreen = () => {
     )
 }
 
-export default SignInScreen
+export default SignIn

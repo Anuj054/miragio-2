@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const verifycode = () => {
+const VerifyCode = () => {
     return (
         <View>
             <Text>verifycode</Text>
@@ -9,4 +9,4 @@ const verifycode = () => {
     )
 }
 
-export default verifycode
+export default VerifyCode

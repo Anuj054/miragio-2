@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const taskdetails = () => {
+const TaskDetails = () => {
     return (
         <View>
             <Text>taskdetails</Text>
@@ -9,4 +9,4 @@ const taskdetails = () => {
     )
 }
 
-export default taskdetails
+export default TaskDetails

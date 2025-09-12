@@ -1,18 +1,18 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import WelcomeScreen from '../screens/auth/welcome';
-import SignInScreen from '../screens/auth/signIn';
-import SignUpScreen from '../screens/auth/signUp';
-import KycScreen from '../screens/auth/kyc';
-import OtpScreen from '../screens/auth/Otp';
-import NewPasswordScreen from '../screens/auth/newpassword';
-import ResetPasswordScreen from '../screens/auth/resetpassword';
-import ResetSuccessScreen from '../screens/auth/resetsuccess';
-import VerifyCodeScreen from '../screens/auth/verifycode';
-import KycSuccessScreen from '../screens/auth/kycsuccess';
+import WelcomeScreen from '../Screens/auth/Welcome';
+import SignInScreen from '../Screens/auth/SignIn';
+import SignUpScreen from '../Screens/auth/SignUp';
+import KycScreen from '../Screens/auth/KYC';
+import OtpScreen from '../Screens/auth/OTP';
+import NewPasswordScreen from '../Screens/auth/NewPassword';
+import ResetPasswordScreen from '../Screens/auth/ResetPassword';
+import ResetSuccessScreen from '../Screens/auth/ResetSuccess';
+import VerifyCodeScreen from '../Screens/auth/VerifyCode';
+import KycSuccessScreen from '../Screens/auth/KYCSuccess';
+import type { AuthStackParamList } from './types';
 
-
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 const AuthNavigator = () => {
     return (

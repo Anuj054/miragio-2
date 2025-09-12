@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const taskpage = () => {
+const TaskPage = () => {
     return (
         <View>
             <Text>taskpage</Text>
@@ -9,4 +9,4 @@ const taskpage = () => {
     )
 }
 
-export default taskpage
+export default TaskPage
