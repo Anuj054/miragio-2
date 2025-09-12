@@ -1,103 +1,109 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import HomeStackNavigator from './StackNavigator';
-import ProfileScreen from '../screens/ProfileScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import type { TabParamList } from '../types/navigation';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const Tab = createBottomTabNavigator<TabParamList>();
+// Import your tab screens
+import TaskPageScreen from '../screens/task/taskpage';
+import TaskDetailsScreen from '../screens/task/taskdetails';
+import TaskSuccessfulScreen from '../screens/task/tasksuccessfull';
+import InstructionsScreen from '../screens/task/instructions';
 
-const TabNavigator: React.FC = () => {
+import ProfileScreen from '../screens/profile/userprofile';
+import EditProfileScreen from '../screens/profile/editprofile';
+
+import WalletPageScreen from '../screens/wallet/walletpage';
+import TransactionsScreen from '../screens/wallet/transactions';
+import WithdrawScreen from '../screens/wallet/withdraw';
+
+import MorePageScreen from '../screens/morepage';
+
+// You can import your custom tab bar icons here
+// import TabBarIcon from '../components/ui/TabBarIcon';
+
+const Tab = createBottomTabNavigator();
+const TaskStack = createNativeStackNavigator();
+const ProfileStack = createNativeStackNavigator();
+const WalletStack = createNativeStackNavigator();
+
+// Task Stack Navigator
+const TaskStackNavigator = () => (
+    <TaskStack.Navigator screenOptions={{ headerShown: false }}>
+        <TaskStack.Screen name="TaskPage" component={TaskPageScreen} />
+        <TaskStack.Screen name="TaskDetails" component={TaskDetailsScreen} />
+        <TaskStack.Screen name="TaskSuccessful" component={TaskSuccessfulScreen} />
+        <TaskStack.Screen name="Instructions" component={InstructionsScreen} />
+    </TaskStack.Navigator>
+);
+
+// Profile Stack Navigator
+const ProfileStackNavigator = () => (
+    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+        <ProfileStack.Screen name="UserProfile" component={ProfileScreen} />
+        <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
+    </ProfileStack.Navigator>
+);
+
+// Wallet Stack Navigator
+const WalletStackNavigator = () => (
+    <WalletStack.Navigator screenOptions={{ headerShown: false }}>
+        <WalletStack.Screen name="WalletPage" component={WalletPageScreen} />
+        <WalletStack.Screen name="Transactions" component={TransactionsScreen} />
+        <WalletStack.Screen name="Withdraw" component={WithdrawScreen} />
+    </WalletStack.Navigator>
+);
+
+const TabNavigator = () => {
     return (
         <Tab.Navigator
             screenOptions={{
-                tabBarActiveTintColor: '#3B82F6', // Tailwind blue-500
-                tabBarInactiveTintColor: '#6B7280', // Tailwind gray-500
+                headerShown: false,
                 tabBarStyle: {
-                    paddingBottom: 8,
-                    paddingTop: 8,
-                    height: 65,
-                    backgroundColor: '#FFFFFF',
-                    borderTopWidth: 1,
-                    borderTopColor: '#E5E7EB', // Tailwind gray-200
-                    shadowColor: '#000000',
-                    shadowOffset: {
-                        width: 0,
-                        height: -2,
-                    },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 3,
-                    elevation: 5,
+                    backgroundColor: '#000', // Adjust to match your theme
+                    borderTopWidth: 0,
+                    elevation: 0,
+                    height: 60,
                 },
-                tabBarLabelStyle: {
-                    fontSize: 12,
-                    fontWeight: '600',
-                },
-                headerShown: false, // Hide header for stack navigator screens
+                tabBarActiveTintColor: '#4CAF50', // Your active color
+                tabBarInactiveTintColor: '#666666', // Your inactive color
             }}
         >
             <Tab.Screen
-                name="HomeStack"
-                component={HomeStackNavigator}
+                name="TaskTab"
+                component={TaskStackNavigator}
                 options={{
-                    tabBarLabel: 'Home',
-                    // Add icon here if you have react-native-vector-icons
-                    // tabBarIcon: ({ color, size }) => (
-                    //   <Icon name="home" color={color} size={size} />
+                    tabBarLabel: 'Tasks',
+                    // tabBarIcon: ({ focused, color, size }) => (
+                    //   <TabBarIcon name="tasks" focused={focused} color={color} size={size} />
                     // ),
                 }}
             />
             <Tab.Screen
-                name="Profile"
-                component={ProfileScreen}
+                name="ProfileTab"
+                component={ProfileStackNavigator}
                 options={{
                     tabBarLabel: 'Profile',
-                    headerShown: true,
-                    headerStyle: {
-                        backgroundColor: '#3B82F6', // Tailwind blue-500
-                        shadowColor: '#000000',
-                        shadowOffset: {
-                            width: 0,
-                            height: 2,
-                        },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 3,
-                        elevation: 5,
-                    },
-                    headerTintColor: '#FFFFFF',
-                    headerTitleStyle: {
-                        fontWeight: 'bold',
-                        fontSize: 18,
-                    },
-                    // tabBarIcon: ({ color, size }) => (
-                    //   <Icon name="person" color={color} size={size} />
+                    // tabBarIcon: ({ focused, color, size }) => (
+                    //   <TabBarIcon name="profile" focused={focused} color={color} size={size} />
                     // ),
                 }}
             />
             <Tab.Screen
-                name="Settings"
-                component={SettingsScreen}
+                name="WalletTab"
+                component={WalletStackNavigator}
                 options={{
-                    tabBarLabel: 'Settings',
-                    headerShown: true,
-                    headerStyle: {
-                        backgroundColor: '#3B82F6', // Tailwind blue-500
-                        shadowColor: '#000000',
-                        shadowOffset: {
-                            width: 0,
-                            height: 2,
-                        },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 3,
-                        elevation: 5,
-                    },
-                    headerTintColor: '#FFFFFF',
-                    headerTitleStyle: {
-                        fontWeight: 'bold',
-                        fontSize: 18,
-                    },
-                    // tabBarIcon: ({ color, size }) => (
-                    //   <Icon name="settings" color={color} size={size} />
+                    tabBarLabel: 'Wallet',
+                    // tabBarIcon: ({ focused, color, size }) => (
+                    //   <TabBarIcon name="wallet" focused={focused} color={color} size={size} />
+                    // ),
+                }}
+            />
+            <Tab.Screen
+                name="MoreTab"
+                component={MorePageScreen}
+                options={{
+                    tabBarLabel: 'More',
+                    // tabBarIcon: ({ focused, color, size }) => (
+                    //   <TabBarIcon name="more" focused={focused} color={color} size={size} />
                     // ),
                 }}
             />

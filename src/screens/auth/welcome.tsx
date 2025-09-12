@@ -1,0 +1,101 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+
+import { onboarding } from '../../constants';
+import { useRef, useState } from 'react';
+import { Image, Text, TouchableOpacity, View, Dimensions } from 'react-native';
+import Swiper from 'react-native-swiper';
+import { Colors } from '../../constants/Colors';
+
+
+// Define your navigation param list
+type AuthStackParamList = {
+    Welcome: undefined;
+    SignUp: undefined;
+    SignIn: undefined;
+};
+
+type Props = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
+
+const { width, height } = Dimensions.get('window');
+
+const Onboarding = ({ navigation }: Props) => {
+    const swiperRef = useRef<Swiper>(null);
+    const [activeIndex, setActiveIndex] = useState<number>(0);
+
+    return (
+        <View className="flex-1 bg-black">
+            <Swiper
+                ref={swiperRef}
+                loop={false}
+                dot={
+                    <View
+                        className="w-8 h-1 mx-1 rounded-full"
+                        style={{ backgroundColor: Colors.light.secondaryText }}
+                    />
+                }
+                activeDot={
+                    <View
+                        className="w-8 h-1 mx-1 rounded-full"
+                        style={{ backgroundColor: Colors.light.blueTheme }}
+                    />
+                }
+                onIndexChanged={(index: number) => setActiveIndex(index)}
+            >
+                {onboarding.map((item) => (
+                    <View key={item.id} className="flex-1 items-center justify-center">
+                        <Image
+                            source={item.image}
+                            className="w-full h-full"
+                            resizeMode="cover"
+                            style={{ width, height }}
+                        />
+                    </View>
+                ))}
+            </Swiper>
+
+            <View className="absolute top-10 right-4">
+                <TouchableOpacity>
+                    <Text className="text-lg font-medium text-white">
+                        language/भाषा
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            <View className="absolute bottom-16 left-0 right-0 items-center px-6">
+                <View className="mb-6">
+                    <Text className="text-3xl font-semibold text-center text-white">
+                        Claim Your{' '}
+                        <Text className="font-bold text-blue-500">
+                            Bonus
+                        </Text>
+                    </Text>
+                    <Text className="text-3xl font-semibold text-center text-white">
+                        Instantly Upon Signup!
+                    </Text>
+                </View>
+
+                <TouchableOpacity
+                    style={{ backgroundColor: Colors.light.bgBlueBtn }}
+                    className=" flex justify-center items-center w-[350px] h-[56px] rounded-[15px] mb-5 "
+                    onPress={() => navigation.replace('SignUp')}
+                >
+                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-2xl font-semibold">
+                        Sign Up
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={{ backgroundColor: Colors.light.blackPrimary }}
+                    className=" flex justify-center items-center py-1 w-[350px] h-[56px] rounded-[15px]"
+                    onPress={() => navigation.replace('SignIn')}
+                >
+                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-2xl font-semibold  ">
+                        Login
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+};
+
+export default Onboarding;
