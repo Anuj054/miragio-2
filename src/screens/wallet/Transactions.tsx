@@ -374,28 +374,32 @@ const TransactionsPage = () => {
 
                 {/* Header overlay content with navigation and profile */}
                 <View className="flex-1 pt-12 pb-4 px-4">
-                    <View className="flex-row items-center justify-between h-12">
-                        {/* Back button - Navigate to wallet page */}
+                    {/* Header row with proper spacing */}
+                    <View className="flex-row items-center justify-between h-16">
+                        {/* Back button */}
                         <TouchableOpacity
-                            className="w-10 h-10 items-center justify-center"
                             onPress={handleBackPress}
+                            className="w-10 h-10 items-center justify-center"
                         >
-                            <Image source={icons.back} className="w-6 h-8" />
+                            <Image
+                                source={icons.back}
+                                className="w-4 h-6"
+                            />
                         </TouchableOpacity>
 
-                        {/* Page title */}
+                        {/* Centered title */}
                         <Text
                             style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-semibold"
+                            className="text-3xl font-medium"
                         >
-                            All Transaction
+                            Transactions
                         </Text>
 
-                        {/* Profile photo button - Navigate to user profile */}
+                        {/* Profile photo */}
                         <TouchableOpacity
+                            onPress={handleProfilePress}
                             style={{ backgroundColor: Colors.light.whiteFfffff }}
                             className="w-11 h-11 rounded-full items-center justify-center"
-                            onPress={handleProfilePress}
                         >
                             <Image
                                 source={profilephoto}
@@ -404,6 +408,7 @@ const TransactionsPage = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
+
 
                 {/* Header border line */}
                 <View

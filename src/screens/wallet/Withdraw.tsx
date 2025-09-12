@@ -377,7 +377,7 @@ const WithdrawAmountPage = () => {
                         >
                             <Image
                                 source={icons.back}
-                                className="w-6 h-8"
+                                className="w-4 h-6"
                             />
                         </TouchableOpacity>
 
