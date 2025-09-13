@@ -33,6 +33,7 @@ interface UserContextType {
     // User state
     user: UserData | null;
     isLoggedIn: boolean;
+    isAuthenticated: boolean; // Add this property for React Navigation compatibility
     isLoading: boolean;
 
     // Authentication methods
@@ -276,6 +277,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // State
         user,
         isLoggedIn,
+        isAuthenticated: isLoggedIn, // Add this line - isAuthenticated is an alias for isLoggedIn
         isLoading,
 
         // Methods

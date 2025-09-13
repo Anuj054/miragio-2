@@ -148,11 +148,11 @@ const WalletPage = () => {
             );
 
             // Navigate to welcome screen after logout
-            navigation.replace('Welcome');
+            navigation.navigate('Auth', { screen: 'Welcome' });
         } catch (error) {
             console.error('Wallet - Logout error:', error);
             // Even if there's an error, still redirect to login
-            navigation.replace('Welcome');
+            navigation.navigate('Auth', { screen: 'Welcome' });
         } finally {
             setIsLoggingOut(false);
         }
