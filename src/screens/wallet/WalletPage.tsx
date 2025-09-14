@@ -117,11 +117,14 @@ const WalletPage = () => {
 
     // Navigation handlers
     const handleBackPress = () => {
-        navigation.navigate('TaskTab', { screen: 'TaskPage' });
+        // Use goBack() instead of specific navigation
+        navigation.goBack();
     };
 
+
     const handleProfilePress = () => {
-        navigation.navigate('UserProfile', { from: 'wallet/walletpage' });
+        // Since UserProfile is at root level, navigate directly
+        navigation.navigate('UserProfile', { from: 'wallet' });
     };
 
     const handleTransactionsPress = () => {
@@ -133,6 +136,7 @@ const WalletPage = () => {
     };
 
     // FIXED: Proper logout function
+    // FIXED: Proper logout function
     const handleLogout = async () => {
         if (isLoggingOut) return; // Prevent double-tap
 
@@ -141,22 +145,23 @@ const WalletPage = () => {
             console.log('Wallet - Starting logout process...');
 
             // Call the logout function from UserContext
+            // This will set isAuthenticated to false and clear user data
             await logout();
 
-            console.log(
-                'Wallet - Logout successful, redirecting to Welcome screen...',
-            );
+            console.log('Wallet - Logout completed, automatic navigation will occur');
 
-            // Navigate to welcome screen after logout
-            navigation.navigate('Auth', { screen: 'Welcome' });
+            // No manual navigation needed!
+            // RootNavigator will detect isAuthenticated = false
+            // and automatically show Auth stack instead of Main stack
+
         } catch (error) {
             console.error('Wallet - Logout error:', error);
-            // Even if there's an error, still redirect to login
-            navigation.navigate('Auth', { screen: 'Welcome' });
+            // UserContext logout should still work even with errors
         } finally {
             setIsLoggingOut(false);
         }
     };
+
 
     return (
         <View

@@ -48,7 +48,9 @@ const SignIn = ({ navigation }: Props) => {
     };
 
     const togglePasswordVisibility = () => {
-        setIsPasswordVisible(!isPasswordVisible);
+        if (!isLoading) {
+            setIsPasswordVisible(!isPasswordVisible);
+        }
     };
 
     const validateForm = () => {
@@ -71,31 +73,26 @@ const SignIn = ({ navigation }: Props) => {
         return true;
     };
 
+    // FIXED: Navigation handlers
     const handleSignUpPress = () => {
-        navigation.replace('SignUp');
-    };
-
-    const handleResetPasswordPress = () => {
-        navigation.navigate('ResetPassword');
-    };
-
-    // Fixed navigation function based on your structure
-    const handleTaskPageNavigation = () => {
-        try {
-            // Navigate to Main navigator, then to TaskTab, then to TaskPage
-            navigation.navigate('Main', {
-                screen: 'TaskTab',
-                params: { screen: 'TaskPage' }
-            });
-
-        } catch (error) {
-            console.error('Navigation error:', error);
-            setErrorMessage('Navigation failed. Please try again.');
+        if (!isLoading) {
+            navigation.navigate('SignUp');
         }
     };
 
+    const handleResetPasswordPress = () => {
+        if (!isLoading) {
+            navigation.navigate('ResetPassword');
+        }
+    };
 
+    const handleBackPress = () => {
+        if (!isLoading) {
+            navigation.goBack();
+        }
+    };
 
+    // FIXED: Login handler - Let UserContext handle navigation automatically
     const handleLogin = async () => {
         if (isLoading) return;
 
@@ -108,10 +105,15 @@ const SignIn = ({ navigation }: Props) => {
             const result = await login(email.trim(), password.trim());
 
             if (result.success) {
-                setErrorMessage('');
-                setTimeout(() => {
-                    handleTaskPageNavigation();
-                }, 100);
+                setErrorMessage('Login successful! Redirecting...');
+
+                // ✅ FIXED: No manual navigation needed!
+                // UserContext login() will set isAuthenticated = true
+                // RootNavigator will automatically switch from Auth to Main stack
+                // This is the correct way for authentication-based navigation
+
+                console.log('Login successful, UserContext will handle navigation automatically');
+
             } else {
                 setErrorMessage(result.message);
             }
@@ -133,6 +135,17 @@ const SignIn = ({ navigation }: Props) => {
                 style={{ width, height }}
             />
 
+            {/* ADDED: Back Button */}
+            <TouchableOpacity
+                className="absolute flex left-[10px] top-[105px]"
+                onPress={handleBackPress}
+                disabled={isLoading}
+            >
+                {icons && (
+                    <Image source={icons.back} className="w-[25px] h-[30px] mx-4" />
+                )}
+            </TouchableOpacity>
+
             {/* Logo */}
             <Image
                 source={logo}
@@ -147,7 +160,7 @@ const SignIn = ({ navigation }: Props) => {
                 Sign in to your Account
             </Text>
 
-            {/* Sign up navigation link */}
+            {/* FIXED: Sign up navigation link */}
             <View className="flex flex-row absolute top-[380px] mb-5">
                 <Text
                     style={{ color: Colors.light.whiteFfffff }}
@@ -155,17 +168,24 @@ const SignIn = ({ navigation }: Props) => {
                 >
                     Don't have an account ?
                 </Text>
-                <TouchableOpacity onPress={handleSignUpPress}>
+                <TouchableOpacity
+                    onPress={handleSignUpPress}
+                    disabled={isLoading}
+                >
                     <Text
-                        style={{ color: Colors.light.blueTheme }}
+                        style={{
+                            color: Colors.light.blueTheme,
+                            opacity: isLoading ? 0.5 : 1
+                        }}
                         className="px-1 text-xl font-semibold"
                     >
                         SignUp
                     </Text>
                 </TouchableOpacity>
             </View>
+
             {/* Input Fields */}
-            <View className="absolute top-[440px]">
+            <View className="absolute top-[460px]">
                 {/* Email Input */}
                 <View
                     style={{ backgroundColor: Colors.light.whiteFfffff }}
@@ -235,16 +255,19 @@ const SignIn = ({ navigation }: Props) => {
                             <Image
                                 source={isPasswordVisible ? icons.eyeopen : icons.eye}
                                 className="w-[16px] h-[12px] mx-4"
+                                style={{ opacity: isLoading ? 0.5 : 1 }}
                             />
                         )}
                     </TouchableOpacity>
                 </View>
 
-                {/* Error Message - FIXED POSITIONING */}
+                {/* FIXED: Error Message */}
                 {errorMessage ? (
                     <View className="mt-5 w-[370px]">
                         <Text
-                            style={{ color: '#EF4444' }}
+                            style={{
+                                color: errorMessage.includes('successful') ? '#10B981' : '#EF4444'
+                            }}
                             className="text-center text-sm font-medium"
                         >
                             {errorMessage}
@@ -253,11 +276,17 @@ const SignIn = ({ navigation }: Props) => {
                 ) : null}
             </View>
 
-            {/* Forgot Password - INCREASED TOP MARGIN */}
+            {/* FIXED: Forgot Password */}
             <View className="absolute top-[630px]">
-                <TouchableOpacity onPress={handleResetPasswordPress} disabled={isLoading}>
+                <TouchableOpacity
+                    onPress={handleResetPasswordPress}
+                    disabled={isLoading}
+                >
                     <Text
-                        style={{ color: Colors.light.secondaryText }}
+                        style={{
+                            color: Colors.light.secondaryText,
+                            opacity: isLoading ? 0.5 : 1
+                        }}
                         className="underline"
                     >
                         Forgot Your Password ?
@@ -265,7 +294,7 @@ const SignIn = ({ navigation }: Props) => {
                 </TouchableOpacity>
             </View>
 
-            {/* Login Button - INCREASED TOP MARGIN */}
+            {/* Login Button */}
             <View className="absolute top-[670px]">
                 <CustomGradientButton
                     text={isLoading ? "Signing In..." : "Login"}
@@ -282,7 +311,6 @@ const SignIn = ({ navigation }: Props) => {
                     }}
                 />
             </View>
-
 
             {/* Footer */}
             <View className="absolute bottom-8">

@@ -6,11 +6,13 @@ import { StatusBar, useColorScheme } from 'react-native';
 import { UserProvider } from './src/context/UserContext';
 import SplashScreen from './src/components/SplashScreen';
 import AuthNavigator from './src/Navigation/AuthNavigator';
-import TabNavigator from './src/Navigation/TabNavigator'; // Import TabNavigator directly
-import { useUser } from './src/context/UserContext';
-import type { AppStackParamList } from './src/Navigation/types';
 
-const Stack = createNativeStackNavigator<AppStackParamList>();
+import { useUser } from './src/context/UserContext';
+import type { RootStackParamList } from './src/Navigation/types';
+import MainNavigator from './src/Navigation/MainNavigator';
+
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Main App Content Component
 const AppContent = () => {
@@ -34,7 +36,7 @@ const AppContent = () => {
           <Stack.Screen name="Auth" component={AuthNavigator} />
         ) : (
           // Show Main App (TabNavigator) when logged in
-          <Stack.Screen name="Main" component={TabNavigator} />
+          <Stack.Screen name="Main" component={MainNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

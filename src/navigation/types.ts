@@ -1,45 +1,50 @@
-// In your Navigation/types.ts
+// Navigation/types.ts
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
-// App-level navigator (highest level) - ADD UserProfile here
-export type AppStackParamList = {
+// Root Navigator - Top level
+export type RootStackParamList = {
     Auth: NavigatorScreenParams<AuthStackParamList>;
-    Main: NavigatorScreenParams<TabParamList>;
+    Main: NavigatorScreenParams<MainStackParamList>;
+};
+
+// Auth Stack - All authentication screens
+export type AuthStackParamList = {
+    Welcome: undefined;
+    SignIn: undefined;
+    SignUp: undefined;
+    KYC: undefined;
+    UserDetails: undefined;
+    Otp: undefined;
+    KycSuccess: undefined;
+    ResetPassword: undefined;
+    VerifyCode: { email?: string };
+    NewPassword: { token?: string };
+    ResetSuccess: undefined;
+};
+
+// Main Stack - After authentication
+export type MainStackParamList = {
+    Tabs: NavigatorScreenParams<TabParamList>;
     UserProfile: { from?: string };
     EditProfile: { from?: string };
 };
 
-// Tab Navigator Types  
+// Tab Navigator
 export type TabParamList = {
     TaskTab: NavigatorScreenParams<TaskStackParamList>;
     WalletTab: NavigatorScreenParams<WalletStackParamList>;
     MoreTab: undefined;
 };
 
-// Auth Stack Types
-export type AuthStackParamList = {
-    Welcome: undefined;
-    SignIn: undefined;
-    SignUp: undefined;
-    Kyc: undefined;
-    Otp: undefined;
-    NewPassword: undefined;
-    ResetPassword: undefined;
-    ResetSuccess: undefined;
-    VerifyCode: undefined;
-    KycSuccess: undefined;
-    Main: NavigatorScreenParams<TabParamList>;
-};
-
-// Task Stack Types
+// Task Stack
 export type TaskStackParamList = {
     TaskPage: undefined;
-    TaskDetails: undefined;
-    TaskSuccessful: undefined;
-    Instructions: undefined;
+    TaskDetails: { taskId?: string };
+    TaskSuccessful: {};
+    Instructions: { taskId?: string };
 };
 
-// Wallet Stack Types (REMOVE UserProfile from here)
+// Wallet Stack
 export type WalletStackParamList = {
     WalletPage: undefined;
     Transactions: undefined;

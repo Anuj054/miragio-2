@@ -1,26 +1,30 @@
+// Navigation/TabNavigator.tsx
 import React, { useEffect, useRef } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Image, type ImageSourcePropType, View, Text, Animated } from 'react-native';
 
-// Import your tab screens
+// Task screens
 import TaskPageScreen from '../Screens/task/TaskPage';
 import TaskDetailsScreen from '../Screens/task/TaskDetails';
 import TaskSuccessfulScreen from '../Screens/task/TaskSuccessfull';
 import InstructionsScreen from '../Screens/task/Instructions';
 
+// Wallet screens
 import WalletPageScreen from '../Screens/wallet/WalletPage';
 import TransactionsScreen from '../Screens/wallet/Transactions';
 import WithdrawScreen from '../Screens/wallet/Withdraw';
 
-import MorePageScreen from '../Screens/MorePageScreen';
+// More screen
+import MorePageScreen from '../Screens/more/MorePageScreen';
 
-// Import icons
+// Icons
 import { icons } from '../constants/index';
+import type { TabParamList, TaskStackParamList, WalletStackParamList } from './types';
 
-const Tab = createBottomTabNavigator();
-const TaskStack = createNativeStackNavigator();
-const WalletStack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator<TabParamList>();
+const TaskStack = createNativeStackNavigator<TaskStackParamList>();
+const WalletStack = createNativeStackNavigator<WalletStackParamList>();
 
 // Custom Tab Icon Component
 const TabIcon = ({
@@ -55,7 +59,6 @@ const TabIcon = ({
 
     return (
         <View className="flex-1 justify-center items-center relative">
-            {/* Background highlight */}
             <Animated.View
                 className="absolute bottom-[15px] bg-[#078FCA] rounded-full z-10"
                 style={{
@@ -65,8 +68,6 @@ const TabIcon = ({
                     opacity: opacityValue,
                 }}
             />
-
-            {/* Icon container */}
             <View className={`flex items-center justify-center w-12 h-16 rounded-full top-3 ${focused ? ' pb-8' : ''}`}>
                 <View className="absolute">
                     <Image
@@ -86,8 +87,6 @@ const TabIcon = ({
                     className="w-[71px] h-[59.15px] top-[-6px]"
                 />
             </View>
-
-            {/* Label */}
             <Text
                 className={`text-lg mt-1 w-full bottom-1 ${focused ? 'text-[#078FCA] font-bold' : 'text-[#2B2B2B]'}`}
                 style={{ fontSize: 11 }}
@@ -100,7 +99,12 @@ const TabIcon = ({
 
 // Task Stack Navigator
 const TaskStackNavigator = () => (
-    <TaskStack.Navigator screenOptions={{ headerShown: false }}>
+    <TaskStack.Navigator
+        screenOptions={{
+            headerShown: false,
+            animation: 'none' // ADDED: Remove animations
+        }}
+    >
         <TaskStack.Screen name="TaskPage" component={TaskPageScreen} />
         <TaskStack.Screen name="TaskDetails" component={TaskDetailsScreen} />
         <TaskStack.Screen name="TaskSuccessful" component={TaskSuccessfulScreen} />
@@ -110,7 +114,12 @@ const TaskStackNavigator = () => (
 
 // Wallet Stack Navigator
 const WalletStackNavigator = () => (
-    <WalletStack.Navigator screenOptions={{ headerShown: false }}>
+    <WalletStack.Navigator
+        screenOptions={{
+            headerShown: false,
+            animation: 'none' // ADDED: Remove animations
+        }}
+    >
         <WalletStack.Screen name="WalletPage" component={WalletPageScreen} />
         <WalletStack.Screen name="Transactions" component={TransactionsScreen} />
         <WalletStack.Screen name="Withdraw" component={WithdrawScreen} />
@@ -156,8 +165,8 @@ const TabNavigator = () => {
                     tabBarIcon: ({ focused }) => (
                         <TabIcon
                             focused={focused}
-                            activeSource={icons.coin1} // Different icon for active state
-                            inactiveSource={icons.coin} // Original icon for inactive state
+                            activeSource={icons.coin1}
+                            inactiveSource={icons.coin}
                             label="Task"
                         />
                     )
@@ -172,8 +181,8 @@ const TabNavigator = () => {
                     tabBarIcon: ({ focused }) => (
                         <TabIcon
                             focused={focused}
-                            activeSource={icons.wallet1} // Different icon for active state
-                            inactiveSource={icons.wallet} // Original icon for inactive state
+                            activeSource={icons.wallet1}
+                            inactiveSource={icons.wallet}
                             label="Wallet"
                         />
                     )
@@ -188,8 +197,8 @@ const TabNavigator = () => {
                     tabBarIcon: ({ focused }) => (
                         <TabIcon
                             focused={focused}
-                            activeSource={icons.app1} // Different icon for active state
-                            inactiveSource={icons.app} // Original icon for inactive state
+                            activeSource={icons.app1}
+                            inactiveSource={icons.app}
                             label="More"
                         />
                     )

@@ -35,8 +35,9 @@ const SignUp = ({ navigation }: Props) => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [referralCode, setReferralCode] = useState("");
 
-    // State for error message
+    // State for error message and loading
     const [errorMessage, setErrorMessage] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     // Clear all signup-related data when component mounts (fresh start)
     useEffect(() => {
@@ -104,28 +105,32 @@ const SignUp = ({ navigation }: Props) => {
         return true;
     };
 
-    const [isLoading, setIsLoading] = useState(false);
-    // Navigation handlers
-    const handleWelcomePress = () => {
-        navigation.replace('Welcome');
+    // FIXED: Navigation handlers
+    const handleBackPress = () => {
+        // Use goBack() instead of replace to maintain navigation stack
+        if (!isLoading) {
+            navigation.goBack();
+        }
     };
 
     const handleSignInPress = () => {
-        navigation.replace('SignIn');
+        // Use navigate instead of replace for better UX
+        if (!isLoading) {
+            navigation.navigate('SignIn');
+        }
     };
 
-    const handleKycNavigation = () => {
-        navigation.navigate('Kyc');
-    };
-
-    // Handle next button press - store data and navigate to KYC
+    // FIXED: Handle next button press - store data and navigate to KYC
     const handleNextPress = async () => {
-        // Clear previous error
         if (isLoading) return;
+
+        // Clear previous error
         setErrorMessage("");
 
         if (!validateForm()) return;
+
         setIsLoading(true);
+
         try {
             // Store signup data in AsyncStorage
             const signupData = {
@@ -139,12 +144,14 @@ const SignUp = ({ navigation }: Props) => {
             await AsyncStorage.setItem('@signup_data', JSON.stringify(signupData));
             console.log('SignUp - Stored data:', signupData);
 
-            // Navigate to KYC page
-            handleKycNavigation();
+            // FIXED: Navigate to KYC page directly
+            navigation.navigate('KYC');
 
         } catch (error) {
             console.error('Error storing signup data:', error);
             setErrorMessage("Something went wrong. Please try again.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -160,10 +167,11 @@ const SignUp = ({ navigation }: Props) => {
 
             {/* Header Section with Logo */}
             <View className="absolute flex items-center w-full">
-                {/* Back button - Navigate to welcome */}
+                {/* FIXED: Back button */}
                 <TouchableOpacity
                     className="absolute flex left-[10px] top-[105px]"
-                    onPress={handleWelcomePress}
+                    onPress={handleBackPress}
+                    disabled={isLoading}
                 >
                     {icons && (
                         <Image source={icons.back} className="w-[25px] h-[30px] mx-4" />
@@ -180,13 +188,13 @@ const SignUp = ({ navigation }: Props) => {
             {/* Page Title */}
             <Text
                 style={{ color: Colors.light.whiteFfffff }}
-                className="absolute top-[220px] font-medium text-2xl"
+                className="absolute top-[210px] font-extrabold text-3xl"
             >
                 Create An Account
             </Text>
 
             {/* Input Fields Section */}
-            <View className="absolute top-[280px]">
+            <View className="absolute top-[290px]">
                 {/* Email input field */}
                 <View
                     style={{ backgroundColor: Colors.light.whiteFfffff }}
@@ -207,7 +215,6 @@ const SignUp = ({ navigation }: Props) => {
                         }}
                         autoCapitalize="none"
                         keyboardType="email-address"
-
                         editable={!isLoading}
                     />
                 </View>
@@ -237,6 +244,7 @@ const SignUp = ({ navigation }: Props) => {
                     <TouchableOpacity
                         className="absolute right-3 h-[56px] flex justify-center items-center"
                         onPress={togglePasswordVisibility}
+                        disabled={isLoading}
                     >
                         {icons && (
                             <Image
@@ -272,6 +280,7 @@ const SignUp = ({ navigation }: Props) => {
                     <TouchableOpacity
                         className="absolute right-3 h-[56px] flex items-center justify-center"
                         onPress={toggleConfirmPasswordVisibility}
+                        disabled={isLoading}
                     >
                         {icons && (
                             <Image
@@ -319,7 +328,7 @@ const SignUp = ({ navigation }: Props) => {
             </View>
 
             {/* Next Button Section */}
-            <View className="absolute top-[590px]">
+            <View className="absolute top-[600px]">
                 <CustomGradientButton
                     text={isLoading ? "Saving..." : "Next"}
                     width={370}
@@ -328,7 +337,7 @@ const SignUp = ({ navigation }: Props) => {
                     fontSize={18}
                     fontWeight="600"
                     onPress={handleNextPress}
-                    disabled={!isChecked}
+                    disabled={!isChecked || isLoading}
                     textColor={isChecked ? Colors.light.whiteFfffff : Colors.light.secondaryText}
                     style={{
                         opacity: isChecked && !isLoading ? 1 : 0.6,
@@ -337,7 +346,7 @@ const SignUp = ({ navigation }: Props) => {
             </View>
 
             {/* Terms and Conditions Section */}
-            <View className="absolute top-[670px] flex flex-row items-start justify-start w-full">
+            <View className="absolute top-[680px] flex flex-row items-start justify-start w-full">
                 <CheckBox
                     value={isChecked}
                     onValueChange={(value) => {
@@ -350,13 +359,12 @@ const SignUp = ({ navigation }: Props) => {
                         height: 25,
                         width: 25,
                         marginLeft: 30
-
                     }}
                     tintColors={{ true: Colors.light.blueTheme, false: Colors.light.whiteFfffff }}
                     disabled={isLoading}
                 />
 
-                <View className="flex flex-col ">
+                <View className="flex flex-col">
                     <View className='flex flex-row ml-3'>
                         <Text
                             style={{ color: Colors.light.whiteFfffff }}
@@ -372,7 +380,6 @@ const SignUp = ({ navigation }: Props) => {
                             >
                                 {' '}terms &
                             </Text>
-
                         </TouchableOpacity>
                     </View>
 
@@ -382,15 +389,18 @@ const SignUp = ({ navigation }: Props) => {
                 </View>
             </View>
 
-            {/* Sign In Navigation Link */}
-            <View className="absolute top-[770px] flex flex-row">
+            {/* FIXED: Sign In Navigation Link */}
+            <View className="absolute top-[780px] flex flex-row">
                 <Text
                     style={{ color: Colors.light.whiteFfffff }}
                     className="px-1 text-xl font-semibold"
                 >
                     Already have an account ?
                 </Text>
-                <TouchableOpacity onPress={handleSignInPress}>
+                <TouchableOpacity
+                    onPress={handleSignInPress}
+                    disabled={isLoading}
+                >
                     <Text
                         style={{ color: Colors.light.blueTheme }}
                         className="px-1 text-xl font-bold"

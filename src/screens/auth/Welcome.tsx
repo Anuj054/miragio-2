@@ -4,22 +4,24 @@ import Swiper from 'react-native-swiper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors } from '../../constants/Colors';
 import { onboarding } from '../../constants';
-import type { AuthStackParamList } from '../../Navigation/types'
+import type { AuthStackParamList } from '../../Navigation/types';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
 
 const { width, height } = Dimensions.get('window');
 
-const Onboarding = ({ navigation }: Props) => {
+const Welcome = ({ navigation }: Props) => {
     const swiperRef = useRef<Swiper>(null);
     const [, setActiveIndex] = useState<number>(0);
 
     const handleSignUpPress = () => {
-        navigation.replace('SignUp');
+        // Use navigate instead of replace for better user experience
+        navigation.navigate('SignUp');
     };
 
     const handleSignInPress = () => {
-        navigation.replace('SignIn');
+        // Use navigate instead of replace for better user experience
+        navigation.navigate('SignIn');
     };
 
     return (
@@ -63,7 +65,7 @@ const Onboarding = ({ navigation }: Props) => {
 
             <View className="absolute bottom-16 left-0 right-0 items-center px-6">
                 <View className="mb-6">
-                    <Text style={{ color: Colors.light.whiteFfffff }} className="text-2xl font-semibold text-center mb-2">
+                    <Text style={{ color: Colors.light.whiteFfffff }} className="text-2xl font-bold text-center mb-2">
                         Claim Your{' '}
                         <Text style={{ color: Colors.light.blueBgOnboarding }} className="font-bold">
                             Bonus
@@ -104,4 +106,4 @@ const Onboarding = ({ navigation }: Props) => {
     );
 };
 
-export default Onboarding;
+export default Welcome; // Changed from Onboarding to Welcome

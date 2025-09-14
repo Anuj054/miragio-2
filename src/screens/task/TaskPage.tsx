@@ -11,6 +11,7 @@ import {
     StatusBar
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 // Import your assets
 import bg2 from "../../assets/images/bg2.png";
@@ -29,12 +30,12 @@ import CustomOrangeGradientButton from "../../components/CustomOrangeGradientBut
 import CustomGreenGradientButton from "../../components/CustomGreenGradientButton";
 import { useUser } from "../../context/UserContext";
 
-// Navigation types
-import { useNavigation } from '@react-navigation/native';
+// FIXED: Navigation types
+import type { TaskStackParamList } from "../../Navigation/types";
 
-type NavigationProp = any;
+type Props = NativeStackScreenProps<TaskStackParamList, 'TaskPage'>;
 
-// Type definitions remain the same...
+// Type definitions
 interface AssignedUser {
     id: string;
     username: string;
@@ -84,21 +85,20 @@ interface GroupedTasks {
 
 type FilterOption = 'All' | 'Upcoming' | 'Completed' | 'Pending' | 'Rejected';
 
-const TaskPage = () => {
+const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
     const [activeFilter, setActiveFilter] = useState<FilterOption>("All");
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [refreshing, setRefreshing] = useState<boolean>(false);
 
-    const navigation = useNavigation<NavigationProp>();
     const { getUserId } = useUser();
     const USER_ID = getUserId();
 
     const taskIcons = [task1, task2, task3, task4];
     const filterOptions: FilterOption[] = ['All', 'Upcoming', 'Completed', 'Pending', 'Rejected'];
 
-    // All utility functions remain the same...
+    // Utility functions
     const getUserTaskStatus = (assignedUsers: AssignedUser[], userId: string): string | null => {
         if (!assignedUsers || !userId) return null;
         const currentUser = assignedUsers.find(user => String(user.id) === String(userId));
@@ -168,7 +168,7 @@ const TaskPage = () => {
         });
     };
 
-    // API fetch function remains the same...
+    // API fetch function
     const fetchUserTasks = async (showLoader = true) => {
         try {
             if (showLoader) setLoading(true);
@@ -258,10 +258,11 @@ const TaskPage = () => {
         }
     };
 
-    // Navigation handlers
+    // FIXED: Navigation handlers
     const handleTaskNavigation = (task: Task) => {
         if (task.status === 'completed') {
-            navigation.navigate('TaskSuccessful');
+            // FIXED: Use type assertion if needed
+            (navigation as any).navigate('TaskSuccessful');
             return;
         }
 
@@ -274,18 +275,20 @@ const TaskPage = () => {
             return;
         }
 
-        navigation.navigate('TaskDetails', { taskId: task.id.toString() });
+        navigation.getParent()?.navigate('UserProfile', { from: 'taskpage' });
     };
 
     const handleBackPress = () => {
-        navigation.navigate('Welcome');
+        // FIXED: Navigate back to main app instead of Welcome
+        navigation.goBack();
     };
 
     const handleProfilePress = () => {
-        navigation.navigate('UserProfile', { from: 'taskpage' });
+        // FIXED: Navigate to UserProfile in Main Stack
+        navigation.getParent()?.navigate('UserProfile', { from: 'taskpage' });
     };
 
-    // Render functions...
+    // Render functions
     const renderFilterButton = (option: FilterOption, index: number) => (
         <TouchableOpacity
             key={option}

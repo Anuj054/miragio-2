@@ -76,6 +76,7 @@ export const images = {
 export const icons = {
     mail,
     lock,
+
     eye,
     eyevector,
     otp,

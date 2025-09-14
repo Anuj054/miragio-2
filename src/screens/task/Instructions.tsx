@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+
 import {
     Image,
     ScrollView,
@@ -9,7 +9,7 @@ import {
     StatusBar,
     ImageBackground
 } from "react-native";
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 
 // Import your assets
@@ -19,7 +19,7 @@ import { Colors } from "../../constants/Colors";
 
 // Navigation types
 type NavigationProp = any;
-type RouteProp = any;
+
 
 // Type definitions for task instructions
 interface TaskInstructions {
@@ -31,14 +31,10 @@ interface TaskInstructions {
 const Instructions = () => {
     // Get navigation and route
     const navigation = useNavigation<NavigationProp>();
-    const route = useRoute<RouteProp>();
+
 
     // Get taskId from route params
-    const taskId = route.params?.taskId;
 
-    // State management
-    const [searchVisible, setSearchVisible] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
 
     // Navigation handlers
     const handleBackPress = () => {
