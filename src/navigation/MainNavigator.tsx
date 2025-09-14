@@ -24,7 +24,7 @@ import HelpDesk from '../Screens/more/help/HelpDesk';
 import SystemStatus from '../Screens/more/help/SystemStatus';
 
 // System folder screens
-import PrivacyPolicy from '../Screens/more/system/Privacypolicy';
+import PrivacyPolicy from '../Screens/more/system/PrivacyPolicy';
 import RNGCertification from '../Screens/more/system/RNGCertification';
 import Careers from '../Screens/more/system/Careers';
 import AboutUs from '../Screens/more/system/AboutUs';
