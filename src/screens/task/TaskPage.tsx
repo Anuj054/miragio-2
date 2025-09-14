@@ -278,10 +278,6 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
         navigation.getParent()?.navigate('UserProfile', { from: 'taskpage' });
     };
 
-    const handleBackPress = () => {
-        // FIXED: Navigate back to main app instead of Welcome
-        navigation.goBack();
-    };
 
     const handleProfilePress = () => {
         // FIXED: Navigate to UserProfile in Main Stack
@@ -505,19 +501,16 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                     <View className="flex-row items-center justify-between h-16">
                         {/* Back button */}
                         <TouchableOpacity
-                            onPress={handleBackPress}
+
                             className="w-10 h-10 items-center justify-center"
                         >
-                            <Image
-                                source={icons.back}
-                                className="w-4 h-6"
-                            />
+
                         </TouchableOpacity>
 
                         {/* Centered title */}
                         <Text
                             style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium"
+                            className="text-3xl font-medium pt-1"
                         >
                             Tasks
                         </Text>

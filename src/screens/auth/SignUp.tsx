@@ -5,11 +5,14 @@ import {
     TextInput,
     TouchableOpacity,
     View,
-    Dimensions
+    Dimensions,
+    BackHandler
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CheckBox from '@react-native-community/checkbox';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import { Colors } from '../../constants/Colors';
 import { icons } from '../../constants/index';
 import bg from '../../assets/images/bg.png';
@@ -43,6 +46,25 @@ const SignUp = ({ navigation }: Props) => {
     useEffect(() => {
         clearAllSignupData();
     }, []);
+
+    // ADDED: Handle back button properly
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                if (!isLoading) {
+                    // Go back to Welcome instead of staying in auth loop
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Welcome' }],
+                    });
+                }
+                return true;
+            };
+
+            const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+            return () => subscription?.remove();
+        }, [navigation, isLoading])
+    );
 
     const clearAllSignupData = async () => {
         try {
@@ -107,20 +129,23 @@ const SignUp = ({ navigation }: Props) => {
 
     // FIXED: Navigation handlers
     const handleBackPress = () => {
-        // Use goBack() instead of replace to maintain navigation stack
+        // Go back to Welcome to break the loop
         if (!isLoading) {
-            navigation.goBack();
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Welcome' }],
+            });
         }
     };
 
     const handleSignInPress = () => {
-        // Use navigate instead of replace for better UX
+        // Use replace instead of navigate to prevent stack accumulation
         if (!isLoading) {
-            navigation.navigate('SignIn');
+            navigation.replace('SignIn');
         }
     };
 
-    // FIXED: Handle next button press - store data and navigate to KYC
+    // Handle next button press - store data and navigate to KYC
     const handleNextPress = async () => {
         if (isLoading) return;
 
@@ -144,7 +169,7 @@ const SignUp = ({ navigation }: Props) => {
             await AsyncStorage.setItem('@signup_data', JSON.stringify(signupData));
             console.log('SignUp - Stored data:', signupData);
 
-            // FIXED: Navigate to KYC page directly
+            // Navigate to KYC page directly
             navigation.navigate('KYC');
 
         } catch (error) {

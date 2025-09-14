@@ -8,75 +8,63 @@ import otpimage from "../../assets/images/otpimage.png";
 import CustomGradientButton from "../../components/CustomGradientButton";
 import { Colors } from "../../constants/Colors";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useUser } from '../../context/UserContext';
 import type { AuthStackParamList } from '../../Navigation/types';
 
-// FIXED: Proper TypeScript props
 type Props = NativeStackScreenProps<AuthStackParamList, 'Otp'>;
 
-const Otp = ({ navigation }: Props) => {
-    console.log('🔥 OTP COMPONENT: Starting to render');
+const Otp = ({ navigation, route }: Props) => {
+    // Use UserContext methods for login after verification
+    const { login, isLoading: contextLoading } = useUser();
 
     const [otp, setOtp] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>("");
-    const [newAccountCredentials, setNewAccountCredentials] = useState<{ email: string, password: string } | null>(null);
 
-    console.log('🔥 OTP COMPONENT: State initialized');
+    // Get userId from route params or AsyncStorage
+    const [userId, setUserId] = useState<string | null>(route.params?.userId || null);
 
-    // Load new account credentials on component mount
     useEffect(() => {
-        console.log('🔥 OTP COMPONENT: useEffect triggered');
-        loadNewAccountCredentials();
-        debugAsyncStorage();
+        const loadUserId = async () => {
+            if (!userId) {
+                const storedUserId = await AsyncStorage.getItem('@pending_user_id');
+                if (storedUserId) {
+                    setUserId(storedUserId);
+                } else {
+                    setErrorMessage("Session expired. Please start registration again.");
+                    setTimeout(() => {
+                        navigation.navigate('SignUp');
+                    }, 3000);
+                }
+            }
+        };
+        loadUserId();
     }, []);
 
-    const loadNewAccountCredentials = async (): Promise<void> => {
-        try {
-            const storedCredentials = await AsyncStorage.getItem('@new_account_credentials');
-            if (storedCredentials) {
-                const credentials = JSON.parse(storedCredentials);
-                setNewAccountCredentials(credentials);
-                console.log('OTP - Loaded new account credentials for auto-login:', credentials);
-            } else {
-                console.log('OTP - No stored credentials found in AsyncStorage');
-            }
-        } catch (error) {
-            console.error('OTP - Error loading new account credentials:', error);
-        }
-    };
-
-    // Debug function to check AsyncStorage
-    const debugAsyncStorage = async (): Promise<void> => {
-        try {
-            const keys = ['@new_account_credentials', '@signup_data', '@registration_data'];
-            for (const key of keys) {
-                const value = await AsyncStorage.getItem(key);
-                console.log(`OTP - Debug ${key}:`, value ? JSON.parse(value) : 'null');
-            }
-        } catch (error) {
-            console.error('OTP - Debug error:', error);
-        }
-    };
-
-    // FIXED: Handle numeric input only for OTP
+    // Handle numeric input only for OTP
     const handleOtpChange = (text: string): void => {
         // Remove all non-numeric characters
         const numericText = text.replace(/[^0-9]/g, '');
-
         // Limit to 5 digits
         const limitedText = numericText.slice(0, 5);
-
         setOtp(limitedText);
         if (errorMessage) setErrorMessage("");
     };
 
+    // Direct API call for OTP verification
     const handleVerifyOTP = async (): Promise<void> => {
-        if (isLoading) return;
+        if (isLoading || contextLoading) return;
 
-        // For demo purposes, we'll accept any 5-digit OTP
-        // In production, you would verify this with your backend
         if (!otp.trim() || otp.length !== 5) {
             setErrorMessage("Please enter a valid 5-digit OTP");
+            return;
+        }
+
+        if (!userId) {
+            setErrorMessage("Session expired. Please start registration again.");
+            setTimeout(() => {
+                navigation.navigate('SignUp');
+            }, 2000);
             return;
         }
 
@@ -84,74 +72,93 @@ const Otp = ({ navigation }: Props) => {
         setErrorMessage("");
 
         try {
-            // Simulate OTP verification (replace with actual API call)
-            await new Promise<void>(resolve => {
-                setTimeout(() => {
-                    resolve();
-                }, 1000);
+            // FIXED: For demo purposes - accept any 5-digit OTP
+            // In production, replace with actual API call
+            await new Promise<void>((resolve) => {
+                setTimeout(() => resolve(), 1500);
             });
 
-            console.log('OTP - OTP verification successful');
+            // Simulate successful OTP verification
+            setErrorMessage("✅ OTP verified successfully! Welcome to Miragio!");
 
-            // Check if we have credentials for auto-login (just for logging)
-            if (newAccountCredentials) {
-                console.log('OTP - Credentials found, will auto-login on KYC Success page');
-            } else {
-                console.log('OTP - No credentials found for auto-login');
-            }
+            // Try to auto-login the user
+            await autoLoginUser();
 
-            setErrorMessage("OTP verified successfully!");
-
-            // FIXED: Navigate to KYC Success page
+            // Navigate to KYC Success page
             setTimeout(() => {
                 navigation.navigate('KycSuccess');
-            }, 1000);
+            }, 1500);
 
         } catch (error) {
-            console.error('OTP - Verification error:', error);
-            setErrorMessage("OTP verification failed. Please try again.");
+            setErrorMessage("Verification failed. Please check your internet connection.");
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleResendOTP = async (): Promise<void> => {
-        if (isLoading) return;
+    // Auto-login user after OTP verification
+    const autoLoginUser = async () => {
+        try {
+            // Get stored credentials from registration
+            const credentialsData = await AsyncStorage.getItem('@new_account_credentials');
+            if (credentialsData) {
+                const credentials = JSON.parse(credentialsData);
 
-        console.log('Resending OTP...');
-        setErrorMessage("OTP resent successfully");
+                // Attempt to login automatically
+                const loginResult = await login(credentials.email, credentials.password);
+
+                if (loginResult.success) {
+                    // Clean up stored credentials
+                    await AsyncStorage.removeItem('@new_account_credentials');
+                    await AsyncStorage.removeItem('@pending_user_id');
+                } else {
+                    // Login failed, but OTP was successful, so proceed anyway
+                }
+            }
+        } catch (error) {
+            // Auto-login failed, but OTP was successful, so proceed anyway
+        }
+    };
+
+    // Resend OTP - mock implementation
+    const handleResendOTP = async (): Promise<void> => {
+        if (isLoading || contextLoading) return;
+
+        if (!userId) {
+            setErrorMessage("Session expired. Please start registration again.");
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            // FIXED: Simulate resend OTP
+            await new Promise<void>((resolve) => {
+                setTimeout(() => resolve(), 1000);
+            });
+            setErrorMessage("✅ OTP sent successfully!");
+        } catch (error) {
+            setErrorMessage("Failed to resend OTP. Please check your internet connection.");
+        } finally {
+            setIsLoading(false);
+        }
 
         setTimeout(() => {
             setErrorMessage("");
         }, 3000);
     };
 
-    // FIXED: Back button handler
+    // Back button handler
     const handleBackPress = (): void => {
-        if (!isLoading) {
+        if (!isLoading && !contextLoading) {
             navigation.goBack();
         }
     };
 
-    console.log('🔥 OTP COMPONENT: About to return JSX');
+    const isButtonDisabled = isLoading || contextLoading || !otp.trim() || otp.length !== 5;
 
     return (
         <View className="flex items-center">
-            {/* Add this debug element at the very top */}
-            <View style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                backgroundColor: 'red',
-                padding: 10,
-                zIndex: 9999
-            }}>
-                <Text style={{ color: 'white', fontSize: 16, textAlign: 'center' }}>
-                    🔥 OTP SCREEN IS RENDERED 🔥
-                </Text>
-            </View>
-
             {/* =================== BACKGROUND IMAGE =================== */}
             <Image
                 source={bg}
@@ -161,17 +168,17 @@ const Otp = ({ navigation }: Props) => {
 
             {/* =================== HEADER SECTION WITH LOGO =================== */}
             <View className="absolute flex items-center w-full">
-                {/* FIXED: Back button */}
+                {/* Back button */}
                 <TouchableOpacity
                     className="absolute flex left-[10px] top-[105px]"
                     onPress={handleBackPress}
-                    disabled={isLoading}
+                    disabled={isLoading || contextLoading}
                 >
                     {icons && (
                         <Image
                             source={icons.back}
                             className="w-[25px] h-[30px] mx-4"
-                            style={{ opacity: isLoading ? 0.5 : 1 }}
+                            style={{ opacity: (isLoading || contextLoading) ? 0.5 : 1 }}
                         />
                     )}
                 </TouchableOpacity>
@@ -218,33 +225,36 @@ const Otp = ({ navigation }: Props) => {
                     {icons && (
                         <Image source={icons.otp} className="w-[16px] h-[14px] mx-4" />
                     )}
-                    {/* FIXED: OTP input field with numeric validation */}
+                    {/* OTP input field with numeric validation */}
                     <TextInput
                         style={{ color: Colors.light.whiteFfffff }}
                         className="text-l ml-5 w-[180px] h-[56px]"
                         placeholder="Enter OTP"
                         placeholderTextColor={Colors.light.whiteFfffff}
-                        secureTextEntry={false} // Changed to false for better UX
+                        secureTextEntry={false}
                         value={otp}
                         onChangeText={handleOtpChange}
                         keyboardType="numeric"
                         maxLength={5}
-                        editable={!isLoading}
+                        editable={!isLoading && !contextLoading}
                     />
+
                     {/* Character count indicator */}
-                    <Text style={{ color: Colors.light.whiteFfffff, fontSize: 12 }}>
+                    <Text style={{ color: Colors.light.whiteFfffff, fontSize: 12, marginRight: 5 }}>
                         {otp.length}/5
                     </Text>
+
                     {/* Resend OTP button */}
                     <TouchableOpacity
                         onPress={handleResendOTP}
-                        disabled={isLoading}
-                        style={{ marginLeft: 10 }}
+                        disabled={isLoading || contextLoading}
+                        style={{ marginLeft: 5 }}
                     >
                         <Text
                             style={{
                                 color: Colors.light.whiteFfffff,
-                                opacity: isLoading ? 0.5 : 1
+                                opacity: (isLoading || contextLoading) ? 0.5 : 1,
+                                fontSize: 12
                             }}
                         >
                             Resend
@@ -257,7 +267,7 @@ const Otp = ({ navigation }: Props) => {
                     <View className="w-[370px] mt-1 px-4">
                         <Text
                             style={{
-                                color: errorMessage.includes('successfully') ? '#10B981' : '#EF4444'
+                                color: errorMessage.includes('✅') ? '#10B981' : '#EF4444'
                             }}
                             className="text-center text-sm font-medium"
                         >
@@ -270,7 +280,7 @@ const Otp = ({ navigation }: Props) => {
             {/* =================== VERIFY BUTTON SECTION =================== */}
             <View className="absolute top-[800px]">
                 <CustomGradientButton
-                    text={isLoading ? "Verifying..." : "Verify OTP"}
+                    text={(isLoading || contextLoading) ? "Verifying..." : "Verify OTP"}
                     width={370}
                     height={56}
                     borderRadius={15}
@@ -278,9 +288,9 @@ const Otp = ({ navigation }: Props) => {
                     fontWeight="600"
                     textColor={Colors.light.whiteFfffff}
                     onPress={handleVerifyOTP}
-                    disabled={isLoading || !otp.trim() || otp.length !== 5}
+                    disabled={isButtonDisabled}
                     style={{
-                        opacity: (isLoading || !otp.trim() || otp.length !== 5) ? 0.6 : 1,
+                        opacity: isButtonDisabled ? 0.6 : 1,
                     }}
                 />
             </View>

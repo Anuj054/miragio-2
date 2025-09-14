@@ -23,7 +23,7 @@ import { Colors } from "../../constants/Colors";
 // Navigation types
 type NavigationProp = any;
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 
 const TaskSuccessful = () => {
     // Get navigation
@@ -70,7 +70,7 @@ const TaskSuccessful = () => {
                         {/* Centered title */}
                         <Text
                             style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium"
+                            className="text-3xl font-medium pt-1"
                         >
                             Task Complete
                         </Text>

@@ -14,7 +14,7 @@ const KYCSuccess = () => {
     // Navigation hook
     const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
-    const { login } = useUser();
+    const { login, isLoggedIn } = useUser();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [loginAttempted, setLoginAttempted] = useState<boolean>(false);
     const [loginMessage, setLoginMessage] = useState<string>("Yay! KYC Successful");
@@ -35,42 +35,38 @@ const KYCSuccess = () => {
 
             if (storedCredentials) {
                 const credentials = JSON.parse(storedCredentials);
-                console.log('KYCSuccess - Found credentials, attempting auto-login:', credentials.email);
-
                 setLoginMessage("Logging you in...");
 
                 // Attempt auto-login
                 const loginResult = await login(credentials.email, credentials.password);
 
                 if (loginResult.success) {
-                    console.log('KYCSuccess - Auto-login successful!');
                     setLoginMessage("Welcome! You're now logged in.");
 
                     // Clear credentials after successful login
-                    await AsyncStorage.removeItem('@new_account_credentials');
-                    console.log('KYCSuccess - Credentials cleared after successful login');
+                    await Promise.all([
+                        AsyncStorage.removeItem('@new_account_credentials'),
+                        AsyncStorage.removeItem('@pending_user_id')
+                    ]);
 
                 } else {
-                    console.error('KYCSuccess - Auto-login failed:', loginResult.message);
                     setLoginMessage("Account created successfully! Please login manually if needed.");
 
                     // Clear credentials even if login failed
                     await AsyncStorage.removeItem('@new_account_credentials');
                 }
             } else {
-                console.log('KYCSuccess - No credentials found for auto-login');
                 setLoginMessage("KYC completed successfully!");
             }
 
         } catch (error) {
-            console.error('KYCSuccess - Auto-login error:', error);
             setLoginMessage("KYC completed! Please login if needed.");
 
             // Clear credentials on error
             try {
                 await AsyncStorage.removeItem('@new_account_credentials');
             } catch (clearError) {
-                console.error('KYCSuccess - Error clearing credentials:', clearError);
+                // Handle error silently
             }
         } finally {
             setIsLoading(false);
@@ -79,36 +75,39 @@ const KYCSuccess = () => {
 
     const handleContinue = (): void => {
         try {
-            // Method 1: Try simple navigate first
-            navigation.navigate('Tabs');
-        } catch (error) {
-            console.error('Direct navigation failed:', error);
+            // FIXED: Navigate to the main app based on user login status
+            if (isLoggedIn) {
+                // User is logged in, navigate to main app
+                // Try different navigation methods based on your app structure
 
-            try {
-                // Method 2: Use StackActions.replace for stack navigation
-                navigation.dispatch(
-                    StackActions.replace('Tabs')
-                );
-            } catch (error2) {
-                console.error('StackActions.replace failed:', error2);
-
+                // Method 1: Navigate to main tab navigator (most common)
                 try {
-                    // Method 3: Try navigating to TaskPage directly  
-                    navigation.navigate('TaskPage');
-                } catch (error3) {
-                    console.error('TaskPage navigation failed:', error3);
-
+                    navigation.navigate('MainTabs' as never);
+                } catch (error1) {
+                    // Method 2: Try navigating to Home or TaskPage directly
                     try {
-                        // Method 4: Use StackActions.replace for TaskPage
-                        navigation.dispatch(
-                            StackActions.replace('TaskPage')
-                        );
-                    } catch (error4) {
-                        console.error('All navigation methods failed:', error4);
-                        // You might want to show an error message to the user here
+                        navigation.navigate('TaskPage' as never);
+                    } catch (error2) {
+                        // Method 3: Try resetting the navigation stack
+                        try {
+                            navigation.dispatch(
+                                StackActions.replace('MainTabs' as never)
+                            );
+                        } catch (error3) {
+                            // Method 4: Final fallback - reset to a known screen
+                            navigation.dispatch(
+                                StackActions.replace('Welcome' as never)
+                            );
+                        }
                     }
                 }
+            } else {
+                // User is not logged in, go to login screen
+                navigation.navigate('SignIn' as never);
             }
+        } catch (error) {
+            // Final fallback
+            navigation.navigate('Welcome' as never);
         }
     };
 
@@ -142,7 +141,7 @@ const KYCSuccess = () => {
             {/* =================== CONTINUE BUTTON SECTION =================== */}
             <View className="absolute top-[780px]" >
                 <CustomGradientButton
-                    text={isLoading ? "Please wait..." : "Continue"}
+                    text={isLoading ? "Please wait..." : (isLoggedIn ? "Continue to App" : "Go to Login")}
                     width={370}
                     height={56}
                     borderRadius={15}

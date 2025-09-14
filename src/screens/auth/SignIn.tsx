@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Image,
     Text,
     TextInput,
     TouchableOpacity,
     View,
-    Dimensions
+    Dimensions,
+    BackHandler
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../../constants/Colors';
 import { icons } from '../../constants/index';
 import bg from '../../assets/images/bg.png';
@@ -33,6 +35,25 @@ const SignIn = ({ navigation }: Props) => {
     useEffect(() => {
         clearOldSignupCredentials();
     }, []);
+
+    // ADDED: Handle back button properly
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                if (!isLoading) {
+                    // Go back to Welcome instead of staying in auth loop
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Welcome' }],
+                    });
+                }
+                return true;
+            };
+
+            const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+            return () => subscription?.remove();
+        }, [navigation, isLoading])
+    );
 
     const clearOldSignupCredentials = async () => {
         try {
@@ -76,7 +97,7 @@ const SignIn = ({ navigation }: Props) => {
     // FIXED: Navigation handlers
     const handleSignUpPress = () => {
         if (!isLoading) {
-            navigation.navigate('SignUp');
+            navigation.replace('SignUp');
         }
     };
 
@@ -88,11 +109,15 @@ const SignIn = ({ navigation }: Props) => {
 
     const handleBackPress = () => {
         if (!isLoading) {
-            navigation.goBack();
+            // Go back to Welcome to break the loop
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Welcome' }],
+            });
         }
     };
 
-    // FIXED: Login handler - Let UserContext handle navigation automatically
+    // Login handler - Let UserContext handle navigation automatically
     const handleLogin = async () => {
         if (isLoading) return;
 
@@ -107,11 +132,8 @@ const SignIn = ({ navigation }: Props) => {
             if (result.success) {
                 setErrorMessage('Login successful! Redirecting...');
 
-                // ✅ FIXED: No manual navigation needed!
                 // UserContext login() will set isAuthenticated = true
                 // RootNavigator will automatically switch from Auth to Main stack
-                // This is the correct way for authentication-based navigation
-
                 console.log('Login successful, UserContext will handle navigation automatically');
 
             } else {
@@ -135,7 +157,7 @@ const SignIn = ({ navigation }: Props) => {
                 style={{ width, height }}
             />
 
-            {/* ADDED: Back Button */}
+            {/* FIXED: Back Button */}
             <TouchableOpacity
                 className="absolute flex left-[10px] top-[105px]"
                 onPress={handleBackPress}
@@ -261,7 +283,7 @@ const SignIn = ({ navigation }: Props) => {
                     </TouchableOpacity>
                 </View>
 
-                {/* FIXED: Error Message */}
+                {/* Error Message */}
                 {errorMessage ? (
                     <View className="mt-5 w-[370px]">
                         <Text
@@ -276,7 +298,7 @@ const SignIn = ({ navigation }: Props) => {
                 ) : null}
             </View>
 
-            {/* FIXED: Forgot Password */}
+            {/* Forgot Password */}
             <View className="absolute top-[630px]">
                 <TouchableOpacity
                     onPress={handleResetPasswordPress}

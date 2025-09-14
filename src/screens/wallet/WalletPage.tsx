@@ -27,7 +27,7 @@ const WalletPage = () => {
     const [walletBalance, setWalletBalance] = useState('0');
     const [withdrawableBalance, setWithdrawableBalance] = useState('0');
     const [loading, setLoading] = useState(true);
-    const [userDetails, setUserDetails] = useState(null);
+    const [, setUserDetails] = useState(null);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     // Navigation for React Native CLI
@@ -201,7 +201,7 @@ const WalletPage = () => {
                         {/* Centered title */}
                         <Text
                             style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium"
+                            className="text-3xl font-medium pt-1"
                         >
                             Wallet
                         </Text>

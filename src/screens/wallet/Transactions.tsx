@@ -1,12 +1,11 @@
 import React from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View, RefreshControl, StatusBar } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View, RefreshControl, StatusBar, TextInput } from "react-native";
 import { useState, useEffect } from "react";
 import { useNavigation } from '@react-navigation/native';
 
 // Import your assets
 import bg2 from "../../assets/images/bg2.png";
 import { icons } from "../../constants/index";
-import profilephoto from "../../assets/images/profilephoto.png";
 import { Colors } from "../../constants/Colors";
 import NoTransactionsModal from "../../components/NoTransactionsModal";
 import { useUser } from "../../context/UserContext";
@@ -69,6 +68,11 @@ interface Transaction {
     taskUrl: string;
 }
 
+// ADDED: Grouped transactions interface
+interface GroupedTransactions {
+    [monthYear: string]: Transaction[];
+}
+
 const TransactionsPage = () => {
     // Navigation for React Native CLI
     const navigation = useNavigation<NavigationProp>();
@@ -83,6 +87,10 @@ const TransactionsPage = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [refreshing, setRefreshing] = useState<boolean>(false);
 
+    // Search functionality state
+    const [searchVisible, setSearchVisible] = useState<boolean>(false);
+    const [searchQuery, setSearchQuery] = useState<string>("");
+
     // Filter options for transaction types
     const filterOptions: string[] = [
         'All',
@@ -95,8 +103,60 @@ const TransactionsPage = () => {
         navigation.replace("WalletPage");
     };
 
-    const handleProfilePress = () => {
-        navigation.replace("UserProfile", { from: "wallet/transactions" });
+    // ADDED: Utility functions for month grouping (similar to TaskPage)
+    const formatMonthYear = (dateString: string): string => {
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'Unknown Date';
+            return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        } catch (error) {
+            return 'Unknown Date';
+        }
+    };
+
+    const getMonthYearKey = (dateString: string): string => {
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '9999-12';
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            return `${year}-${month}`;
+        } catch (error) {
+            return '9999-12';
+        }
+    };
+
+    const groupTransactionsByMonth = (transactionsToGroup: Transaction[]): GroupedTransactions => {
+        const grouped: GroupedTransactions = {};
+        transactionsToGroup.forEach(transaction => {
+            const dateForGrouping = transaction.date || new Date().toISOString();
+            const monthYear = formatMonthYear(dateForGrouping);
+            if (!grouped[monthYear]) {
+                grouped[monthYear] = [];
+            }
+            grouped[monthYear].push(transaction);
+        });
+
+        // Sort transactions within each month by date (newest first)
+        Object.keys(grouped).forEach(monthYear => {
+            grouped[monthYear].sort((a, b) => {
+                const dateA = new Date(a.date || '').getTime();
+                const dateB = new Date(b.date || '').getTime();
+                return dateB - dateA;
+            });
+        });
+
+        return grouped;
+    };
+
+    const getSortedMonthKeys = (groupedTransactions: GroupedTransactions): string[] => {
+        return Object.keys(groupedTransactions).sort((a, b) => {
+            const firstTransactionA = groupedTransactions[a][0];
+            const firstTransactionB = groupedTransactions[b][0];
+            const keyA = getMonthYearKey(firstTransactionA?.date || '');
+            const keyB = getMonthYearKey(firstTransactionB?.date || '');
+            return keyB.localeCompare(keyA);
+        });
     };
 
     // Function to fetch transactions from API
@@ -121,7 +181,6 @@ const TransactionsPage = () => {
 
             // Fetch submissions (rewards)
             let submissionResponse: Response | null = null;
-            let submissionError: Error | null = null;
 
             for (const apiUrl of apiUrls) {
                 try {
@@ -141,7 +200,6 @@ const TransactionsPage = () => {
                         break;
                     }
                 } catch (error) {
-                    submissionError = error instanceof Error ? error : new Error(String(error));
                 }
             }
 
@@ -167,7 +225,7 @@ const TransactionsPage = () => {
                                 id: `reward_${submission.id}`,
                                 type: 'Mirago Rewards',
                                 title: 'Task Reward',
-                                description: `Approved on ${formatDate(submission.updated_at)}`,
+                                description: `Approved on ${formatDateForDescription(submission.updated_at)}`,
                                 amount: parseInt(submission.wallet) || 0,
                                 iconColor: Colors.light.bgBlueBtn,
                                 icon: icons.transactioncoin || icons.coin,
@@ -186,7 +244,6 @@ const TransactionsPage = () => {
 
             // Fetch withdrawals
             let withdrawalResponse: Response | null = null;
-            let withdrawalError: Error | null = null;
 
             for (const apiUrl of apiUrls) {
                 try {
@@ -206,7 +263,6 @@ const TransactionsPage = () => {
                         break;
                     }
                 } catch (error) {
-                    withdrawalError = error instanceof Error ? error : new Error(String(error));
                 }
             }
 
@@ -270,8 +326,8 @@ const TransactionsPage = () => {
         }
     };
 
-    // Function to format date for display
-    const formatDate = (dateString: string): string => {
+    // UPDATED: Function to format date for description display
+    const formatDateForDescription = (dateString: string): string => {
         try {
             const date = new Date(dateString);
             const options: Intl.DateTimeFormatOptions = {
@@ -287,14 +343,43 @@ const TransactionsPage = () => {
         }
     };
 
-    // Function to get month and year from transactions
-    const getTransactionMonth = (): string => {
-        if (allTransactions.length > 0) {
-            const latestTransaction = allTransactions[0];
-            const date = new Date(latestTransaction.date);
-            return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    // ADDED: Function to format date and time for transaction display
+    const formatDateTime = (dateString: string): string => {
+        try {
+            const date = new Date(dateString);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+
+            // Check if it's today
+            if (date.toDateString() === today.toDateString()) {
+                return `Today, ${date.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                })}`;
+            }
+
+            // Check if it's yesterday
+            if (date.toDateString() === yesterday.toDateString()) {
+                return `Yesterday, ${date.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                })}`;
+            }
+
+            // For other dates
+            return date.toLocaleDateString('en-US', {
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        } catch (error) {
+            return dateString;
         }
-        return new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     };
 
     // Fetch transactions on component mount
@@ -314,15 +399,27 @@ const TransactionsPage = () => {
         setRefreshing(false);
     };
 
-    // Filter transactions based on active filter
+    // Filter transactions based on active filter and search query
     const getFilteredTransactions = (): Transaction[] => {
-        if (activeFilter === 'All') {
-            return allTransactions;
+        let filtered = activeFilter === 'All' ? allTransactions : allTransactions.filter((transaction: Transaction) => transaction.type === activeFilter);
+
+        // Apply search filter if search query exists
+        if (searchQuery.trim()) {
+            filtered = filtered.filter((transaction: Transaction) =>
+                transaction.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                transaction.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                transaction.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                transaction.taskId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (transaction.taskUrl && transaction.taskUrl.toLowerCase().includes(searchQuery.toLowerCase()))
+            );
         }
-        return allTransactions.filter((transaction: Transaction) => transaction.type === activeFilter);
+
+        return filtered;
     };
 
     const filteredTransactions: Transaction[] = getFilteredTransactions();
+    const groupedTransactions = groupTransactionsByMonth(filteredTransactions);
+    const sortedMonthKeys = getSortedMonthKeys(groupedTransactions);
     const hasTransactions: boolean = filteredTransactions.length > 0;
 
     // Render filter button component
@@ -358,9 +455,124 @@ const TransactionsPage = () => {
         </TouchableOpacity>
     );
 
+    // UPDATED: Render transaction item with date/time display
+    const renderTransactionItem = (transaction: Transaction) => (
+        <View
+            key={transaction.id}
+            className="mx-4 mb-3 p-4 rounded-2xl"
+            style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                borderLeftWidth: 3,
+                borderLeftColor: transaction.type === 'Withdraw' ? '#FF6B6B' : Colors.light.bgBlueBtn,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.1,
+                shadowRadius: 2,
+                elevation: 1,
+            }}
+        >
+            {/* Transaction header with icon and details */}
+            <View className="flex-row items-start justify-between mb-3">
+                <View className="flex-row items-center flex-1">
+                    {/* Transaction icon */}
+                    <View
+                        className="w-12 h-12 rounded-xl items-center justify-center mr-4"
+                        style={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                        }}
+                    >
+                        <Image source={transaction.icon} className="w-7 h-7" />
+                    </View>
+
+                    {/* Transaction details */}
+                    <View className="flex-1">
+                        <Text
+                            className="text-lg font-semibold mb-1"
+                            style={{ color: Colors.light.whiteFfffff }}
+                        >
+                            {transaction.title}
+                        </Text>
+                        <Text
+                            className="text-sm mb-1"
+                            style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                            numberOfLines={1}
+                        >
+                            {transaction.description}
+                        </Text>
+
+                        {/* ADDED: Date and time display */}
+                        <Text
+                            className="text-xs"
+                            style={{ color: 'rgba(255, 255, 255, 0.5)' }}
+                        >
+                            {formatDateTime(transaction.date)}
+                        </Text>
+                    </View>
+                </View>
+
+                {/* Transaction amount */}
+                <View className="flex-row items-center ml-2">
+                    <Text
+                        className="text-sm mr-1 font-bold"
+                        style={{
+                            color: transaction.type === 'Withdraw'
+                                ? "#FF6B6B"
+                                : Colors.light.bgGreen
+                        }}
+                    >
+                        {transaction.type === 'Withdraw' ? '-' : '+'}
+                    </Text>
+                    <Image source={icons.maincoin} className="w-5 h-5" />
+                    <Text
+                        className="text-lg font-bold pl-1"
+                        style={{
+                            color: transaction.type === 'Withdraw'
+                                ? "#FF6B6B"
+                                : Colors.light.bgGreen
+                        }}
+                    >
+                        {transaction.amount}
+                    </Text>
+                </View>
+            </View>
+
+            {/* Additional transaction info */}
+            {transaction.taskUrl && transaction.type === 'Mirago Rewards' && (
+                <Text
+                    className="text-xs mt-2 px-2 py-1 rounded"
+                    style={{
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                    }}
+                    numberOfLines={1}
+                >
+                    Task: {transaction.taskUrl}
+                </Text>
+            )}
+            {transaction.taskId && transaction.type === 'Withdraw' && (
+                <Text
+                    className="text-xs mt-2 px-2 py-1 rounded"
+                    style={{
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                    }}
+                    numberOfLines={1}
+                >
+                    Transaction ID: {transaction.taskId}
+                </Text>
+            )}
+        </View>
+    );
+
     // Handler to close no transactions modal
     const handleCloseModal = () => {
         setShowNoTransactionModal(false);
+    };
+
+    // Clear search function
+    const clearSearch = () => {
+        setSearchQuery("");
+        setSearchVisible(false);
     };
 
     return (
@@ -372,7 +584,7 @@ const TransactionsPage = () => {
                 {/* Background image */}
                 <Image source={bg2} resizeMode="cover" className="w-full h-full absolute" />
 
-                {/* Header overlay content with navigation and profile */}
+                {/* Header overlay content with navigation and search */}
                 <View className="flex-1 pt-12 pb-4 px-4">
                     {/* Header row with proper spacing */}
                     <View className="flex-row items-center justify-between h-16">
@@ -395,20 +607,18 @@ const TransactionsPage = () => {
                             Transactions
                         </Text>
 
-                        {/* Profile photo */}
+                        {/* Search button */}
                         <TouchableOpacity
-                            onPress={handleProfilePress}
-                            style={{ backgroundColor: Colors.light.whiteFfffff }}
-                            className="w-11 h-11 rounded-full items-center justify-center"
+                            onPress={() => setSearchVisible(!searchVisible)}
+                            className="w-10 h-10 items-center justify-center"
                         >
                             <Image
-                                source={profilephoto}
-                                className="h-11 w-11 rounded-full"
+                                source={icons.search}
+                                className="h-5 w-5"
                             />
                         </TouchableOpacity>
                     </View>
                 </View>
-
 
                 {/* Header border line */}
                 <View
@@ -416,6 +626,33 @@ const TransactionsPage = () => {
                     style={{ backgroundColor: Colors.light.whiteFfffff }}
                 />
             </View>
+
+            {/* =================== SEARCH INPUT SECTION =================== */}
+            {searchVisible && (
+                <View style={{ backgroundColor: Colors.light.blackPrimary, borderColor: Colors.light.backlight2 }} className="px-4 py-3 border-b">
+                    <View className="relative">
+                        {/* Search input field */}
+                        <TextInput
+                            style={{ backgroundColor: Colors.light.backlight2, color: Colors.light.whiteFefefe }}
+                            className="px-4 py-3 pr-12 rounded-[10px] text-base"
+                            placeholder="Search transactions..."
+                            placeholderTextColor={Colors.light.placeholderColorOp70}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            autoFocus={true}
+                        />
+                        {/* Clear search button */}
+                        {searchQuery.length > 0 && (
+                            <TouchableOpacity
+                                className="absolute right-3 top-0 bottom-0 w-8 flex items-center justify-center"
+                                onPress={() => setSearchQuery("")}
+                            >
+                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-xl font-bold">×</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+            )}
 
             {/* =================== SCROLLABLE CONTENT SECTION =================== */}
             <ScrollView
@@ -445,108 +682,59 @@ const TransactionsPage = () => {
                     </View>
                 )}
 
-                {/* =================== DATE HEADER SECTION =================== */}
-                {!loading && hasTransactions && (
+                {/* =================== SEARCH RESULTS HEADER =================== */}
+                {!loading && searchQuery.trim() && (
                     <View className="px-4 pb-3">
                         <Text
-                            className="text-xl font-semibold"
-                            style={{ color: Colors.light.whiteFfffff }}
+                            className="text-lg font-semibold"
+                            style={{ color: Colors.light.whiteFefefe }}
                         >
-                            {getTransactionMonth()}
+                            Search Results ({filteredTransactions.length})
+                            {activeFilter !== 'All' && ` in ${activeFilter}`}
                         </Text>
+                        {searchQuery.trim() && (
+                            <Text
+                                className="text-sm mt-1"
+                                style={{ color: Colors.light.placeholderColorOp70 }}
+                            >
+                                Showing results for "{searchQuery}"
+                            </Text>
+                        )}
                     </View>
                 )}
 
-                {/* =================== TRANSACTION LIST SECTION =================== */}
+                {/* =================== TRANSACTION LIST SECTION (GROUPED BY MONTH) =================== */}
                 {!loading && hasTransactions ? (
-                    /* Render transaction items with enhanced styling */
-                    filteredTransactions.map((transaction: Transaction) => (
-                        <View
-                            key={transaction.id}
-                            className="mx-4 mb-3 p-4 rounded-2xl flex-row items-center justify-between"
-                            style={{
-                                backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                                borderLeftWidth: 3,
-                                borderLeftColor: transaction.type === 'Withdraw' ? '#FF6B6B' : Colors.light.bgBlueBtn,
-                                shadowColor: '#000',
-                                shadowOffset: { width: 0, height: 1 },
-                                shadowOpacity: 0.1,
-                                shadowRadius: 2,
-                                elevation: 1,
-                            }}
-                        >
-                            {/* Transaction info section */}
-                            <View className="flex-row items-center flex-1">
-                                {/* Transaction icon */}
-                                <View
-                                    className="w-12 h-12 rounded-xl items-center justify-center mr-4"
-                                    style={{
-                                        backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                                    }}
-                                >
-                                    <Image source={transaction.icon} className="w-7 h-7" />
-                                </View>
-                                {/* Transaction details */}
-                                <View className="flex-1">
-                                    <Text
-                                        className="text-lg font-semibold mb-1"
-                                        style={{ color: Colors.light.whiteFfffff }}
-                                    >
-                                        {transaction.title}
-                                    </Text>
-                                    <Text
-                                        className="text-sm"
-                                        style={{ color: 'rgba(255, 255, 255, 0.7)' }}
-                                        numberOfLines={1}
-                                    >
-                                        {transaction.description}
-                                    </Text>
-                                    {transaction.taskUrl && transaction.type === 'Mirago Rewards' && (
-                                        <Text
-                                            className="text-xs mt-1"
-                                            style={{ color: 'rgba(255, 255, 255, 0.5)' }}
-                                            numberOfLines={1}
-                                        >
-                                            Task: {transaction.taskUrl}
-                                        </Text>
-                                    )}
-                                    {transaction.taskId && transaction.type === 'Withdraw' && (
-                                        <Text
-                                            className="text-xs mt-1"
-                                            style={{ color: 'rgba(255, 255, 255, 0.5)' }}
-                                            numberOfLines={1}
-                                        >
-                                            ID: {transaction.taskId}
-                                        </Text>
-                                    )}
-                                </View>
-                            </View>
-                            {/* Transaction amount section */}
-                            <View className="flex-row items-center ml-2">
-                                <Text
-                                    className="text-sm mr-1 font-bold"
-                                    style={{
-                                        color: transaction.type === 'Withdraw'
-                                            ? "#FF6B6B"
-                                            : Colors.light.bgGreen
-                                    }}
-                                >
-                                    {transaction.type === 'Withdraw' ? '-' : '+'}
-                                </Text>
-                                <Image source={icons.maincoin} className="w-5 h-5" />
-                                <Text
-                                    className="text-lg font-bold pl-1"
-                                    style={{
-                                        color: transaction.type === 'Withdraw'
-                                            ? "#FF6B6B"
-                                            : Colors.light.bgGreen
-                                    }}
-                                >
-                                    {transaction.amount}
-                                </Text>
-                            </View>
+                    searchQuery.trim() ? (
+                        // Show ungrouped search results
+                        <View>
+                            {filteredTransactions.map(renderTransactionItem)}
                         </View>
-                    ))
+                    ) : (
+                        // Show grouped transactions by month (similar to TaskPage)
+                        <View>
+                            {sortedMonthKeys.map((monthYear) => (
+                                <View key={monthYear} className="mb-6">
+                                    <View className="px-4 pb-4">
+                                        <Text
+                                            className="text-xl font-semibold"
+                                            style={{ color: Colors.light.whiteFfffff }}
+                                        >
+                                            {monthYear}
+                                        </Text>
+                                        <View
+                                            className="mt-2 h-[1px] w-full"
+                                            style={{
+                                                backgroundColor: Colors.light.placeholderColorOp70,
+                                                opacity: 0.3
+                                            }}
+                                        />
+                                    </View>
+                                    {groupedTransactions[monthYear].map(renderTransactionItem)}
+                                </View>
+                            ))}
+                        </View>
+                    )
                 ) : !loading ? (
                     /* =================== EMPTY STATE SECTION =================== */
                     <View className="items-center justify-center py-10">
@@ -564,14 +752,24 @@ const TransactionsPage = () => {
                             className="text-2xl font-bold text-center mb-3"
                             style={{ color: Colors.light.whiteFfffff }}
                         >
-                            No Transactions Yet
+                            {searchQuery.trim() ? 'No Results Found' : 'No Transactions Yet'}
                         </Text>
                         <Text
                             className="text-base text-center px-8"
                             style={{ color: 'rgba(255, 255, 255, 0.6)' }}
                         >
-                            Complete and get approved tasks to see your reward transactions here
+                            {searchQuery.trim()
+                                ? `No transactions found for "${searchQuery}"`
+                                : 'Complete and get approved tasks to see your reward transactions here'
+                            }
                         </Text>
+                        {searchQuery.trim() && (
+                            <TouchableOpacity onPress={clearSearch} className="mt-4">
+                                <Text style={{ color: Colors.light.bgBlueBtn }} className="text-base">
+                                    Clear Search
+                                </Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 ) : null}
             </ScrollView>

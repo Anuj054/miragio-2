@@ -564,7 +564,7 @@ const TaskDetails = () => {
                         <View className="flex-1 items-center">
                             <Text
                                 style={{ color: Colors.light.whiteFfffff }}
-                                className="text-3xl font-medium"
+                                className="text-3xl font-medium pt-1"
                             >
                                 Task Details
                             </Text>

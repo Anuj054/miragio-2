@@ -14,14 +14,13 @@ const Welcome = ({ navigation }: Props) => {
     const swiperRef = useRef<Swiper>(null);
     const [, setActiveIndex] = useState<number>(0);
 
+    // FIXED: Use replace navigation to prevent navigation stack accumulation
     const handleSignUpPress = () => {
-        // Use navigate instead of replace for better user experience
-        navigation.navigate('SignUp');
+        navigation.replace('SignUp');
     };
 
     const handleSignInPress = () => {
-        // Use navigate instead of replace for better user experience
-        navigation.navigate('SignIn');
+        navigation.replace('SignIn');
     };
 
     return (
@@ -106,4 +105,4 @@ const Welcome = ({ navigation }: Props) => {
     );
 };
 
-export default Welcome; // Changed from Onboarding to Welcome
+export default Welcome;

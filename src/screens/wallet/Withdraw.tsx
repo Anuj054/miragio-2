@@ -38,8 +38,8 @@ const WithdrawAmountPage = () => {
     const [userBalance, setUserBalance] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [withdrawalMethods, setWithdrawalMethods] = useState<WithdrawalMethod[]>([]);
-    const [panVerified, setPanVerified] = useState<boolean>(false);
-    const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+    const [, setPanVerified] = useState<boolean>(false);
+    const [, setUserDetails] = useState<UserDetails | null>(null);
     const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
     const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
     const [transactionData, setTransactionData] = useState<{
@@ -385,7 +385,7 @@ const WithdrawAmountPage = () => {
                         <View className="flex-1 items-center">
                             <Text
                                 style={{ color: Colors.light.whiteFfffff }}
-                                className="text-3xl font-medium"
+                                className="text-3xl font-medium pt-1"
                             >
                                 Withdraw
                             </Text>

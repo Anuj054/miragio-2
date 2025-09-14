@@ -81,6 +81,38 @@ const KYC = ({ navigation }: Props) => {
         loadSignupData();
     }, []);
 
+    // Gender options
+    const genderOptions = [
+        { label: "Male", value: "male" },
+        { label: "Female", value: "female" },
+        { label: "Prefer Not to Say", value: "prefer not to say" },
+        { label: "Other", value: "other" },
+
+    ];
+
+    const [isGenderDropdownOpen, setIsGenderDropdownOpen] = useState<boolean>(false);
+    const [genderSearchQuery, setGenderSearchQuery] = useState<string>("");
+
+    const filteredGenderOptions = genderOptions.filter(option =>
+        option.label.toLowerCase().includes(genderSearchQuery.toLowerCase())
+    );
+
+    const handleGenderSelect = (option: { label: string; value: string }): void => {
+        setGender(option.label);
+        setIsGenderDropdownOpen(false);
+        setGenderSearchQuery("");
+        if (errorMessage) setErrorMessage("");
+    };
+
+    const handleGenderDropdownToggle = (): void => {
+        if (!isLoading) {
+            setIsGenderDropdownOpen(!isGenderDropdownOpen);
+            if (!isGenderDropdownOpen) {
+                setGenderSearchQuery("");
+            }
+        }
+    };
+
     const loadSignupData = async (): Promise<void> => {
         try {
             const storedData = await AsyncStorage.getItem('@signup_data');
@@ -409,19 +441,85 @@ const KYC = ({ navigation }: Props) => {
                     />
                 </View>
 
-                {/* Gender input */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-5">
-                    <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="w-[300px] h-[56px] ml-5"
-                        placeholder="Enter Gender*"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={gender}
-                        onChangeText={(text) => handleInputChange(setGender, text)}
-                        autoCapitalize="words"
-                        editable={!isLoading}
-                    />
+                {/* =================== GENDER DROPDOWN SECTION =================== */}
+                <View className="w-[370px] mb-5 relative">
+                    {/* Dropdown trigger button */}
+                    <TouchableOpacity
+                        style={{ backgroundColor: Colors.light.whiteFfffff }}
+                        className="flex flex-row items-center justify-between w-[370px] h-[56px] rounded-[15px] px-5"
+                        onPress={handleGenderDropdownToggle}
+                        disabled={isLoading}
+                    >
+                        <Text style={{ color: gender ? Colors.light.blackPrimary : Colors.light.placeholderColor }} className="text-base">
+                            {gender ? gender : "Select Gender*"}
+                        </Text>
+                        <Image
+                            source={isGenderDropdownOpen ? icons.dropdownicon : icons.upicon}
+                            className="w-3 h-3"
+                            style={{ opacity: isLoading ? 0.5 : 1 }}
+                        />
+                    </TouchableOpacity>
+
+                    {/* Dropdown options container */}
+                    {isGenderDropdownOpen && (
+                        <View
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                borderColor: Colors.light.secondaryText,
+                                position: 'absolute',
+                                top: 56,
+                                width: '100%',
+                                zIndex: 1000,
+                                maxHeight: 150
+                            }}
+                            className="rounded-[10px] border"
+                        >
+                            {/* Search input for filtering gender */}
+                            <View style={{ borderColor: Colors.light.secondaryText }} className="px-4 py-1 border-b">
+                                <TextInput
+                                    style={{ backgroundColor: Colors.light.whiteFefefe, color: Colors.light.blackPrimary }}
+                                    className="h-[40px] px-3 rounded-[8px]"
+                                    placeholder="Search gender..."
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    value={genderSearchQuery}
+                                    onChangeText={setGenderSearchQuery}
+                                    autoFocus={false}
+                                    editable={!isLoading}
+                                />
+                            </View>
+
+                            {/* Scrollable gender options list */}
+                            <ScrollView
+                                style={{ maxHeight: 100 }}
+                                nestedScrollEnabled={true}
+                                showsVerticalScrollIndicator={true}
+                            >
+                                {filteredGenderOptions.length > 0 ? (
+                                    filteredGenderOptions.map((option, index) => (
+                                        <TouchableOpacity
+                                            key={index}
+                                            style={{ borderColor: Colors.light.secondaryText }}
+                                            className="px-5 py-4 h-[56px] justify-center border-b last:border-b-0"
+                                            onPress={() => handleGenderSelect(option)}
+                                            disabled={isLoading}
+                                        >
+                                            <Text style={{ color: Colors.light.blackPrimary }} className="text-base">
+                                                {option.label}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))
+                                ) : (
+                                    <View className="px-5 py-4 h-[56px] justify-center">
+                                        <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-base">
+                                            No gender found
+                                        </Text>
+                                    </View>
+                                )}
+                            </ScrollView>
+                        </View>
+                    )}
                 </View>
+
 
                 {/* Phone Number input - Enhanced with numeric validation */}
                 <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-5">
@@ -440,7 +538,7 @@ const KYC = ({ navigation }: Props) => {
                 </View>
 
                 {/* =================== OCCUPATION DROPDOWN SECTION =================== */}
-                <View className="w-[370px] mb-2">
+                <View className="w-[370px] mb-2 relative">
                     {/* Dropdown trigger button */}
                     <TouchableOpacity
                         style={{ backgroundColor: Colors.light.whiteFfffff }}
@@ -460,9 +558,20 @@ const KYC = ({ navigation }: Props) => {
 
                     {/* Dropdown options container */}
                     {isDropdownOpen && (
-                        <View style={{ backgroundColor: Colors.light.whiteFfffff, borderColor: Colors.light.secondaryText }} className="w-[370px] rounded-[10px] mt-3 border z-30">
-                            {/* Search input for filtering occupations */}
-                            <View style={{ borderColor: Colors.light.secondaryText }} className="px-4 py-3 border-b">
+                        <View
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                borderColor: Colors.light.secondaryText,
+                                position: 'absolute',
+                                top: 56, // Height of the trigger button
+                                width: '100%',
+                                zIndex: 1000,
+                                maxHeight: 150
+                            }}
+                            className="rounded-[10px] border"
+                        >
+                            {/* Search input */}
+                            <View style={{ borderColor: Colors.light.secondaryText }} className="px-4 py-1 border-b">
                                 <TextInput
                                     style={{ backgroundColor: Colors.light.whiteFefefe, color: Colors.light.blackPrimary }}
                                     className="h-[40px] px-3 rounded-[8px]"
@@ -475,9 +584,9 @@ const KYC = ({ navigation }: Props) => {
                                 />
                             </View>
 
-                            {/* Scrollable occupation options list */}
+                            {/* Scrollable occupation list */}
                             <ScrollView
-                                style={{ maxHeight: 90 }}
+                                style={{ maxHeight: 100 }}
                                 nestedScrollEnabled={true}
                                 showsVerticalScrollIndicator={true}
                             >
@@ -490,18 +599,23 @@ const KYC = ({ navigation }: Props) => {
                                             onPress={() => handleOccupationSelect(occupation)}
                                             disabled={isLoading}
                                         >
-                                            <Text style={{ color: Colors.light.blackPrimary }} className="text-base">{occupation.label}</Text>
+                                            <Text style={{ color: Colors.light.blackPrimary }} className="text-base">
+                                                {occupation.label}
+                                            </Text>
                                         </TouchableOpacity>
                                     ))
                                 ) : (
                                     <View className="px-5 py-4 h-[56px] justify-center">
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-base">No occupations found</Text>
+                                        <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-base">
+                                            No occupations found
+                                        </Text>
                                     </View>
                                 )}
                             </ScrollView>
                         </View>
                     )}
                 </View>
+
 
                 {/* Error message display */}
                 {errorMessage ? (

@@ -115,7 +115,7 @@ const Instructions = () => {
                         <View className="flex-1 items-center">
                             <Text
                                 style={{ color: Colors.light.whiteFfffff }}
-                                className="text-2xl font-semibold"
+                                className="text-2xl font-medium pt-1"
                             >
                                 Instructions
                             </Text>

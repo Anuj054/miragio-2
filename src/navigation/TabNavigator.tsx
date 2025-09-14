@@ -15,8 +15,8 @@ import WalletPageScreen from '../Screens/wallet/WalletPage';
 import TransactionsScreen from '../Screens/wallet/Transactions';
 import WithdrawScreen from '../Screens/wallet/Withdraw';
 
-// More screen
-import MorePageScreen from '../Screens/more/MorePageScreen';
+// UPDATED: Import More Stack Navigator
+import MoreStackNavigator from './MoreStackNavigator';
 
 // Icons
 import { icons } from '../constants/index';
@@ -26,7 +26,7 @@ const Tab = createBottomTabNavigator<TabParamList>();
 const TaskStack = createNativeStackNavigator<TaskStackParamList>();
 const WalletStack = createNativeStackNavigator<WalletStackParamList>();
 
-// Custom Tab Icon Component
+// Custom Tab Icon Component (same as before)
 const TabIcon = ({
     focused,
     activeSource,
@@ -97,12 +97,12 @@ const TabIcon = ({
     );
 };
 
-// Task Stack Navigator
+// Task Stack Navigator (same as before)
 const TaskStackNavigator = () => (
     <TaskStack.Navigator
         screenOptions={{
             headerShown: false,
-            animation: 'none' // ADDED: Remove animations
+            animation: 'none'
         }}
     >
         <TaskStack.Screen name="TaskPage" component={TaskPageScreen} />
@@ -112,12 +112,12 @@ const TaskStackNavigator = () => (
     </TaskStack.Navigator>
 );
 
-// Wallet Stack Navigator
+// Wallet Stack Navigator (same as before)
 const WalletStackNavigator = () => (
     <WalletStack.Navigator
         screenOptions={{
             headerShown: false,
-            animation: 'none' // ADDED: Remove animations
+            animation: 'none'
         }}
     >
         <WalletStack.Screen name="WalletPage" component={WalletPageScreen} />
@@ -189,9 +189,10 @@ const TabNavigator = () => {
                 }}
             />
 
+            {/* UPDATED: Use More Stack Navigator instead of direct component */}
             <Tab.Screen
                 name="MoreTab"
-                component={MorePageScreen}
+                component={MoreStackNavigator}
                 options={{
                     title: "More",
                     tabBarIcon: ({ focused }) => (
