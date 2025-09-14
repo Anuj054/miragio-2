@@ -26,7 +26,7 @@ const Careers = ({ navigation }: Props) => {
                             <Image source={icons.back} className="w-4 h-6" />
                         </TouchableOpacity>
                         <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-medium pt-1">
-                            How To Play
+                            Careers
                         </Text>
                         <View className="w-10 h-10" />
                     </View>
