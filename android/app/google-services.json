@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "345832519128",
+    "project_id": "miragio-30085",
+    "storage_bucket": "miragio-30085.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:345832519128:android:6d8e3297c2c1b94e32aead",
+        "android_client_info": {
+          "package_name": "com.miragio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5qaaVdPhTOWkreOHceEDWFhK_8c6EpIM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:345832519128:android:98a5f573c566371232aead",
+        "android_client_info": {
+          "package_name": "com.netinnovatus.miragio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5qaaVdPhTOWkreOHceEDWFhK_8c6EpIM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
