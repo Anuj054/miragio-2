@@ -6,9 +6,9 @@ import messaging from '@react-native-firebase/messaging';
 
 import { UserProvider, useUser } from './src/context/UserContext';
 import SplashScreen from './src/components/SplashScreen';
-import AuthNavigator from './src/Navigation/AuthNavigator';
-import MainNavigator from './src/Navigation/MainNavigator';
-import type { RootStackParamList } from './src/Navigation/types';
+import AuthNavigator from './src/navigation/AuthNavigator';
+import MainNavigator from './src/navigation/MainNavigator';
+import type { RootStackParamList } from './src/navigation/types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

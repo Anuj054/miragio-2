@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg2 from "../../../assets/images/bg2.png";
 import { icons } from "../../../constants/index";
 import { Colors } from "../../../constants/Colors";
-import type { MainStackParamList } from "../../../Navigation/types";
+import type { MainStackParamList } from "../../../navigation/types";
 
 type Props = NativeStackScreenProps<MainStackParamList, 'PlayMusicSettings'>;
 

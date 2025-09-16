@@ -5,15 +5,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Image, type ImageSourcePropType, View, Text, Animated } from 'react-native';
 
 // Task screens
-import TaskPageScreen from '../Screens/task/TaskPage';
-import TaskDetailsScreen from '../Screens/task/TaskDetails';
-import TaskSuccessfulScreen from '../Screens/task/TaskSuccessfull';
-import InstructionsScreen from '../Screens/task/Instructions';
+import TaskPageScreen from '../screens/task/TaskPage';
+import TaskDetailsScreen from '../screens/task/TaskDetails';
+import TaskSuccessfulScreen from '../screens/task/TaskSuccessfull';
+import InstructionsScreen from '../screens/task/Instructions';
 
 // Wallet screens
-import WalletPageScreen from '../Screens/wallet/WalletPage';
-import TransactionsScreen from '../Screens/wallet/Transactions';
-import WithdrawScreen from '../Screens/wallet/Withdraw';
+import WalletPageScreen from '../screens/wallet/WalletPage';
+import TransactionsScreen from '../screens/wallet/Transactions';
+import WithdrawScreen from '../screens/wallet/Withdraw';
 
 // UPDATED: Import More Stack Navigator
 import MoreStackNavigator from './MoreStackNavigator';

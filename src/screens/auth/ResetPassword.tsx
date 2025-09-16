@@ -8,7 +8,7 @@ import resetpassimg from "../../assets/images/resetpassimg.png";
 import CustomGradientButton from "../../components/CustomGradientButton";
 import EmailSentModal from "../../components/EmailSentModal";
 import { Colors } from "../../constants/Colors";
-import type { AuthStackParamList } from '../../Navigation/types';
+import type { AuthStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
 

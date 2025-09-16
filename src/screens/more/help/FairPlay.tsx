@@ -6,7 +6,7 @@ import { icons } from "../../../constants/index";
 import { Colors } from "../../../constants/Colors";
 
 // ADDED: Import navigation types - adjust based on your navigation structure
-import type { MainStackParamList } from "../../../Navigation/types"; // or your navigation types file
+import type { MainStackParamList } from "../../../navigation/types"; // or your navigation types file
 
 // ADDED: Define props type for React Navigation
 type Props = NativeStackScreenProps<MainStackParamList, 'FairPlay'>;

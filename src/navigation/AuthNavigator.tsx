@@ -1,20 +1,19 @@
-// Navigation/AuthNavigator.tsx
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from './types';
 
 // Import all auth screens
-import WelcomeScreen from '../Screens/auth/Welcome';
-import SignInScreen from '../Screens/auth/SignIn';
-import SignUpScreen from '../Screens/auth/SignUp';
-import KycScreen from '../Screens/auth/KYC';
-import UserDetailsScreen from '../Screens/auth/UserDetails';
-import OtpScreen from '../Screens/auth/OTP';
-import KycSuccessScreen from '../Screens/auth/KYCSuccess';
-import ResetPasswordScreen from '../Screens/auth/ResetPassword';
-import VerifyCodeScreen from '../Screens/auth/VerifyCode';
+import WelcomeScreen from '../screens/auth/Welcome';
+import SignInScreen from '../screens/auth/SignIn';
+import SignUpScreen from '../screens/auth/SignUp';
+import KycScreen from '../screens/auth/KYC';
+import UserDetailsScreen from '../screens/auth/UserDetails';
+import OtpScreen from '../screens/auth/OTP';
+import KycSuccessScreen from '../screens/auth/KYCSuccess';
+import ResetPasswordScreen from '../screens/auth/ResetPassword';
+import VerifyCodeScreen from '../screens/auth/VerifyCode';
 
-import ResetSuccessScreen from '../Screens/auth/ResetSuccess';
+import ResetSuccessScreen from '../screens/auth/ResetSuccess';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 

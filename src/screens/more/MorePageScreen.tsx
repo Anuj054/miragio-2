@@ -23,7 +23,7 @@ import legality from "../../assets/images/legality.png"
 
 import { Colors } from "../../constants/Colors";
 import { useUser } from "../../context/UserContext";
-import type { MainStackParamList } from "../../Navigation/types";
+import type { MainStackParamList } from "../../navigation/types";
 
 // Define props type for React Navigation
 type Props = NativeStackScreenProps<MainStackParamList, 'MorePagesScreen'>;
