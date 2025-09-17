@@ -6,7 +6,7 @@ import logo from "../../assets/images/MIRAGIO--LOGO.png";
 import { icons } from "../../constants/index";
 import CustomGradientButton from "../../components/CustomGradientButton";
 import { Colors } from "../../constants/Colors";
-import type { AuthStackParamList } from '../../Navigation/types';
+import type { AuthStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'VerifyCode'>;
 

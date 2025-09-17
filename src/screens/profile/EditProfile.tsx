@@ -7,7 +7,7 @@ import profileimg from "../../assets/images/profileimg.png";
 
 import { Colors } from "../../constants/Colors";
 import { useUser } from "../../context/UserContext";
-import type { MainStackParamList } from "../../Navigation/types";
+import type { MainStackParamList } from "../../navigation/types";
 
 type Props = NativeStackScreenProps<MainStackParamList, 'EditProfile'>;
 

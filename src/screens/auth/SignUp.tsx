@@ -18,7 +18,7 @@ import { icons } from '../../constants/index';
 import bg from '../../assets/images/bg.png';
 import logo from '../../assets/images/MIRAGIO--LOGO.png';
 import CustomGradientButton from '../../components/CustomGradientButton';
-import type { AuthStackParamList } from '../../Navigation/types';
+import type { AuthStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 

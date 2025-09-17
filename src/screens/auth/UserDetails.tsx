@@ -8,7 +8,7 @@ import CustomGradientButton from "../../components/CustomGradientButton";
 import { Colors } from "../../constants/Colors";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUser } from '../../context/UserContext';
-import type { AuthStackParamList } from '../../Navigation/types';
+import type { AuthStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'UserDetails'>;
 

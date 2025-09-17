@@ -4,7 +4,7 @@ import bg from "../../assets/images/bg.png";
 import tick from "../../assets/images/tick.png";
 import CustomGradientButton from "../../components/CustomGradientButton"; // Updated import
 import { Colors } from "../../constants/Colors";
-import type { AuthStackParamList } from '../../Navigation/types';
+import type { AuthStackParamList } from '../../navigation/types';
 
 // FIXED: Proper TypeScript props for React Native CLI
 type Props = NativeStackScreenProps<AuthStackParamList, 'ResetSuccess'>;

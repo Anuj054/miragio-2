@@ -6,9 +6,9 @@ import messaging from '@react-native-firebase/messaging';
 
 import { UserProvider, useUser } from './src/context/UserContext';
 import SplashScreen from './src/components/SplashScreen';
-import AuthNavigator from './src/Navigation/AuthNavigator';
-import MainNavigator from './src/Navigation/MainNavigator';
-import type { RootStackParamList } from './src/Navigation/types';
+import AuthNavigator from './src/navigation/AuthNavigator';
+import MainNavigator from './src/navigation/MainNavigator';
+import type { RootStackParamList } from './src/navigation/types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -36,8 +36,7 @@ const AppContent = () => {
       .then(token => {
         console.log('🔥 FCM Token:', token);
 
-        // Show token in an alert popup for easy copying during dev
-        Alert.alert('FCM Token', token);
+
       })
       .catch(error => {
         console.error('❌ Error fetching FCM token:', error);

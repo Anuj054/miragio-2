@@ -4,32 +4,32 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TabNavigator from './TabNavigator';
 
 // Import profile screens
-import UserProfile from '../Screens/profile/UserProfile';
-import EditProfile from '../Screens/profile/EditProfile';
+import UserProfile from '../screens/profile/UserProfile';
+import EditProfile from '../screens/profile/EditProfile';
 
 // ADDED: Import all More/Settings screens
-import MorePageScreen from '../Screens/more/MorePageScreen';
+import MorePagesScreen from '../screens/more/MorePageScreen';
 
 // Updates folder screens
-import PlayMusicSettings from '../Screens/more/updates/PlayMusicSettings';
-import AccountSecurity from '../Screens/more/updates/AccountSecurity';
-import NewUpdates from '../Screens/more/updates/NewUpdates';
+import PlayMusicSettings from '../screens/more/updates/PlayMusicSettings';
+import AccountSecurity from '../screens/more/updates/AccountSecurity';
+import NewUpdates from '../screens/more/updates/NewUpdates';
 
 // Help folder screens
-import ReferFriends from '../Screens/more/help/ReferFriends';
-import HowToPlay from '../Screens/more/help/HowToPlay';
-import ResponsibleGaming from '../Screens/more/help/ResponsibleGaming';
-import FairPlay from '../Screens/more/help/FairPlay';
-import HelpDesk from '../Screens/more/help/HelpDesk';
-import SystemStatus from '../Screens/more/help/SystemStatus';
+import ReferFriends from '../screens/more/help/ReferFriends';
+import HowToPlay from '../screens/more/help/HowToPlay';
+import ResponsibleGaming from '../screens/more/help/ResponsibleGaming';
+import FairPlay from '../screens/more/help/FairPlay';
+import HelpDesk from '../screens/more/help/HelpDesk';
+import SystemStatus from '../screens/more/help/SystemStatus';
 
 // System folder screens
-import PrivacyPolicy from '../Screens/more/system/PrivacyPolicy';
-import RNGCertification from '../Screens/more/system/RNGCertification';
-import Careers from '../Screens/more/system/Careers';
-import AboutUs from '../Screens/more/system/AboutUs';
-import TermsOfUse from '../Screens/more/system/TermsOfUse';
-import Legality from '../Screens/more/system/Legality';
+import PrivacyPolicy from '../screens/more/system/PrivacyPolicy';
+import RNGCertification from '../screens/more/system/RNGCertification';
+import Careers from '../screens/more/system/Careers';
+import AboutUs from '../screens/more/system/AboutUs';
+import TermsOfUse from '../screens/more/system/TermsOfUse';
+import Legality from '../screens/more/system/Legality';
 
 import type { MainStackParamList } from './types';
 
@@ -66,7 +66,7 @@ const MainNavigator = () => {
             />
 
             {/* ADDED: More/Settings screens accessible from MoreTab */}
-            <Stack.Screen name="MorePagesScreen" component={MorePageScreen} />
+            <Stack.Screen name="MorePagesScreen" component={MorePagesScreen} />
 
             {/* Updates folder screens */}
             <Stack.Screen name="PlayMusicSettings" component={PlayMusicSettings} />

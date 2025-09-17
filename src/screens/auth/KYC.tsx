@@ -7,7 +7,7 @@ import { icons } from "../../constants/index"
 import CustomGradientButton from "../../components/CustomGradientButton"
 import { Colors } from "../../constants/Colors"
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import type { AuthStackParamList } from "../../Navigation/types"
+import type { AuthStackParamList } from "../../navigation/types"
 
 // FIXED: Proper TypeScript props
 type Props = NativeStackScreenProps<AuthStackParamList, 'KYC'>;

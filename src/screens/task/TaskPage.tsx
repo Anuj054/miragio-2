@@ -31,7 +31,7 @@ import CustomGreenGradientButton from "../../components/CustomGreenGradientButto
 import { useUser } from "../../context/UserContext";
 
 // FIXED: Navigation types
-import type { TaskStackParamList } from "../../Navigation/types";
+import type { TaskStackParamList } from "../../navigation/types";
 
 type Props = NativeStackScreenProps<TaskStackParamList, 'TaskPage'>;
 
