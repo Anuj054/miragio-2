@@ -127,7 +127,7 @@ const Welcome = ({ navigation }: Props) => {
                         style={{
                             backgroundColor: Colors.light.bgBlueBtn,
                             width: '100%',
-                            height: height * 0.062,  // 6.5% of screen height
+                            height: height * 0.06,  // 6.5% of screen height
                             borderRadius: 16,
                             marginBottom: height * 0.02  // 2% margin bottom
                         }}
@@ -150,7 +150,7 @@ const Welcome = ({ navigation }: Props) => {
                         style={{
                             backgroundColor: Colors.light.blackPrimary,
                             width: '100%',
-                            height: height * 0.062,  // 6.5% of screen height
+                            height: height * 0.06,  // 6.5% of screen height
                             borderRadius: 16
                         }}
                         className="flex justify-center items-center"
