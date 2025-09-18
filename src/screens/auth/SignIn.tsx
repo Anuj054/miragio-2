@@ -167,7 +167,7 @@ const SignIn = ({ navigation }: Props) => {
                     height: height * 0.06
                 }}
                 onPress={handleBackPress}
-                disabled={isLoading}
+
             >
                 {icons && (
                     <Image
@@ -413,12 +413,12 @@ const SignIn = ({ navigation }: Props) => {
                 style={{
                     top: height * 0.72,  // 64% from top (adjusted for compact inputs)
                     width: '100%',
-                    paddingHorizontal: width * 0.08
+                    paddingHorizontal: width * 0.01
                 }}
             >
                 <CustomGradientButton
                     text={isLoading ? "Signing In..." : "Login"}
-                    width={Math.min(width * 0.85, 350)}  // Responsive width with max limit
+                    width={Math.min(width * 0.9, 500)}  // Responsive width with max limit
                     height={Math.max(48, height * 0.06)}  // Min 48px, max 6% of height
                     fontWeight={600}
                     borderRadius={100}

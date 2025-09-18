@@ -503,7 +503,7 @@ const UserDetails = ({ navigation }: Props) => {
             >
                 <CustomGradientButton
                     text={(isLoading || contextLoading) ? "Creating Account..." : "Complete Registration"}
-                    width={Math.min(width * 0.9, 370)}
+                    width={Math.min(width * 0.9, 500)}
                     height={Math.max(48, height * 0.06)}
                     borderRadius={100}
                     fontSize={Math.min(18, width * 0.045)}

@@ -84,12 +84,12 @@ const ResetSuccess = ({ navigation }: Props) => {
                 style={{
                     top: height * 0.84,  // 72% from top
                     width: '100%',
-                    paddingHorizontal: width * 0.08
+                    paddingHorizontal: width * 0.02
                 }}
             >
                 <CustomGradientButton
                     text="Login"
-                    width={Math.min(width * 0.85, 350)}
+                    width={Math.min(width * 0.9, 500)}
                     height={Math.max(48, height * 0.06)}
                     fontWeight={600}
                     borderRadius={15}

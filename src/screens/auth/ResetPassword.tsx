@@ -142,7 +142,7 @@ const ResetPassword = ({ navigation }: Props) => {
                     zIndex: 10
                 }}
                 onPress={handleBackPress}
-                disabled={isLoading}
+
             >
                 {icons && (
                     <Image
@@ -220,7 +220,7 @@ const ResetPassword = ({ navigation }: Props) => {
             <View
                 className="absolute items-center"
                 style={{
-                    top: height * 0.67,  // 62% from top
+                    top: height * 0.69,  // 62% from top
                     width: '100%',
                     paddingHorizontal: width * 0.05
                 }}
@@ -279,14 +279,14 @@ const ResetPassword = ({ navigation }: Props) => {
             <View
                 className="absolute items-center"
                 style={{
-                    top: height * 0.78,  // 72% from top
+                    top: height * 0.8,  // 72% from top
                     width: '100%',
                     paddingHorizontal: width * 0.02
                 }}
             >
                 <CustomGradientButton
                     text={isLoading ? "Sending..." : "Send Verification Code"}
-                    width={Math.min(width * 0.9, 370)}
+                    width={Math.min(width * 0.9, 500)}
                     height={Math.max(48, height * 0.06)}
                     borderRadius={15}
                     fontSize={Math.min(18, width * 0.045)}

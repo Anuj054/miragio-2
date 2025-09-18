@@ -290,7 +290,7 @@ const VerifyCode = ({ navigation, route }: Props) => {
             <View
                 className="absolute flex flex-row justify-between"
                 style={{
-                    top: height * 0.49,  // 42% from top
+                    top: height * 0.52,  // 42% from top
                     width: width * 0.85,
                     paddingHorizontal: width * 0.02
                 }}
@@ -393,7 +393,7 @@ const VerifyCode = ({ navigation, route }: Props) => {
             >
                 <CustomGradientButton
                     text={isLoading ? "Verifying..." : "Verify Code"}
-                    width={Math.min(width * 0.85, 350)}
+                    width={Math.min(width * 0.9, 500)}
                     height={Math.max(48, height * 0.06)}
                     borderRadius={15}
                     fontSize={Math.min(18, width * 0.045)}
