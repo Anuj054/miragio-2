@@ -1,4 +1,4 @@
-import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, Text, TextInput, TouchableOpacity, View, Dimensions } from "react-native";
 import { useState } from "react";
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg from "../../assets/images/bg.png";
@@ -11,6 +11,8 @@ import { Colors } from "../../constants/Colors";
 import type { AuthStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
+
+const { width, height } = Dimensions.get('window');
 
 const ResetPassword = ({ navigation }: Props) => {
 
@@ -119,56 +121,129 @@ const ResetPassword = ({ navigation }: Props) => {
     };
 
     return (
-        <View className="flex items-center ">
+        <View className="flex-1 items-center">
 
-            {/* =================== BACKGROUND IMAGE =================== */}
+            {/* Background Image */}
             <Image
                 source={bg}
                 resizeMode="cover"
-                className="w-full h-full"
+                className="w-full h-full absolute"
+                style={{ width, height }}
             />
 
-            {/* =================== HEADER SECTION WITH LOGO =================== */}
-            <View className="absolute  flex  items-center w-full" >
-                {/* Back button */}
-                <TouchableOpacity
-                    className="absolute flex left-[10px] top-[105px]"
-                    onPress={handleBackPress}
-                    disabled={isLoading}
-                >
-                    {icons && (
-                        <Image
-                            source={icons.back}
-                            className="w-[25px] h-[30px] mx-4"
-                            style={{ opacity: isLoading ? 0.5 : 1 }}
-                        />
-                    )}
-                </TouchableOpacity>
+            {/* Back Button - responsive positioning */}
+            <TouchableOpacity
+                className="absolute flex items-center justify-center"
+                style={{
+                    left: width * 0.04,  // 4% from left
+                    top: height * 0.09,  // 6% from top
+                    width: width * 0.12, // Touch area
+                    height: height * 0.06,
+                    zIndex: 10
+                }}
+                onPress={handleBackPress}
+                disabled={isLoading}
+            >
+                {icons && (
+                    <Image
+                        source={icons.back}
+                        style={{
+                            width: width * 0.06,
+                            height: width * 0.07,
+                            opacity: isLoading ? 0.5 : 1
+                        }}
+                    />
+                )}
+            </TouchableOpacity>
 
-                {/* Miragio logo */}
+            {/* Logo - responsive positioning */}
+            <Image
+                source={logo}
+                style={{
+                    position: 'absolute',
+                    top: height * 0.08,  // 8% from top
+                    width: width * 0.25,
+                    height: width * 0.22
+                }}
+            />
+
+            {/* Illustration - responsive positioning */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.30  // 24% from top
+                }}
+            >
                 <Image
-                    source={logo}
-                    className=" top-[80px] w-[100px] h-[85px]" />
-            </View >
-
-            {/* =================== ILLUSTRATION SECTION =================== */}
-            <View className="absolute top-[280px]">
-                <Image source={resetpassimg}
-                    className="h-[170px] w-[142px]" />
+                    source={resetpassimg}
+                    style={{
+                        height: height * 0.2,   // 20% of screen height
+                        width: width * 0.36,    // 36% of screen width
+                        resizeMode: 'contain'
+                    }}
+                />
             </View>
 
-            {/* =================== RESET PASSWORD INSTRUCTIONS SECTION =================== */}
-            <View className="absolute top-[490px] flex flex-col justify-center items-center w-[300px]">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">Reset Password</Text>
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-xl mt-5 text-center ">We'll send a verification code to your email address.</Text>
+            {/* Reset Password Instructions - responsive */}
+            <View
+                className="absolute flex flex-col justify-center items-center"
+                style={{
+                    top: height * 0.54,  // 46% from top
+                    width: width * 0.8,  // 80% of screen width
+                    paddingHorizontal: width * 0.04
+                }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07,
+                        lineHeight: width * 0.08
+                    }}
+                    className="font-bold text-center"
+                >
+                    Reset Password
+                </Text>
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.045,
+                        lineHeight: width * 0.055,
+                        marginTop: height * 0.02
+                    }}
+                    className="text-center"
+                >
+                    We'll send a verification code to your email address.
+                </Text>
             </View>
 
-            {/* =================== EMAIL INPUT SECTION =================== */}
-            <View className="absolute top-[610px]"> {/* FIXED: Changed from top-[60px] to top-[610px] */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] ">
+            {/* Email Input Section - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.67,  // 62% from top
+                    width: '100%',
+                    paddingHorizontal: width * 0.05
+                }}
+            >
+                <View
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        width: '100%',
+                        maxWidth: width * 0.9,
+                        height: Math.max(48, height * 0.06),
+                        borderRadius: 15
+                    }}
+                    className="flex flex-row items-center"
+                >
                     <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="w-[320px] h-[56px] ml-6"
+                        style={{
+                            backgroundColor: 'transparent',
+                            color: Colors.light.blackPrimary,
+                            flex: 1,
+                            fontSize: Math.min(16, width * 0.035),
+                            paddingHorizontal: width * 0.04,
+                            paddingVertical: 0
+                        }}
                         placeholder="Email"
                         placeholderTextColor={Colors.light.placeholderColor}
                         value={email}
@@ -182,15 +257,17 @@ const ResetPassword = ({ navigation }: Props) => {
                     />
                 </View>
 
-                {/* Error message display */}
+                {/* Error message display - responsive */}
                 {errorMessage && (
                     <Text
                         style={{
                             color: '#FF4444',
-                            fontSize: 14,
+                            fontSize: width * 0.03,
                             textAlign: 'center',
-                            marginTop: 8,
+                            marginTop: height * 0.01,
                             fontWeight: '500',
+                            width: '100%',
+                            maxWidth: width * 0.85
                         }}
                     >
                         {errorMessage}
@@ -198,14 +275,21 @@ const ResetPassword = ({ navigation }: Props) => {
                 )}
             </View>
 
-            {/* =================== SUBMIT BUTTON SECTION =================== */}
-            <View className="absolute top-[720px]" >
+            {/* Submit Button - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.78,  // 72% from top
+                    width: '100%',
+                    paddingHorizontal: width * 0.02
+                }}
+            >
                 <CustomGradientButton
                     text={isLoading ? "Sending..." : "Send Verification Code"}
-                    width={370}
-                    height={56}
+                    width={Math.min(width * 0.9, 370)}
+                    height={Math.max(48, height * 0.06)}
                     borderRadius={15}
-                    fontSize={18}
+                    fontSize={Math.min(18, width * 0.045)}
                     fontWeight="600"
                     textColor={Colors.light.whiteFfffff}
                     onPress={handleRequestLoginLink}
@@ -216,12 +300,25 @@ const ResetPassword = ({ navigation }: Props) => {
                 />
             </View>
 
-            {/* =================== FOOTER BRAND NAME =================== */}
-            <View className="absolute bottom-8">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">MIRAGIO</Text>
+            {/* Footer Brand Name - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    bottom: height * 0.034  // 4% from bottom
+                }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07
+                    }}
+                    className="font-bold"
+                >
+                    MIRAGIO
+                </Text>
             </View>
 
-            {/* =================== EMAIL SENT MODAL =================== */}
+            {/* Email Sent Modal */}
             <EmailSentModal
                 visible={showEmailModal}
                 onClose={handleModalClose}

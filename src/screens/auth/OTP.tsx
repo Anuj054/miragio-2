@@ -1,4 +1,4 @@
-import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TextInput, TouchableOpacity, View, Dimensions } from 'react-native';
 import { useState, useEffect } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg from '../../assets/images/bg.png';
@@ -11,8 +11,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUser } from '../../context/UserContext';
 import type { AuthStackParamList } from '../../navigation/types';
 
-
 type Props = NativeStackScreenProps<AuthStackParamList, 'Otp'>;
+
+const { width, height } = Dimensions.get('window');
 
 const Otp = ({ navigation, route }: Props) => {
     // Context methods for login and FCM storage
@@ -64,15 +65,15 @@ const Otp = ({ navigation, route }: Props) => {
         setErrorMessage('');
 
         try {
-            // 🔑 Replace this with real API verification call in production
+            // Replace this with real API verification call in production
             await new Promise<void>((resolve) => setTimeout(resolve, 1500));
 
-            setErrorMessage('✅ OTP verified successfully! Welcome to Miragio!');
+            setErrorMessage('OTP verified successfully! Welcome to Miragio!');
 
             // Auto-login the user
             await autoLoginUser();
 
-            // ✅ FCM token is automatically handled by UserContext.verifyOTP()
+            // FCM token is automatically handled by UserContext.verifyOTP()
             // No need for duplicate calls!
 
             // Navigate to success page
@@ -111,7 +112,7 @@ const Otp = ({ navigation, route }: Props) => {
         setIsLoading(true);
         try {
             await new Promise<void>((resolve) => setTimeout(resolve, 1000));
-            setErrorMessage('✅ OTP sent successfully!');
+            setErrorMessage('OTP sent successfully!');
         } catch {
             setErrorMessage('Failed to resend OTP. Please check your internet connection.');
         } finally {
@@ -128,61 +129,165 @@ const Otp = ({ navigation, route }: Props) => {
     const isButtonDisabled = isLoading || contextLoading || otp.length !== 5;
 
     return (
-        <View className="flex items-center">
+        <View className="flex-1 items-center">
             {/* Background */}
-            <Image source={bg} resizeMode="cover" className="w-full h-full" />
+            <Image
+                source={bg}
+                resizeMode="cover"
+                className="w-full h-full absolute"
+                style={{ width, height }}
+            />
 
-            {/* Header */}
-            <View className="absolute flex items-center w-full">
-                <TouchableOpacity
-                    className="absolute flex left-[10px] top-[105px]"
-                    onPress={handleBackPress}
-                    disabled={isLoading || contextLoading}
+            {/* Back Button - responsive positioning */}
+            <TouchableOpacity
+                className="absolute flex items-center justify-center"
+                style={{
+                    left: width * 0.04,  // 4% from left
+                    top: height * 0.097,  // 6% from top
+                    width: width * 0.12, // Touch area
+                    height: height * 0.06,
+                    zIndex: 10
+                }}
+                onPress={handleBackPress}
+                disabled={isLoading || contextLoading}
+            >
+                <Image
+                    source={icons.back}
+                    style={{
+                        width: width * 0.06,
+                        height: width * 0.07,
+                        opacity: (isLoading || contextLoading) ? 0.5 : 1
+                    }}
+                />
+            </TouchableOpacity>
+
+            {/* Logo - responsive positioning */}
+            <Image
+                source={logo}
+                style={{
+                    position: 'absolute',
+                    top: height * 0.08,  // 8% from top
+                    width: width * 0.25,
+                    height: width * 0.22
+                }}
+            />
+
+            {/* Title Section - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.22,  // 18% from top
+                    width: width * 0.9,
+                    paddingHorizontal: width * 0.04
+                }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.077,
+                        lineHeight: width * 0.075
+                    }}
+                    className="font-medium text-center"
                 >
-                    <Image
-                        source={icons.back}
-                        className="w-[25px] h-[30px] mx-4"
-                        style={{ opacity: (isLoading || contextLoading) ? 0.5 : 1 }}
-                    />
-                </TouchableOpacity>
-                <Image source={logo} className="top-[80px] w-[100px] h-[85px]" />
-            </View>
-
-            {/* Titles */}
-            <View className="absolute top-[200px] items-center">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="font-medium text-3xl">
                     OTP Sent Successfully
                 </Text>
-                <Text style={{ color: Colors.light.secondaryText }} className="font-medium pt-2">
+                <Text
+                    style={{
+                        color: Colors.light.secondaryText,
+                        fontSize: width * 0.035,
+                        marginTop: height * 0.01
+                    }}
+                    className="font-medium text-center"
+                >
                     Check your inbox
                 </Text>
             </View>
 
-            {/* Illustration */}
-            <View className="absolute top-[310px]">
-                <Image source={otpimage} className="h-[250px] w-[400px]" />
+            {/* Illustration - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.33  // 28% from top
+                }}
+            >
+                <Image
+                    source={otpimage}
+                    style={{
+                        height: height * 0.28,   // 25% of screen height
+                        width: width * 1,     // 85% of screen width
+                        resizeMode: 'contain'
+                    }}
+                />
             </View>
 
-            {/* Instructions */}
-            <View className="absolute top-[570px] items-center">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">
+            {/* Instructions - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.62,  // 54% from top
+                    width: width * 0.85,
+                    paddingHorizontal: width * 0.04
+                }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07,
+                        lineHeight: width * 0.075
+                    }}
+                    className="font-bold text-center"
+                >
                     Confirm Your Number
                 </Text>
-                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="mt-2">
+                <Text
+                    style={{
+                        color: Colors.light.placeholderColorOp70,
+                        fontSize: width * 0.035,
+                        marginTop: height * 0.01
+                    }}
+                    className="text-center"
+                >
                     We've sent a 5-digit verification code
                 </Text>
             </View>
 
-            {/* OTP Input */}
-            <View className="absolute top-[700px]">
+            {/* OTP Input - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.74,  // 66% from top
+                    width: '100%',
+                    paddingHorizontal: width * 0.02
+                }}
+            >
                 <View
-                    style={{ borderColor: Colors.light.whiteFfffff }}
-                    className="flex flex-row items-center w-[370px] h-[56px] border rounded-[15px] mb-5"
+                    style={{
+                        borderColor: Colors.light.whiteFfffff,
+                        borderWidth: 1,
+                        borderRadius: 15,
+                        width: '100%',
+                        maxWidth: width * 0.9,
+                        height: Math.max(48, height * 0.06),
+                        marginBottom: height * 0.02
+                    }}
+                    className="flex flex-row items-center"
                 >
-                    <Image source={icons.otp} className="w-[16px] h-[14px] mx-4" />
+                    <Image
+                        source={icons.otp}
+                        style={{
+                            width: width * 0.04,
+                            height: width * 0.035,
+                            marginLeft: width * 0.04,
+                            marginRight: width * 0.03
+                        }}
+                    />
                     <TextInput
-                        style={{ color: Colors.light.whiteFfffff }}
-                        className="ml-5 w-[180px] h-[56px]"
+                        style={{
+                            color: Colors.light.whiteFfffff,
+                            flex: 1,
+                            fontSize: Math.min(16, width * 0.04),
+                            paddingVertical: 0
+                        }}
                         placeholder="Enter OTP"
                         placeholderTextColor={Colors.light.whiteFfffff}
                         keyboardType="numeric"
@@ -191,15 +296,28 @@ const Otp = ({ navigation, route }: Props) => {
                         onChangeText={handleOtpChange}
                         editable={!isLoading && !contextLoading}
                     />
-                    <Text style={{ color: Colors.light.whiteFfffff, fontSize: 12, marginRight: 5 }}>
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFfffff,
+                            fontSize: width * 0.03,
+                            marginRight: width * 0.02
+                        }}
+                    >
                         {otp.length}/5
                     </Text>
-                    <TouchableOpacity onPress={handleResendOTP} disabled={isLoading || contextLoading}>
+                    <TouchableOpacity
+                        onPress={handleResendOTP}
+                        disabled={isLoading || contextLoading}
+                        style={{
+                            paddingHorizontal: width * 0.03,
+                            paddingVertical: height * 0.01
+                        }}
+                    >
                         <Text
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 opacity: (isLoading || contextLoading) ? 0.5 : 1,
-                                fontSize: 12,
+                                fontSize: width * 0.03,
                             }}
                         >
                             Resend
@@ -207,11 +325,22 @@ const Otp = ({ navigation, route }: Props) => {
                     </TouchableOpacity>
                 </View>
 
+                {/* Error Message - responsive */}
                 {errorMessage !== '' && (
-                    <View className="w-[370px] mt-1 px-4">
+                    <View
+                        style={{
+                            width: '100%',
+                            maxWidth: width * 0.85,
+                            paddingHorizontal: width * 0.02
+                        }}
+                    >
                         <Text
-                            style={{ color: errorMessage.includes('✅') ? '#10B981' : '#EF4444' }}
-                            className="text-center text-sm font-medium"
+                            style={{
+                                color: errorMessage.includes('successfully') ? '#10B981' : '#EF4444',
+                                fontSize: width * 0.035,
+                                textAlign: 'center',
+                                fontWeight: '500'
+                            }}
                         >
                             {errorMessage}
                         </Text>
@@ -219,14 +348,21 @@ const Otp = ({ navigation, route }: Props) => {
                 )}
             </View>
 
-            {/* Verify Button */}
-            <View className="absolute top-[800px]">
+            {/* Verify Button - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.85,  // 76% from top
+                    width: '100%',
+                    paddingHorizontal: width * 0.02
+                }}
+            >
                 <CustomGradientButton
                     text={(isLoading || contextLoading) ? 'Verifying...' : 'Verify OTP'}
-                    width={370}
-                    height={56}
+                    width={Math.min(width * 0.9, 370)}
+                    height={Math.max(48, height * 0.06)}
                     borderRadius={15}
-                    fontSize={18}
+                    fontSize={Math.min(18, width * 0.045)}
                     fontWeight="600"
                     textColor={Colors.light.whiteFfffff}
                     onPress={handleVerifyOTP}
@@ -235,9 +371,20 @@ const Otp = ({ navigation, route }: Props) => {
                 />
             </View>
 
-            {/* Footer */}
-            <View className="absolute bottom-8">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">
+            {/* Footer - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    bottom: height * 0.034  // 4% from bottom
+                }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07
+                    }}
+                    className="font-bold"
+                >
                     MIRAGIO
                 </Text>
             </View>

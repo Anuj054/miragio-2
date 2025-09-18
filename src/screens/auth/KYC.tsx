@@ -1,4 +1,4 @@
-import { Image, Text, TextInput, TouchableOpacity, View, ScrollView } from "react-native"
+import { Image, Text, TextInput, TouchableOpacity, View, ScrollView, Dimensions } from "react-native"
 import { useState, useEffect } from 'react'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import bg from "../../assets/images/bg.png"
@@ -9,8 +9,9 @@ import { Colors } from "../../constants/Colors"
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { AuthStackParamList } from "../../navigation/types"
 
-// FIXED: Proper TypeScript props
 type Props = NativeStackScreenProps<AuthStackParamList, 'KYC'>;
+
+const { width, height } = Dimensions.get('window');
 
 // Type definitions
 interface SignupData {
@@ -358,300 +359,525 @@ const KYC = ({ navigation }: Props) => {
     };
 
     return (
-        <View className="flex items-center ">
+        <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ minHeight: height }}
+            showsVerticalScrollIndicator={false}
+        >
+            <View className="flex-1 items-center">
+                {/* Background Image */}
+                <Image
+                    source={bg}
+                    resizeMode="cover"
+                    className="w-full h-full absolute"
+                    style={{ width, height }}
+                />
 
-            {/* =================== BACKGROUND IMAGE =================== */}
-            <Image
-                source={bg}
-                resizeMode="cover"
-                className="w-full h-full"
-            />
-
-            {/* =================== HEADER SECTION WITH LOGO =================== */}
-            <View className="absolute  flex  items-center w-full" >
-                {/* FIXED: Back button */}
+                {/* Back Button - responsive positioning */}
                 <TouchableOpacity
-                    className="absolute flex left-[10px] top-[105px]"
+                    className="absolute flex items-center justify-center"
+                    style={{
+                        left: width * 0.04,  // 4% from left
+                        top: height * 0.09,  // 6% from top
+                        width: width * 0.12, // Touch area
+                        height: height * 0.06,
+                        zIndex: 10
+                    }}
                     onPress={handleBackPress}
                     disabled={isLoading}
                 >
                     {icons && (
                         <Image
                             source={icons.back}
-                            className="w-[25px] h-[30px] mx-4"
-                            style={{ opacity: isLoading ? 0.5 : 1 }}
+                            style={{
+                                width: width * 0.06,
+                                height: width * 0.07,
+                                opacity: isLoading ? 0.5 : 1
+                            }}
                         />
                     )}
                 </TouchableOpacity>
 
-                {/* Miragio logo */}
+                {/* Logo - responsive positioning */}
                 <Image
                     source={logo}
-                    className=" top-[80px] w-[100px] h-[80px] " />
-            </View >
-
-            {/* =================== PAGE TITLE =================== */}
-            <Text style={{ color: Colors.light.whiteFfffff }} className="absolute top-[220px] font-medium text-3xl" > Fill KYC Details</Text >
-
-            {/* =================== INPUT FIELDS SECTION =================== */}
-            <View className="  absolute top-[280px] " >
-
-                {/* Aadhar number input - Enhanced with numeric validation */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center  w-[370px] h-[56px] rounded-[15px] mb-5">
-                    <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="ml-5 w-[280px] h-[56px]"
-                        placeholder="Enter Aadhar Number*"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={aadharNumber}
-                        onChangeText={handleAadharChange}
-                        keyboardType="numeric"
-                        maxLength={12}
-                        editable={!isLoading}
-                    />
-
-                </View>
-
-                {/* Name input */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-5">
-                    <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="w-[300px] h-[56px] ml-5"
-                        placeholder="Enter Username*"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={username}
-                        onChangeText={(text) => handleInputChange(setUsername, text)}
-                        autoCapitalize="words"
-                        editable={!isLoading}
-                    />
-                </View>
-
-                {/* Age input - Enhanced with numeric validation */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-5">
-                    <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="w-[300px] h-[56px] ml-5"
-                        placeholder="Enter Age*"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={age}
-                        onChangeText={handleAgeChange}
-                        keyboardType="numeric"
-                        maxLength={3}
-                        editable={!isLoading}
-                    />
-                </View>
-
-                {/* =================== GENDER DROPDOWN SECTION =================== */}
-                <View className="w-[370px] mb-5 relative">
-                    {/* Dropdown trigger button */}
-                    <TouchableOpacity
-                        style={{ backgroundColor: Colors.light.whiteFfffff }}
-                        className="flex flex-row items-center justify-between w-[370px] h-[56px] rounded-[15px] px-5"
-                        onPress={handleGenderDropdownToggle}
-                        disabled={isLoading}
-                    >
-                        <Text style={{ color: gender ? Colors.light.blackPrimary : Colors.light.placeholderColor }} className="text-base">
-                            {gender ? gender : "Select Gender*"}
-                        </Text>
-                        <Image
-                            source={isGenderDropdownOpen ? icons.dropdownicon : icons.upicon}
-                            className="w-3 h-3"
-                            style={{ opacity: isLoading ? 0.5 : 1 }}
-                        />
-                    </TouchableOpacity>
-
-                    {/* Dropdown options container */}
-                    {isGenderDropdownOpen && (
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.whiteFfffff,
-                                borderColor: Colors.light.secondaryText,
-                                position: 'absolute',
-                                top: 56,
-                                width: '100%',
-                                zIndex: 1000,
-                                maxHeight: 150
-                            }}
-                            className="rounded-[10px] border"
-                        >
-                            {/* Search input for filtering gender */}
-                            <View style={{ borderColor: Colors.light.secondaryText }} className="px-4 py-1 border-b">
-                                <TextInput
-                                    style={{ backgroundColor: Colors.light.whiteFefefe, color: Colors.light.blackPrimary }}
-                                    className="h-[40px] px-3 rounded-[8px]"
-                                    placeholder="Search gender..."
-                                    placeholderTextColor={Colors.light.placeholderColor}
-                                    value={genderSearchQuery}
-                                    onChangeText={setGenderSearchQuery}
-                                    autoFocus={false}
-                                    editable={!isLoading}
-                                />
-                            </View>
-
-                            {/* Scrollable gender options list */}
-                            <ScrollView
-                                style={{ maxHeight: 100 }}
-                                nestedScrollEnabled={true}
-                                showsVerticalScrollIndicator={true}
-                            >
-                                {filteredGenderOptions.length > 0 ? (
-                                    filteredGenderOptions.map((option, index) => (
-                                        <TouchableOpacity
-                                            key={index}
-                                            style={{ borderColor: Colors.light.secondaryText }}
-                                            className="px-5 py-4 h-[56px] justify-center border-b last:border-b-0"
-                                            onPress={() => handleGenderSelect(option)}
-                                            disabled={isLoading}
-                                        >
-                                            <Text style={{ color: Colors.light.blackPrimary }} className="text-base">
-                                                {option.label}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))
-                                ) : (
-                                    <View className="px-5 py-4 h-[56px] justify-center">
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-base">
-                                            No gender found
-                                        </Text>
-                                    </View>
-                                )}
-                            </ScrollView>
-                        </View>
-                    )}
-                </View>
-
-
-                {/* Phone Number input - Enhanced with numeric validation */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-5">
-                    <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="w-[280px] h-[56px] ml-5"
-                        placeholder="Enter Phone Number*"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={phoneNumber}
-                        onChangeText={handlePhoneChange}
-                        keyboardType="numeric"
-                        maxLength={10}
-                        editable={!isLoading}
-                    />
-
-                </View>
-
-                {/* =================== OCCUPATION DROPDOWN SECTION =================== */}
-                <View className="w-[370px] mb-2 relative">
-                    {/* Dropdown trigger button */}
-                    <TouchableOpacity
-                        style={{ backgroundColor: Colors.light.whiteFfffff }}
-                        className="flex flex-row items-center justify-between w-[370px] h-[56px] rounded-[15px] px-5"
-                        onPress={handleDropdownToggle}
-                        disabled={isLoading}
-                    >
-                        <Text style={{ color: selectedOccupation ? Colors.light.blackPrimary : Colors.light.placeholderColor }} className="text-base">
-                            {selectedOccupation ? occupations.find(occ => occ.value === selectedOccupation)?.label : "Select Occupation*"}
-                        </Text>
-                        <Image
-                            source={isDropdownOpen ? icons.dropdownicon : icons.upicon}
-                            className="w-3 h-3"
-                            style={{ opacity: isLoading ? 0.5 : 1 }}
-                        />
-                    </TouchableOpacity>
-
-                    {/* Dropdown options container */}
-                    {isDropdownOpen && (
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.whiteFfffff,
-                                borderColor: Colors.light.secondaryText,
-                                position: 'absolute',
-                                top: 56, // Height of the trigger button
-                                width: '100%',
-                                zIndex: 1000,
-                                maxHeight: 150
-                            }}
-                            className="rounded-[10px] border"
-                        >
-                            {/* Search input */}
-                            <View style={{ borderColor: Colors.light.secondaryText }} className="px-4 py-1 border-b">
-                                <TextInput
-                                    style={{ backgroundColor: Colors.light.whiteFefefe, color: Colors.light.blackPrimary }}
-                                    className="h-[40px] px-3 rounded-[8px]"
-                                    placeholder="Search occupation..."
-                                    placeholderTextColor={Colors.light.placeholderColor}
-                                    value={searchQuery}
-                                    onChangeText={setSearchQuery}
-                                    autoFocus={false}
-                                    editable={!isLoading}
-                                />
-                            </View>
-
-                            {/* Scrollable occupation list */}
-                            <ScrollView
-                                style={{ maxHeight: 100 }}
-                                nestedScrollEnabled={true}
-                                showsVerticalScrollIndicator={true}
-                            >
-                                {filteredOccupations.length > 0 ? (
-                                    filteredOccupations.map((occupation, index) => (
-                                        <TouchableOpacity
-                                            key={index}
-                                            style={{ borderColor: Colors.light.secondaryText }}
-                                            className="px-5 py-4 h-[56px] justify-center border-b last:border-b-0"
-                                            onPress={() => handleOccupationSelect(occupation)}
-                                            disabled={isLoading}
-                                        >
-                                            <Text style={{ color: Colors.light.blackPrimary }} className="text-base">
-                                                {occupation.label}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))
-                                ) : (
-                                    <View className="px-5 py-4 h-[56px] justify-center">
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-base">
-                                            No occupations found
-                                        </Text>
-                                    </View>
-                                )}
-                            </ScrollView>
-                        </View>
-                    )}
-                </View>
-
-
-                {/* Error message display */}
-                {errorMessage ? (
-                    <View className="w-[350px] px-4">
-                        <Text style={{ color: '#EF4444' }} className="text-center text-sm font-medium">
-                            {errorMessage}
-                        </Text>
-                    </View>
-                ) : null}
-
-            </View >
-
-            {/* =================== NEXT BUTTON SECTION =================== */}
-            <View className="absolute top-[750px]" >
-                <CustomGradientButton
-                    text={isLoading ? "Saving..." : "Next"}
-                    width={370}
-                    height={56}
-                    borderRadius={100}
-                    fontSize={18}
-                    fontWeight="600"
-                    textColor={Colors.light.whiteFfffff}
-                    onPress={proceedToUserDetails}
-                    disabled={isLoading}
                     style={{
-                        opacity: isLoading ? 0.6 : 1,
+                        position: 'absolute',
+                        top: height * 0.08,  // 8% from top
+                        width: width * 0.25,
+                        height: width * 0.22
                     }}
                 />
-            </View>
 
-            {/* =================== FOOTER BRAND NAME =================== */}
-            <View className="absolute bottom-8">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">MIRAGIO</Text>
-            </View>
+                {/* Page Title - responsive */}
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        position: 'absolute',
+                        top: height * 0.24,  // 18% from top
+                        fontSize: width * 0.077,
+                        lineHeight: width * 0.075
+                    }}
+                    className="font-medium text-center"
+                >
+                    Fill KYC Details
+                </Text>
 
-        </View >
+                {/* Input Fields Section - responsive */}
+                <View
+                    className="absolute items-center"
+                    style={{
+                        top: height * 0.31,  // 25% from top
+                        width: '100%',
+                        paddingHorizontal: width * 0.05
+                    }}
+                >
+                    {/* Aadhar Number Input */}
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.whiteFfffff,
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15,
+                            marginBottom: height * 0.022
+                        }}
+                        className="flex flex-row items-center"
+                    >
+                        <TextInput
+                            style={{
+                                backgroundColor: 'transparent',
+                                color: Colors.light.blackPrimary,
+                                flex: 1,
+                                fontSize: Math.min(16, width * 0.035),
+                                paddingHorizontal: width * 0.04,
+                                paddingVertical: 0
+                            }}
+                            placeholder="Enter Aadhar Number*"
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            value={aadharNumber}
+                            onChangeText={handleAadharChange}
+                            keyboardType="numeric"
+                            maxLength={12}
+                            editable={!isLoading}
+                        />
+                    </View>
+
+                    {/* Username Input */}
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.whiteFfffff,
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15,
+                            marginBottom: height * 0.022
+                        }}
+                        className="flex flex-row items-center"
+                    >
+                        <TextInput
+                            style={{
+                                backgroundColor: 'transparent',
+                                color: Colors.light.blackPrimary,
+                                flex: 1,
+                                fontSize: Math.min(16, width * 0.035),
+                                paddingHorizontal: width * 0.04,
+                                paddingVertical: 0
+                            }}
+                            placeholder="Enter Username*"
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            value={username}
+                            onChangeText={(text) => handleInputChange(setUsername, text)}
+                            autoCapitalize="words"
+                            editable={!isLoading}
+                        />
+                    </View>
+
+                    {/* Age Input */}
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.whiteFfffff,
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15,
+                            marginBottom: height * 0.022
+                        }}
+                        className="flex flex-row items-center"
+                    >
+                        <TextInput
+                            style={{
+                                backgroundColor: 'transparent',
+                                color: Colors.light.blackPrimary,
+                                flex: 1,
+                                fontSize: Math.min(16, width * 0.035),
+                                paddingHorizontal: width * 0.04,
+                                paddingVertical: 0
+                            }}
+                            placeholder="Enter Age*"
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            value={age}
+                            onChangeText={handleAgeChange}
+                            keyboardType="numeric"
+                            maxLength={3}
+                            editable={!isLoading}
+                        />
+                    </View>
+
+                    {/* Gender Dropdown - responsive */}
+                    <View
+                        className="relative"
+                        style={{
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            marginBottom: height * 0.022
+                        }}
+                    >
+                        <TouchableOpacity
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                height: Math.max(48, height * 0.06),
+                                borderRadius: 15
+                            }}
+                            className="flex flex-row items-center justify-between px-4"
+                            onPress={handleGenderDropdownToggle}
+                            disabled={isLoading}
+                        >
+                            <Text
+                                style={{
+                                    color: gender ? Colors.light.blackPrimary : Colors.light.placeholderColor,
+                                    fontSize: Math.min(16, width * 0.035)
+                                }}
+                            >
+                                {gender ? gender : "Select Gender*"}
+                            </Text>
+                            <Image
+                                source={isGenderDropdownOpen ? icons.dropdownicon : icons.upicon}
+                                style={{
+                                    width: width * 0.03,
+                                    height: width * 0.03,
+                                    opacity: isLoading ? 0.5 : 1
+                                }}
+                            />
+                        </TouchableOpacity>
+
+                        {isGenderDropdownOpen && (
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderColor: Colors.light.secondaryText,
+                                    position: 'absolute',
+                                    top: Math.max(48, height * 0.06),
+                                    width: '100%',
+                                    zIndex: 1000,
+                                    maxHeight: height * 0.2,
+                                    borderRadius: 10,
+                                    borderWidth: 1
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        borderColor: Colors.light.secondaryText,
+                                        borderBottomWidth: 1,
+                                        padding: width * 0.02
+                                    }}
+                                >
+                                    <TextInput
+                                        style={{
+                                            backgroundColor: Colors.light.whiteFefefe,
+                                            color: Colors.light.blackPrimary,
+                                            height: height * 0.05,
+                                            paddingHorizontal: width * 0.03,
+                                            borderRadius: 8,
+                                            fontSize: Math.min(14, width * 0.035)
+                                        }}
+                                        placeholder="Search gender..."
+                                        placeholderTextColor={Colors.light.placeholderColor}
+                                        value={genderSearchQuery}
+                                        onChangeText={setGenderSearchQuery}
+                                        autoFocus={false}
+                                        editable={!isLoading}
+                                    />
+                                </View>
+
+                                <ScrollView
+                                    style={{ maxHeight: height * 0.12 }}
+                                    nestedScrollEnabled={true}
+                                    showsVerticalScrollIndicator={true}
+                                >
+                                    {filteredGenderOptions.length > 0 ? (
+                                        filteredGenderOptions.map((option, index) => (
+                                            <TouchableOpacity
+                                                key={index}
+                                                style={{
+                                                    borderColor: Colors.light.secondaryText,
+                                                    borderBottomWidth: index < filteredGenderOptions.length - 1 ? 1 : 0,
+                                                    height: Math.max(48, height * 0.06),
+                                                    paddingHorizontal: width * 0.04
+                                                }}
+                                                className="justify-center"
+                                                onPress={() => handleGenderSelect(option)}
+                                                disabled={isLoading}
+                                            >
+                                                <Text
+                                                    style={{
+                                                        color: Colors.light.blackPrimary,
+                                                        fontSize: Math.min(16, width * 0.04)
+                                                    }}
+                                                >
+                                                    {option.label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))
+                                    ) : (
+                                        <View
+                                            style={{
+                                                height: Math.max(48, height * 0.06),
+                                                paddingHorizontal: width * 0.04
+                                            }}
+                                            className="justify-center"
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: Colors.light.placeholderColorOp70,
+                                                    fontSize: Math.min(16, width * 0.04)
+                                                }}
+                                            >
+                                                No gender found
+                                            </Text>
+                                        </View>
+                                    )}
+                                </ScrollView>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Phone Number Input */}
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.whiteFfffff,
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15,
+                            marginBottom: height * 0.022
+                        }}
+                        className="flex flex-row items-center"
+                    >
+                        <TextInput
+                            style={{
+                                backgroundColor: 'transparent',
+                                color: Colors.light.blackPrimary,
+                                flex: 1,
+                                fontSize: Math.min(16, width * 0.035),
+                                paddingHorizontal: width * 0.04,
+                                paddingVertical: 0
+                            }}
+                            placeholder="Enter Phone Number*"
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            value={phoneNumber}
+                            onChangeText={handlePhoneChange}
+                            keyboardType="numeric"
+                            maxLength={10}
+                            editable={!isLoading}
+                        />
+                    </View>
+
+                    {/* Occupation Dropdown - responsive */}
+                    <View
+                        className="relative"
+                        style={{
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            marginBottom: height * 0.01
+                        }}
+                    >
+                        <TouchableOpacity
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                height: Math.max(48, height * 0.06),
+                                borderRadius: 15
+                            }}
+                            className="flex flex-row items-center justify-between px-4"
+                            onPress={handleDropdownToggle}
+                            disabled={isLoading}
+                        >
+                            <Text
+                                style={{
+                                    color: selectedOccupation ? Colors.light.blackPrimary : Colors.light.placeholderColor,
+                                    fontSize: Math.min(16, width * 0.035)
+                                }}
+                            >
+                                {selectedOccupation ? occupations.find(occ => occ.value === selectedOccupation)?.label : "Select Occupation*"}
+                            </Text>
+                            <Image
+                                source={isDropdownOpen ? icons.dropdownicon : icons.upicon}
+                                style={{
+                                    width: width * 0.03,
+                                    height: width * 0.03,
+                                    opacity: isLoading ? 0.5 : 1
+                                }}
+                            />
+                        </TouchableOpacity>
+
+                        {isDropdownOpen && (
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderColor: Colors.light.secondaryText,
+                                    position: 'absolute',
+                                    top: Math.max(48, height * 0.06),
+                                    width: '100%',
+                                    zIndex: 1000,
+                                    maxHeight: height * 0.2,
+                                    borderRadius: 10,
+                                    borderWidth: 1
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        borderColor: Colors.light.secondaryText,
+                                        borderBottomWidth: 1,
+                                        padding: width * 0.02
+                                    }}
+                                >
+                                    <TextInput
+                                        style={{
+                                            backgroundColor: Colors.light.whiteFefefe,
+                                            color: Colors.light.blackPrimary,
+                                            height: height * 0.05,
+                                            paddingHorizontal: width * 0.03,
+                                            borderRadius: 8,
+                                            fontSize: Math.min(14, width * 0.035)
+                                        }}
+                                        placeholder="Search occupation..."
+                                        placeholderTextColor={Colors.light.placeholderColor}
+                                        value={searchQuery}
+                                        onChangeText={setSearchQuery}
+                                        autoFocus={false}
+                                        editable={!isLoading}
+                                    />
+                                </View>
+
+                                <ScrollView
+                                    style={{ maxHeight: height * 0.12 }}
+                                    nestedScrollEnabled={true}
+                                    showsVerticalScrollIndicator={true}
+                                >
+                                    {filteredOccupations.length > 0 ? (
+                                        filteredOccupations.map((occupation, index) => (
+                                            <TouchableOpacity
+                                                key={index}
+                                                style={{
+                                                    borderColor: Colors.light.secondaryText,
+                                                    borderBottomWidth: index < filteredOccupations.length - 1 ? 1 : 0,
+                                                    height: Math.max(48, height * 0.06),
+                                                    paddingHorizontal: width * 0.04
+                                                }}
+                                                className="justify-center"
+                                                onPress={() => handleOccupationSelect(occupation)}
+                                                disabled={isLoading}
+                                            >
+                                                <Text
+                                                    style={{
+                                                        color: Colors.light.blackPrimary,
+                                                        fontSize: Math.min(16, width * 0.04)
+                                                    }}
+                                                >
+                                                    {occupation.label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))
+                                    ) : (
+                                        <View
+                                            style={{
+                                                height: Math.max(48, height * 0.06),
+                                                paddingHorizontal: width * 0.04
+                                            }}
+                                            className="justify-center"
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: Colors.light.placeholderColorOp70,
+                                                    fontSize: Math.min(16, width * 0.04)
+                                                }}
+                                            >
+                                                No occupations found
+                                            </Text>
+                                        </View>
+                                    )}
+                                </ScrollView>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Error Message - responsive */}
+                    {errorMessage ? (
+                        <View
+                            style={{
+                                width: '100%',
+                                maxWidth: width * 0.85,
+                                paddingHorizontal: width * 0.02
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: '#EF4444',
+                                    fontSize: width * 0.035,
+                                    textAlign: 'center',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                {errorMessage}
+                            </Text>
+                        </View>
+                    ) : null}
+                </View>
+
+                {/* Next Button - responsive */}
+                <View
+                    className="absolute items-center"
+                    style={{
+                        top: height * 0.817,  // 80% from top
+                        width: '100%',
+                        paddingHorizontal: width * 0.02
+                    }}
+                >
+                    <CustomGradientButton
+                        text={isLoading ? "Saving..." : "Next"}
+                        width={Math.min(width * 0.9, 370)}
+                        height={Math.max(48, height * 0.06)}
+                        borderRadius={100}
+                        fontSize={Math.min(18, width * 0.045)}
+                        fontWeight="600"
+                        textColor={Colors.light.whiteFfffff}
+                        onPress={proceedToUserDetails}
+                        disabled={isLoading}
+                        style={{
+                            opacity: isLoading ? 0.6 : 1,
+                        }}
+                    />
+                </View>
+
+                {/* Footer Brand Name - responsive */}
+                <View
+                    className="absolute items-center"
+                    style={{
+                        bottom: height * 0.04  // 4% from bottom
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFfffff,
+                            fontSize: width * 0.07
+                        }}
+                        className="font-bold"
+                    >
+                        MIRAGIO
+                    </Text>
+                </View>
+            </View>
+        </ScrollView>
     )
 };
 

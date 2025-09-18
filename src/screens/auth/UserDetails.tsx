@@ -1,4 +1,4 @@
-import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, Text, TextInput, TouchableOpacity, View, Dimensions } from "react-native";
 import { useState, useEffect } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg from "../../assets/images/bg.png";
@@ -11,6 +11,8 @@ import { useUser } from '../../context/UserContext';
 import type { AuthStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'UserDetails'>;
+
+const { width, height } = Dimensions.get('window');
 
 interface RegistrationData {
     email: string;
@@ -103,12 +105,12 @@ const UserDetails = ({ navigation }: Props) => {
     const validateForm = (): boolean => {
         // STRICT: Check PAN number is mandatory and properly filled
         if (!panNumber || !panNumber.trim()) {
-            setErrorMessage("❌ PAN number is required. Please enter your PAN number.");
+            setErrorMessage("PAN number is required. Please enter your PAN number.");
             return false;
         }
 
         if (panNumber.trim().length !== 10) {
-            setErrorMessage("❌ PAN number must be exactly 10 characters. Current length: " + panNumber.length);
+            setErrorMessage("PAN number must be exactly 10 characters. Current length: " + panNumber.length);
             return false;
         }
 
@@ -119,24 +121,24 @@ const UserDetails = ({ navigation }: Props) => {
         if (!validatePanNumber(panUpper)) {
             // More specific error based on what's wrong
             if (!/^[A-Z]{5}/.test(panUpper)) {
-                setErrorMessage("❌ PAN must start with 5 letters (A-Z). Example: ABCDE1234F");
+                setErrorMessage("PAN must start with 5 letters (A-Z). Example: ABCDE1234F");
             } else if (!/[0-9]/.test(panUpper.substring(5, 9))) {
-                setErrorMessage("❌ PAN must contain digits in positions 6-9. Example: ABCDE1234F");
+                setErrorMessage("PAN must contain digits in positions 6-9. Example: ABCDE1234F");
             } else {
-                setErrorMessage("❌ Invalid PAN format. Accepted formats: ABCDE1234F or ABCDE123FG");
+                setErrorMessage("Invalid PAN format. Accepted formats: ABCDE1234F or ABCDE123FG");
             }
             return false;
         }
 
         // Check UPI ID if provided
         if (upiId.trim() && !validateUpiId(upiId)) {
-            setErrorMessage("❌ Please enter a valid UPI ID (e.g., username@paytm)");
+            setErrorMessage("Please enter a valid UPI ID (e.g., username@paytm)");
             return false;
         }
 
         // Check that we have all required data from previous steps
         if (!registrationData) {
-            setErrorMessage("❌ Required data missing. Please start from signup page.");
+            setErrorMessage("Required data missing. Please start from signup page.");
             return false;
         }
 
@@ -224,7 +226,7 @@ const UserDetails = ({ navigation }: Props) => {
                 ]);
 
                 // Show success message
-                setErrorMessage("✅ Account created successfully! Redirecting to OTP verification...");
+                setErrorMessage("Account created successfully! Redirecting to OTP verification...");
 
                 // Navigate to OTP screen
                 setTimeout(() => {
@@ -247,41 +249,41 @@ const UserDetails = ({ navigation }: Props) => {
                     const msg = result.message.toLowerCase();
 
                     if (msg.includes('email already registered') || msg.includes('email exists')) {
-                        displayMessage = "❌ This email is already registered. Please use a different email or try signing in.";
+                        displayMessage = "This email is already registered. Please use a different email or try signing in.";
 
                         setTimeout(() => {
-                            setErrorMessage(displayMessage + "\n\n🔄 Redirecting to login page...");
+                            setErrorMessage(displayMessage + "\n\nRedirecting to login page...");
                             setTimeout(() => {
                                 navigation.navigate('SignIn');
                             }, 2000);
                         }, 3000);
 
                     } else if (msg.includes('username') && (msg.includes('exists') || msg.includes('taken'))) {
-                        displayMessage = "❌ This username is already taken. Please choose a different username.";
+                        displayMessage = "This username is already taken. Please choose a different username.";
                     } else if (msg.includes('pan')) {
-                        displayMessage = "❌ Invalid PAN number. Please check and try again.";
+                        displayMessage = "Invalid PAN number. Please check and try again.";
                     } else {
-                        displayMessage = `❌ ${result.message}`;
+                        displayMessage = `${result.message}`;
                     }
                 } else {
-                    displayMessage = "❌ Registration failed. Please check your details and try again.";
+                    displayMessage = "Registration failed. Please check your details and try again.";
                 }
 
                 setErrorMessage(displayMessage);
             }
 
         } catch (error: unknown) {
-            let errorMsg = "❌ Network error. Please check your connection and try again.";
+            let errorMsg = "Network error. Please check your connection and try again.";
 
             if (error instanceof Error) {
                 if (error.message.includes('timeout')) {
-                    errorMsg = "❌ Request timeout. Please check your internet connection.";
+                    errorMsg = "Request timeout. Please check your internet connection.";
                 } else if (error.message.includes('JSON')) {
-                    errorMsg = "❌ Server response error. Please try again in a moment.";
+                    errorMsg = "Server response error. Please try again in a moment.";
                 } else if (error.message.includes('HTTP error')) {
-                    errorMsg = "❌ Server error. Please try again later.";
+                    errorMsg = "Server error. Please try again later.";
                 } else if (error.message.includes('Empty response')) {
-                    errorMsg = "❌ Server returned empty response. Please try again.";
+                    errorMsg = "Server returned empty response. Please try again.";
                 }
             }
 
@@ -302,49 +304,96 @@ const UserDetails = ({ navigation }: Props) => {
     const isButtonDisabled = isLoading || contextLoading || !registrationData || !panNumber.trim() || panNumber.trim().length !== 10;
 
     return (
-        <View className="flex items-center ">
-            {/* =================== BACKGROUND IMAGE =================== */}
+        <View className="flex-1 items-center">
+            {/* Background Image */}
             <Image
                 source={bg}
                 resizeMode="cover"
-                className="w-full h-full"
+                className="w-full h-full absolute"
+                style={{ width, height }}
             />
 
-            {/* =================== HEADER SECTION WITH LOGO =================== */}
-            <View className="absolute  flex  items-center w-full" >
-                {/* Back button */}
-                <TouchableOpacity
-                    className="absolute flex left-[10px] top-[105px]"
-                    onPress={handleBackPress}
-                    disabled={isButtonDisabled}
+            {/* Back Button - responsive positioning */}
+            <TouchableOpacity
+                className="absolute flex items-center justify-center"
+                style={{
+                    left: width * 0.04,  // 4% from left
+                    top: height * 0.09,  // 6% from top
+                    width: width * 0.12, // Touch area
+                    height: height * 0.06,
+                    zIndex: 10
+                }}
+                onPress={handleBackPress}
+
+            >
+                {icons && (
+                    <Image
+                        source={icons.back}
+                        style={{
+                            width: width * 0.06,
+                            height: width * 0.07,
+                            opacity: isButtonDisabled ? 0.5 : 1
+                        }}
+                    />
+                )}
+            </TouchableOpacity>
+
+            {/* Logo - responsive positioning */}
+            <Image
+                source={logo}
+                style={{
+                    position: 'absolute',
+                    top: height * 0.08,  // 8% from top
+                    width: width * 0.25,
+                    height: width * 0.22
+                }}
+            />
+
+            {/* Page Title - responsive */}
+            <Text
+                style={{
+                    color: Colors.light.whiteFfffff,
+                    position: 'absolute',
+                    top: height * 0.25,  // 18% from top
+                    fontSize: width * 0.077,
+                    lineHeight: width * 0.075
+                }}
+                className="font-medium text-center"
+            >
+                Additional Details
+            </Text>
+
+            {/* Input Fields Section - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.31,  // 26% from top
+                    width: '100%',
+                    paddingHorizontal: width * 0.05
+                }}
+            >
+                {/* Instagram ID Input */}
+                <View
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        width: '100%',
+                        maxWidth: width * 0.9,
+                        height: Math.max(48, height * 0.06),
+                        borderRadius: 15,
+                        marginBottom: height * 0.022
+                    }}
+                    className="flex flex-row items-center"
                 >
-                    {icons && (
-                        <Image
-                            source={icons.back}
-                            className="w-[25px] h-[30px] mx-4"
-                            style={{ opacity: isButtonDisabled ? 0.5 : 1 }}
-                        />
-                    )}
-                </TouchableOpacity>
-
-                {/* Miragio logo */}
-                <Image
-                    source={logo}
-                    className=" top-[80px] w-[100px] h-[80px] " />
-            </View >
-
-            {/* =================== PAGE TITLE =================== */}
-            <Text style={{ color: Colors.light.whiteFfffff }} className="absolute top-[220px] font-medium text-3xl" > Additional Details</Text >
-
-            {/* =================== INPUT FIELDS SECTION =================== */}
-            <View className="  absolute top-[280px] " >
-
-                {/* Instagram ID input */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center  w-[370px] h-[56px] rounded-[15px] mb-5">
                     <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="ml-5 w-[300px] h-[56px]"
-                        placeholder="Instagram ID (Optional)"
+                        style={{
+                            backgroundColor: 'transparent',
+                            color: Colors.light.blackPrimary,
+                            flex: 1,
+                            fontSize: Math.min(16, width * 0.035),
+                            paddingHorizontal: width * 0.05,
+                            paddingVertical: 0
+                        }}
+                        placeholder="Instagram ID "
                         placeholderTextColor={Colors.light.placeholderColor}
                         value={instagramId}
                         onChangeText={(text) => handleInputChange(setInstagramId, text)}
@@ -354,12 +403,28 @@ const UserDetails = ({ navigation }: Props) => {
                     />
                 </View>
 
-                {/* UPI ID input */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-5">
+                {/* UPI ID Input */}
+                <View
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        width: '100%',
+                        maxWidth: width * 0.9,
+                        height: Math.max(48, height * 0.06),
+                        borderRadius: 15,
+                        marginBottom: height * 0.022
+                    }}
+                    className="flex flex-row items-center"
+                >
                     <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="w-[300px] h-[56px] ml-5"
-                        placeholder="UPI ID (Optional)"
+                        style={{
+                            backgroundColor: 'transparent',
+                            color: Colors.light.blackPrimary,
+                            flex: 1,
+                            fontSize: Math.min(16, width * 0.035),
+                            paddingHorizontal: width * 0.05,
+                            paddingVertical: 0
+                        }}
+                        placeholder="UPI ID"
                         placeholderTextColor={Colors.light.placeholderColor}
                         value={upiId}
                         onChangeText={(text) => handleInputChange(setUpiId, text)}
@@ -370,16 +435,28 @@ const UserDetails = ({ navigation }: Props) => {
                     />
                 </View>
 
-                {/* PAN Number input - REQUIRED with enhanced validation */}
+                {/* PAN Number Input - Required */}
                 <View
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
-
-                    className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-2 "
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        width: '100%',
+                        maxWidth: width * 0.9,
+                        height: Math.max(48, height * 0.06),
+                        borderRadius: 15,
+                        marginBottom: height * 0.01
+                    }}
+                    className="flex flex-row items-center"
                 >
                     <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="w-[300px] h-[50px] ml-5 rounded-[15px]"
-                        placeholder="PAN Number * (REQUIRED)"
+                        style={{
+                            backgroundColor: 'transparent',
+                            color: Colors.light.blackPrimary,
+                            flex: 1,
+                            fontSize: Math.min(16, width * 0.035),
+                            paddingHorizontal: width * 0.05,
+                            paddingVertical: 0
+                        }}
+                        placeholder="PAN Number*"
                         placeholderTextColor={Colors.light.placeholderColor}
                         value={panNumber}
                         onChangeText={(text) => handleInputChange(setPanNumber, text.toUpperCase())}
@@ -388,22 +465,48 @@ const UserDetails = ({ navigation }: Props) => {
                         autoCorrect={false}
                         editable={!isLoading && !contextLoading}
                     />
-
                 </View>
 
+                {/* Error Message - responsive */}
+                {errorMessage ? (
+                    <View
+                        style={{
+                            marginTop: height * 0.02,
+                            width: '100%',
+                            maxWidth: width * 0.85,
+                            paddingHorizontal: width * 0.02
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: errorMessage.includes('successfully') ? '#10B981' : '#EF4444',
+                                fontSize: width * 0.03,
+                                textAlign: 'center',
+                                fontWeight: '500',
+                                lineHeight: width * 0.045
+                            }}
+                        >
+                            {errorMessage}
+                        </Text>
+                    </View>
+                ) : null}
+            </View>
 
-
-
-            </View >
-
-            {/* =================== COMPLETE REGISTRATION BUTTON =================== */}
-            <View className="absolute top-[520px]" >
+            {/* Complete Registration Button - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.567,  // 52% from top
+                    width: '100%',
+                    paddingHorizontal: width * 0.09
+                }}
+            >
                 <CustomGradientButton
                     text={(isLoading || contextLoading) ? "Creating Account..." : "Complete Registration"}
-                    width={370}
-                    height={56}
+                    width={Math.min(width * 0.9, 370)}
+                    height={Math.max(48, height * 0.06)}
                     borderRadius={100}
-                    fontSize={18}
+                    fontSize={Math.min(18, width * 0.045)}
                     fontWeight="600"
                     textColor={Colors.light.whiteFfffff}
                     onPress={registerUserComplete}
@@ -412,16 +515,26 @@ const UserDetails = ({ navigation }: Props) => {
                         opacity: isButtonDisabled ? 0.6 : 1,
                     }}
                 />
-
-
             </View>
 
-            {/* =================== FOOTER BRAND NAME =================== */}
-            <View className="absolute bottom-8">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">MIRAGIO</Text>
+            {/* Footer Brand Name - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    bottom: height * 0.04  // 4% from bottom
+                }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07
+                    }}
+                    className="font-bold"
+                >
+                    MIRAGIO
+                </Text>
             </View>
-
-        </View >
+        </View>
     )
 };
 

@@ -6,7 +6,8 @@ import {
     TouchableOpacity,
     View,
     Dimensions,
-    BackHandler
+    BackHandler,
+    ScrollView
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -181,270 +182,413 @@ const SignUp = ({ navigation }: Props) => {
     };
 
     return (
-        <View className="flex-1 items-center">
-            {/* Background Image */}
-            <Image
-                source={bg}
-                resizeMode="cover"
-                className="w-full h-full"
-                style={{ width, height }}
-            />
+        <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ minHeight: height }}
+            showsVerticalScrollIndicator={false}
+        >
+            <View className="flex-1 items-center">
+                {/* Background Image */}
+                <Image
+                    source={bg}
+                    resizeMode="cover"
+                    className="w-full h-full absolute"
+                    style={{ width, height }}
+                />
 
-            {/* Header Section with Logo */}
-            <View className="absolute flex items-center w-full">
-                {/* FIXED: Back button */}
+                {/* Back Button - responsive positioning */}
                 <TouchableOpacity
-                    className="absolute flex left-[10px] top-[105px]"
+                    className="absolute flex items-center justify-center"
+                    style={{
+                        left: width * 0.04,  // 4% from left
+                        top: height * 0.09,  // 6% from top
+                        width: width * 0.12, // Touch area
+                        height: height * 0.06,
+                        zIndex: 10
+                    }}
                     onPress={handleBackPress}
                     disabled={isLoading}
                 >
                     {icons && (
-                        <Image source={icons.back} className="w-[25px] h-[30px] mx-4" />
+                        <Image
+                            source={icons.back}
+                            style={{
+                                width: width * 0.06,
+                                height: width * 0.07
+                            }}
+                        />
                     )}
                 </TouchableOpacity>
 
-                {/* Miragio logo */}
+                {/* Logo - responsive positioning */}
                 <Image
                     source={logo}
-                    className="top-[80px] w-[100px] h-[85px]"
+                    style={{
+                        position: 'absolute',
+                        top: height * 0.08,  // 8% from top
+                        width: width * 0.25,
+                        height: width * 0.22
+                    }}
                 />
-            </View>
 
-            {/* Page Title */}
-            <Text
-                style={{ color: Colors.light.whiteFfffff }}
-                className="absolute top-[210px] font-extrabold text-3xl"
-            >
-                Create An Account
-            </Text>
-
-            {/* Input Fields Section */}
-            <View className="absolute top-[290px]">
-                {/* Email input field */}
-                <View
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
-                    className="flex flex-row items-center justify-start w-[370px] h-[56px] rounded-[15px] mb-5"
+                {/* Title - responsive text */}
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        position: 'absolute',
+                        top: height * 0.23,  // 18% from top
+                        fontSize: width * 0.07,
+                        lineHeight: width * 0.08
+                    }}
+                    className="font-extrabold text-center"
                 >
-                    <TextInput
+                    Create An Account
+                </Text>
+
+                {/* Input Fields Container - responsive */}
+                <View
+                    className="absolute items-center"
+                    style={{
+                        top: height * 0.32,  // 26% from top
+                        width: '100%',
+                        paddingHorizontal: width * 0.05
+                    }}
+                >
+                    {/* Email Input - responsive */}
+                    <View
                         style={{
                             backgroundColor: Colors.light.whiteFfffff,
-                            color: Colors.light.blackPrimary
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15,
+                            marginBottom: height * 0.022
                         }}
-                        className="ml-5 w-[300px] h-[56px]"
-                        placeholder="Enter Email"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={email}
-                        onChangeText={(text) => {
-                            setEmail(text);
-                            if (errorMessage) setErrorMessage("");
-                        }}
-                        autoCapitalize="none"
-                        keyboardType="email-address"
-                        editable={!isLoading}
-                    />
-                </View>
-
-                {/* Password input field with visibility toggle */}
-                <View
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
-                    className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-5"
-                >
-                    <TextInput
-                        style={{
-                            backgroundColor: Colors.light.whiteFfffff,
-                            color: Colors.light.blackPrimary
-                        }}
-                        className="w-[300px] ml-5 h-[56px]"
-                        placeholder="Enter Password"
-                        secureTextEntry={!isPasswordVisible}
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={password}
-                        onChangeText={(text) => {
-                            setPassword(text);
-                            if (errorMessage) setErrorMessage("");
-                        }}
-                        autoCapitalize="none"
-                        editable={!isLoading}
-                    />
-                    <TouchableOpacity
-                        className="absolute right-3 h-[56px] flex justify-center items-center"
-                        onPress={togglePasswordVisibility}
-                        disabled={isLoading}
+                        className="flex flex-row items-center"
                     >
-                        {icons && (
-                            <Image
-                                source={isPasswordVisible ? icons.eyeopen : icons.eye}
-                                className="w-[16px] h-[12px] mx-4"
-                            />
-                        )}
-                    </TouchableOpacity>
-                </View>
-
-                {/* Confirm password input field with visibility toggle */}
-                <View
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
-                    className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-5"
-                >
-                    <TextInput
-                        style={{
-                            backgroundColor: Colors.light.whiteFfffff,
-                            color: Colors.light.blackPrimary
-                        }}
-                        className="w-[300px] h-[56px] ml-5"
-                        placeholder="Confirm Password"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        secureTextEntry={!isConfirmPasswordVisible}
-                        value={confirmPassword}
-                        onChangeText={(text) => {
-                            setConfirmPassword(text);
-                            if (errorMessage) setErrorMessage("");
-                        }}
-                        autoCapitalize="none"
-                        editable={!isLoading}
-                    />
-                    <TouchableOpacity
-                        className="absolute right-3 h-[56px] flex items-center justify-center"
-                        onPress={toggleConfirmPasswordVisibility}
-                        disabled={isLoading}
-                    >
-                        {icons && (
-                            <Image
-                                source={isConfirmPasswordVisible ? icons.eyeopen : icons.eye}
-                                className="w-[16px] h-[12px] mx-4"
-                            />
-                        )}
-                    </TouchableOpacity>
-                </View>
-
-                {/* Referral code input field */}
-                <View
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
-                    className="flex flex-row items-center justify-start w-[370px] h-[56px] rounded-[15px]"
-                >
-                    <TextInput
-                        style={{
-                            backgroundColor: Colors.light.whiteFfffff,
-                            color: Colors.light.blackPrimary
-                        }}
-                        className="ml-5 w-[300px] h-[56px]"
-                        placeholder="Enter Referral Code (Optional)"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={referralCode}
-                        onChangeText={(text) => {
-                            setReferralCode(text);
-                            if (errorMessage) setErrorMessage("");
-                        }}
-                        autoCapitalize="characters"
-                        editable={!isLoading}
-                    />
-                </View>
-
-                {/* Error message display */}
-                {errorMessage ? (
-                    <View className="w-[370px] mt-1 px-4">
-                        <Text
-                            style={{ color: '#EF4444' }}
-                            className="text-center text-sm font-medium"
-                        >
-                            {errorMessage}
-                        </Text>
+                        <TextInput
+                            style={{
+                                backgroundColor: 'transparent',
+                                color: Colors.light.blackPrimary,
+                                flex: 1,
+                                fontSize: Math.min(16, width * 0.035),
+                                paddingHorizontal: width * 0.04,
+                                paddingVertical: 0
+                            }}
+                            placeholder="Enter Email"
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            value={email}
+                            onChangeText={(text) => {
+                                setEmail(text);
+                                if (errorMessage) setErrorMessage("");
+                            }}
+                            autoCapitalize="none"
+                            keyboardType="email-address"
+                            editable={!isLoading}
+                        />
                     </View>
-                ) : null}
-            </View>
 
-            {/* Next Button Section */}
-            <View className="absolute top-[600px]">
-                <CustomGradientButton
-                    text={isLoading ? "Saving..." : "Next"}
-                    width={370}
-                    height={56}
-                    borderRadius={28}
-                    fontSize={18}
-                    fontWeight="600"
-                    onPress={handleNextPress}
-                    disabled={!isChecked || isLoading}
-                    textColor={isChecked ? Colors.light.whiteFfffff : Colors.light.secondaryText}
-                    style={{
-                        opacity: isChecked && !isLoading ? 1 : 0.6,
-                    }}
-                />
-            </View>
-
-            {/* Terms and Conditions Section */}
-            <View className="absolute top-[680px] flex flex-row items-start justify-start w-full">
-                <CheckBox
-                    value={isChecked}
-                    onValueChange={(value) => {
-                        setChecked(value);
-                        if (errorMessage) setErrorMessage("");
-                    }}
-                    style={{
-                        marginTop: 3,
-                        marginRight: 5,
-                        height: 25,
-                        width: 25,
-                        marginLeft: 30
-                    }}
-                    tintColors={{ true: Colors.light.blueTheme, false: Colors.light.whiteFfffff }}
-                    disabled={isLoading}
-                />
-
-                <View className="flex flex-col">
-                    <View className='flex flex-row ml-3'>
-                        <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="flex font-semibold text-lg"
+                    {/* Password Input - responsive */}
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.whiteFfffff,
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15,
+                            marginBottom: height * 0.02
+                        }}
+                        className="flex flex-row items-center"
+                    >
+                        <TextInput
+                            style={{
+                                backgroundColor: 'transparent',
+                                color: Colors.light.blackPrimary,
+                                flex: 1,
+                                fontSize: Math.min(16, width * 0.035),
+                                paddingLeft: width * 0.04,
+                                paddingRight: width * 0.13,
+                                paddingVertical: 0
+                            }}
+                            placeholder="Enter Password"
+                            secureTextEntry={!isPasswordVisible}
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            value={password}
+                            onChangeText={(text) => {
+                                setPassword(text);
+                                if (errorMessage) setErrorMessage("");
+                            }}
+                            autoCapitalize="none"
+                            editable={!isLoading}
+                        />
+                        <TouchableOpacity
+                            className="absolute right-0 flex items-center justify-center"
+                            style={{
+                                width: width * 0.12,
+                                height: '100%'
+                            }}
+                            onPress={togglePasswordVisibility}
+                            disabled={isLoading}
                         >
-                            I agree to
-                            <Text className="font-bold"> MIRAGIO</Text>
-                        </Text>
-                        <TouchableOpacity>
-                            <Text
-                                style={{ color: Colors.light.blueTheme }}
-                                className="text-xl font-bold"
-                            >
-                                {' '}terms &
-                            </Text>
+                            {icons && (
+                                <Image
+                                    source={isPasswordVisible ? icons.eyeopen : icons.eye}
+                                    style={{
+                                        width: width * 0.04,
+                                        height: width * 0.03
+                                    }}
+                                />
+                            )}
                         </TouchableOpacity>
                     </View>
 
+                    {/* Confirm Password Input - responsive */}
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.whiteFfffff,
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15,
+                            marginBottom: height * 0.022
+                        }}
+                        className="flex flex-row items-center"
+                    >
+                        <TextInput
+                            style={{
+                                backgroundColor: 'transparent',
+                                color: Colors.light.blackPrimary,
+                                flex: 1,
+                                fontSize: Math.min(16, width * 0.035),
+                                paddingLeft: width * 0.04,
+                                paddingRight: width * 0.13,
+                                paddingVertical: 0
+                            }}
+                            placeholder="Confirm Password"
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            secureTextEntry={!isConfirmPasswordVisible}
+                            value={confirmPassword}
+                            onChangeText={(text) => {
+                                setConfirmPassword(text);
+                                if (errorMessage) setErrorMessage("");
+                            }}
+                            autoCapitalize="none"
+                            editable={!isLoading}
+                        />
+                        <TouchableOpacity
+                            className="absolute right-0 flex items-center justify-center"
+                            style={{
+                                width: width * 0.12,
+                                height: '100%'
+                            }}
+                            onPress={toggleConfirmPasswordVisibility}
+                            disabled={isLoading}
+                        >
+                            {icons && (
+                                <Image
+                                    source={isConfirmPasswordVisible ? icons.eyeopen : icons.eye}
+                                    style={{
+                                        width: width * 0.04,
+                                        height: width * 0.03
+                                    }}
+                                />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Referral Code Input - responsive */}
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.whiteFfffff,
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15
+                        }}
+                        className="flex flex-row items-center"
+                    >
+                        <TextInput
+                            style={{
+                                backgroundColor: 'transparent',
+                                color: Colors.light.blackPrimary,
+                                flex: 1,
+                                fontSize: Math.min(16, width * 0.035),
+                                paddingHorizontal: width * 0.04,
+                                paddingVertical: 0
+                            }}
+                            placeholder="Enter Referral Code (Optional)"
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            value={referralCode}
+                            onChangeText={(text) => {
+                                setReferralCode(text);
+                                if (errorMessage) setErrorMessage("");
+                            }}
+                            autoCapitalize="characters"
+                            editable={!isLoading}
+                        />
+                    </View>
+
+                    {/* Error Message - responsive */}
+                    {errorMessage ? (
+                        <View
+                            style={{
+                                marginTop: height * 0.015,
+                                width: '100%',
+                                maxWidth: width * 0.85
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: '#EF4444',
+                                    fontSize: width * 0.030
+                                }}
+                                className="text-center font-medium"
+                            >
+                                {errorMessage}
+                            </Text>
+                        </View>
+                    ) : null}
+                </View>
+
+                {/* Terms and Conditions Section - responsive */}
+                <View
+                    className="absolute flex flex-row items-start w-full"
+                    style={{
+                        top: height * 0.756,  // 58% from top
+                        paddingHorizontal: width * 0.08
+                    }}
+                >
+                    <CheckBox
+                        value={isChecked}
+                        onValueChange={(value) => {
+                            setChecked(value);
+                            if (errorMessage) setErrorMessage("");
+                        }}
+                        style={{
+                            marginTop: 3,
+                            marginRight: width * 0.02,
+                            height: Math.max(20, width * 0.06),
+                            width: Math.max(20, width * 0.06)
+                        }}
+                        tintColors={{ true: Colors.light.blueTheme, false: Colors.light.whiteFfffff }}
+                        disabled={isLoading}
+                    />
+
+                    <View className="flex flex-col flex-1">
+                        <View className='flex flex-row flex-wrap'>
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.047
+                                }}
+                                className="font-semibold"
+                            >
+                                I agree to
+                                <Text className="font-bold"> MIRAGIO</Text>
+                            </Text>
+                            <TouchableOpacity>
+                                <Text
+                                    style={{
+                                        color: Colors.light.blueTheme,
+                                        fontSize: width * 0.04
+                                    }}
+                                    className="font-bold"
+                                >
+                                    {' '}terms &
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <Text
+                            style={{
+                                color: Colors.light.blueTheme,
+                                fontSize: width * 0.047
+                            }}
+                            className="font-bold"
+                        >
+                            conditions
+                        </Text>
+                    </View>
+                </View>
+
+                {/* Next Button - responsive */}
+                <View
+                    className="absolute items-center"
+                    style={{
+                        top: height * 0.67,  // 68% from top
+                        width: '100%',
+                        paddingHorizontal: width * 0.02
+                    }}
+                >
+                    <CustomGradientButton
+                        text={isLoading ? "Saving..." : "Next"}
+                        width={Math.min(width * 0.9, 370)}
+                        height={Math.max(48, height * 0.06)}
+                        borderRadius={28}
+                        fontSize={Math.min(18, width * 0.045)}
+                        fontWeight="600"
+                        onPress={handleNextPress}
+                        disabled={!isChecked || isLoading}
+                        textColor={isChecked ? Colors.light.whiteFfffff : Colors.light.secondaryText}
+                        style={{
+                            opacity: isChecked && !isLoading ? 1 : 0.6,
+                        }}
+                    />
+                </View>
+
+                {/* Sign In Navigation Link - responsive */}
+                <View
+                    className="absolute flex flex-row items-center"
+                    style={{
+                        top: height * 0.85,  // 78% from top
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
                     <Text
-                        style={{ color: Colors.light.blueTheme }}
-                        className="text-xl font-bold pl-2"> conditions</Text>
+                        style={{
+                            color: Colors.light.whiteFfffff,
+                            fontSize: width * 0.05
+                        }}
+                        className="font-semibold"
+                    >
+                        Already have an account ?
+                    </Text>
+                    <TouchableOpacity
+                        onPress={handleSignInPress}
+                        disabled={isLoading}
+                        className="ml-1"
+                    >
+                        <Text
+                            style={{
+                                color: Colors.light.blueTheme,
+                                fontSize: width * 0.045
+                            }}
+                            className="font-bold"
+                        >
+                            Login
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Footer Brand Name - responsive */}
+                <View
+                    className="absolute items-center"
+                    style={{
+                        bottom: height * 0.034  // 4% from bottom
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFfffff,
+                            fontSize: width * 0.07
+                        }}
+                        className="font-bold"
+                    >
+                        MIRAGIO
+                    </Text>
                 </View>
             </View>
-
-            {/* FIXED: Sign In Navigation Link */}
-            <View className="absolute top-[780px] flex flex-row">
-                <Text
-                    style={{ color: Colors.light.whiteFfffff }}
-                    className="px-1 text-xl font-semibold"
-                >
-                    Already have an account ?
-                </Text>
-                <TouchableOpacity
-                    onPress={handleSignInPress}
-                    disabled={isLoading}
-                >
-                    <Text
-                        style={{ color: Colors.light.blueTheme }}
-                        className="px-1 text-xl font-bold"
-                    >
-                        Login
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
-            {/* Footer Brand Name */}
-            <View className="absolute bottom-8">
-                <Text
-                    style={{ color: Colors.light.whiteFfffff }}
-                    className="text-3xl font-bold"
-                >
-                    MIRAGIO
-                </Text>
-            </View>
-        </View>
+        </ScrollView>
     );
 };
 

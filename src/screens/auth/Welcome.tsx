@@ -54,52 +54,119 @@ const Welcome = ({ navigation }: Props) => {
                 ))}
             </Swiper>
 
-            <View className="absolute top-10 right-4">
-                <TouchableOpacity>
-                    <Text className="text-lg font-medium text-white">
+            {/* Language selector - optimized for all screen sizes */}
+            <View
+                className="absolute"
+                style={{
+                    top: height * 0.05,  // 5% from top 
+                    right: width * 0.04  // 4% from right edge
+                }}
+            >
+                <TouchableOpacity className="py-2 px-1">
+                    <Text
+                        className="font-medium text-white"
+                        style={{ fontSize: width * 0.04 }} // Dynamic font size
+                    >
                         language/भाषा
                     </Text>
                 </TouchableOpacity>
             </View>
 
-            <View className="absolute bottom-16 left-0 right-0 items-center px-6">
-                <View className="mb-6">
-                    <Text style={{ color: Colors.light.whiteFfffff }} className="text-2xl font-bold text-center mb-2">
+            {/* Bottom content - optimized positioning for all screens */}
+            <View
+                className="absolute left-0 right-0 items-center"
+                style={{
+                    bottom: height * 0.08,  // 8% from bottom
+                    paddingHorizontal: width * 0.06  // 6% horizontal padding
+                }}
+            >
+                {/* Title section - dynamic sizing */}
+                <View
+                    className="items-center"
+                    style={{
+                        marginBottom: height * 0.04,  // 4% margin bottom
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFfffff,
+                            fontSize: width * 0.065,  // Dynamic font size
+                            lineHeight: width * 0.075  // Dynamic line height
+                        }}
+                        className="font-bold text-center"
+                    >
                         Claim Your{' '}
                         <Text style={{ color: Colors.light.blueBgOnboarding }} className="font-bold">
                             Bonus
                         </Text>
                     </Text>
-                    <Text style={{ color: Colors.light.whiteFfffff }} className="text-2xl font-semibold text-center">
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFfffff,
+                            fontSize: width * 0.06,   // Slightly smaller
+                            lineHeight: width * 0.07,
+                            marginTop: height * 0.01  // 1% margin top
+                        }}
+                        className="font-semibold text-center"
+                    >
                         Instantly Upon Signup!
                     </Text>
                 </View>
 
-                <TouchableOpacity
-                    style={{ backgroundColor: Colors.light.bgBlueBtn }}
-                    className="flex justify-center items-center w-[350px] h-[56px] rounded-[15px] mb-5"
-                    onPress={handleSignUpPress}
+                {/* Buttons container - fully responsive */}
+                <View
+                    className="w-full items-center"
+                    style={{
+                        maxWidth: width * 0.85,  // Max 85% of screen width
+                        paddingHorizontal: width * 0.02
+                    }}
                 >
-                    <Text
-                        style={{ color: Colors.light.whiteFefefe }}
-                        className="text-xl font-semibold"
+                    {/* Sign Up Button - dynamic sizing */}
+                    <TouchableOpacity
+                        style={{
+                            backgroundColor: Colors.light.bgBlueBtn,
+                            width: '100%',
+                            height: height * 0.062,  // 6.5% of screen height
+                            borderRadius: 16,
+                            marginBottom: height * 0.02  // 2% margin bottom
+                        }}
+                        className="flex justify-center items-center"
+                        onPress={handleSignUpPress}
                     >
-                        Sign Up
-                    </Text>
-                </TouchableOpacity>
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.055  // Dynamic font size
+                            }}
+                            className="font-semibold"
+                        >
+                            Sign Up
+                        </Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={{ backgroundColor: Colors.light.blackPrimary }}
-                    className="flex justify-center items-center py-1 w-[350px] h-[56px] rounded-[15px]"
-                    onPress={handleSignInPress}
-                >
-                    <Text
-                        style={{ color: Colors.light.whiteFefefe }}
-                        className="text-xl font-semibold"
+                    {/* Login Button - dynamic sizing */}
+                    <TouchableOpacity
+                        style={{
+                            backgroundColor: Colors.light.blackPrimary,
+                            width: '100%',
+                            height: height * 0.062,  // 6.5% of screen height
+                            borderRadius: 16
+                        }}
+                        className="flex justify-center items-center"
+                        onPress={handleSignInPress}
                     >
-                        Login
-                    </Text>
-                </TouchableOpacity>
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.055  // Dynamic font size
+                            }}
+                            className="font-semibold"
+                        >
+                            Login
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     );

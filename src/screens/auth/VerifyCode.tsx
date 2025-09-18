@@ -1,4 +1,4 @@
-import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, Text, TextInput, TouchableOpacity, View, Dimensions } from "react-native";
 import { useState, useRef, useEffect } from "react";
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg from "../../assets/images/bg.png";
@@ -9,6 +9,8 @@ import { Colors } from "../../constants/Colors";
 import type { AuthStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'VerifyCode'>;
+
+const { width, height } = Dimensions.get('window');
 
 const VerifyCode = ({ navigation, route }: Props) => {
     // Type guard for email parameter
@@ -196,50 +198,103 @@ const VerifyCode = ({ navigation, route }: Props) => {
     };
 
     return (
-        <View className="flex items-center ">
-            {/* =================== BACKGROUND IMAGE =================== */}
+        <View className="flex-1 items-center">
+            {/* Background Image */}
             <Image
                 source={bg}
                 resizeMode="cover"
-                className="w-full h-full"
+                className="w-full h-full absolute"
+                style={{ width, height }}
             />
 
-            {/* =================== HEADER SECTION WITH LOGO =================== */}
-            <View className="absolute  flex  items-center w-full" >
-                {/* Back button */}
-                <TouchableOpacity
-                    className="absolute flex left-[10px] top-[105px]"
-                    onPress={handleBackPress}
-                    disabled={isLoading}
+            {/* Back Button - responsive positioning */}
+            <TouchableOpacity
+                className="absolute flex items-center justify-center"
+                style={{
+                    left: width * 0.04,  // 4% from left
+                    top: height * 0.09,  // 6% from top
+                    width: width * 0.12, // Touch area
+                    height: height * 0.06,
+                    zIndex: 10
+                }}
+                onPress={handleBackPress}
+                disabled={isLoading}
+            >
+                {icons && (
+                    <Image
+                        source={icons.back}
+                        style={{
+                            width: width * 0.06,
+                            height: width * 0.07,
+                            opacity: isLoading ? 0.5 : 1
+                        }}
+                    />
+                )}
+            </TouchableOpacity>
+
+            {/* Logo - responsive positioning */}
+            <Image
+                source={logo}
+                style={{
+                    position: 'absolute',
+                    top: height * 0.08,  // 8% from top
+                    width: width * 0.25,
+                    height: width * 0.22
+                }}
+            />
+
+            {/* Verification Instructions - responsive */}
+            <View
+                className="absolute flex flex-col justify-center items-center"
+                style={{
+                    top: height * 0.31,  // 25% from top
+                    width: width * 0.80,
+                    paddingHorizontal: width * 0.04
+                }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.074,
+                        lineHeight: width * 0.08
+                    }}
+                    className="font-bold text-center"
                 >
-                    {icons && (
-                        <Image
-                            source={icons.back}
-                            className="w-[25px] h-[30px] mx-4"
-                            style={{ opacity: isLoading ? 0.5 : 1 }}
-                        />
-                    )}
-                </TouchableOpacity>
-
-                {/* Miragio logo */}
-                <Image
-                    source={logo}
-                    className=" top-[80px] w-[100px] h-[85px]" />
-            </View >
-
-            {/* =================== VERIFICATION INSTRUCTIONS SECTION =================== */}
-            <View className="absolute top-[280px] flex flex-col justify-center items-center w-[320px]">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">Verify Code</Text>
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-xl mt-5 text-center ">
+                    Verify Code
+                </Text>
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.049,
+                        lineHeight: width * 0.055,
+                        marginTop: height * 0.027
+                    }}
+                    className="text-center"
+                >
                     We've sent a 6-digit verification code to
                 </Text>
-                <Text style={{ color: Colors.light.blueTheme }} className="text-lg font-semibold text-center mt-2">
+                <Text
+                    style={{
+                        color: Colors.light.blueTheme,
+                        fontSize: width * 0.04,
+                        lineHeight: width * 0.05,
+                        marginTop: height * 0.01
+                    }}
+                    className="font-semibold text-center"
+                >
                     {email}
                 </Text>
             </View>
 
-            {/* =================== CODE INPUT SECTION =================== */}
-            <View className="absolute top-[450px] flex flex-row justify-between w-[350px] px-4">
+            {/* Code Input Section - responsive */}
+            <View
+                className="absolute flex flex-row justify-between"
+                style={{
+                    top: height * 0.49,  // 42% from top
+                    width: width * 0.85,
+                    paddingHorizontal: width * 0.02
+                }}
+            >
                 {code.map((digit, index) => (
                     <TextInput
                         key={index}
@@ -250,12 +305,14 @@ const VerifyCode = ({ navigation, route }: Props) => {
                             backgroundColor: Colors.light.whiteFfffff,
                             color: Colors.light.blackPrimary,
                             textAlign: 'center',
-                            fontSize: 24,
+                            fontSize: Math.min(24, width * 0.06),
                             fontWeight: 'bold',
                             borderWidth: 2,
                             borderColor: digit ? Colors.light.blueTheme : '#E5E7EB',
+                            width: width * 0.12,  // 12% of screen width
+                            height: Math.max(48, height * 0.06),  // Min 48px, responsive height
+                            borderRadius: 15
                         }}
-                        className="w-[45px] h-[56px] rounded-[15px]"
                         value={digit}
                         onChangeText={(text) => handleCodeChange(text, index)}
                         onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
@@ -267,13 +324,20 @@ const VerifyCode = ({ navigation, route }: Props) => {
                 ))}
             </View>
 
-            {/* Error Message Section */}
+            {/* Error Message Section - responsive */}
             {errorMessage && (
-                <View className="absolute top-[530px] w-[350px]">
+                <View
+                    className="absolute"
+                    style={{
+                        top: height * 0.52,  // 52% from top
+                        width: width * 0.85,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
                     <Text
                         style={{
                             color: errorMessage.includes('sent') ? '#10B981' : '#FF4444',
-                            fontSize: 14,
+                            fontSize: width * 0.035,
                             textAlign: 'center',
                             fontWeight: '500',
                         }}
@@ -283,9 +347,21 @@ const VerifyCode = ({ navigation, route }: Props) => {
                 </View>
             )}
 
-            {/* =================== RESEND CODE SECTION =================== */}
-            <View className="absolute top-[570px] flex flex-row items-center justify-center w-full">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-base">
+            {/* Resend Code Section - responsive */}
+            <View
+                className="absolute flex flex-row items-center justify-center"
+                style={{
+                    top: height * 0.62,  // 58% from top
+                    width: width * 0.85,
+                    paddingHorizontal: width * 0.04
+                }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.038
+                    }}
+                >
                     Didn't receive the code?
                 </Text>
                 <TouchableOpacity
@@ -296,23 +372,31 @@ const VerifyCode = ({ navigation, route }: Props) => {
                     <Text
                         style={{
                             color: (timer > 0 || resendLoading || isLoading) ? Colors.light.placeholderColor : Colors.light.blueTheme,
-                            textDecorationLine: (timer > 0 || resendLoading || isLoading) ? 'none' : 'underline'
+                            textDecorationLine: (timer > 0 || resendLoading || isLoading) ? 'none' : 'underline',
+                            fontSize: width * 0.038
                         }}
-                        className="text-base font-semibold"
+                        className="font-semibold"
                     >
                         {resendLoading ? 'Sending...' : timer > 0 ? `Resend in ${timer}s` : 'Resend'}
                     </Text>
                 </TouchableOpacity>
             </View>
 
-            {/* =================== VERIFY BUTTON SECTION =================== */}
-            <View className="absolute top-[640px]" >
+            {/* Verify Button - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.69,  // 66% from top
+                    width: '100%',
+                    paddingHorizontal: width * 0.08
+                }}
+            >
                 <CustomGradientButton
                     text={isLoading ? "Verifying..." : "Verify Code"}
-                    width={370}
-                    height={56}
+                    width={Math.min(width * 0.85, 350)}
+                    height={Math.max(48, height * 0.06)}
                     borderRadius={15}
-                    fontSize={18}
+                    fontSize={Math.min(18, width * 0.045)}
                     fontWeight="600"
                     textColor={Colors.light.whiteFfffff}
                     onPress={handleVerifyCode}
@@ -323,9 +407,22 @@ const VerifyCode = ({ navigation, route }: Props) => {
                 />
             </View>
 
-            {/* =================== FOOTER BRAND NAME =================== */}
-            <View className="absolute bottom-8">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">MIRAGIO</Text>
+            {/* Footer Brand Name - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    bottom: height * 0.034  // 4% from bottom
+                }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07
+                    }}
+                    className="font-bold"
+                >
+                    MIRAGIO
+                </Text>
             </View>
         </View >
     )

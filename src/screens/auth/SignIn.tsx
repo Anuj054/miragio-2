@@ -157,74 +157,130 @@ const SignIn = ({ navigation }: Props) => {
                 style={{ width, height }}
             />
 
-            {/* FIXED: Back Button */}
+            {/* Back Button - responsive positioning */}
             <TouchableOpacity
-                className="absolute flex left-[10px] top-[105px]"
+                className="absolute flex items-center justify-center"
+                style={{
+                    left: width * 0.04,  // 4% from left
+                    top: height * 0.06,  // 6% from top
+                    width: width * 0.12, // Touch area
+                    height: height * 0.06
+                }}
                 onPress={handleBackPress}
                 disabled={isLoading}
             >
                 {icons && (
-                    <Image source={icons.back} className="w-[25px] h-[30px] mx-4" />
+                    <Image
+                        source={icons.back}
+                        style={{
+                            width: width * 0.06,
+                            height: width * 0.07
+                        }}
+                    />
                 )}
             </TouchableOpacity>
 
-            {/* Logo */}
+            {/* Logo - responsive positioning */}
             <Image
                 source={logo}
-                className="absolute top-[210px] w-[100px] h-[85px]"
+                style={{
+                    position: 'absolute',
+                    top: height * 0.21,  // 15% from top
+                    width: width * 0.25,
+                    height: width * 0.22
+                }}
             />
 
-            {/* Title */}
+            {/* Title - responsive text */}
             <Text
-                style={{ color: Colors.light.whiteFfffff }}
-                className="absolute top-[330px] font-extrabold text-3xl"
+                style={{
+                    color: Colors.light.whiteFfffff,
+                    position: 'absolute',
+                    top: height * 0.34,  // 25% from top
+                    fontSize: width * 0.07,
+                    lineHeight: width * 0.08
+                }}
+                className="font-extrabold text-center"
             >
                 Sign in to your Account
             </Text>
 
-            {/* FIXED: Sign up navigation link */}
-            <View className="flex flex-row absolute top-[380px] mb-5">
+            {/* Sign up navigation link - responsive */}
+            <View
+                className="flex flex-row absolute items-center"
+                style={{
+                    top: height * 0.40,  // 32% from top
+                    paddingHorizontal: width * 0.04
+                }}
+            >
                 <Text
-                    style={{ color: Colors.light.whiteFfffff }}
-                    className="px-1 text-lg font-medium"
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.04
+                    }}
+                    className="font-medium"
                 >
                     Don't have an account ?
                 </Text>
                 <TouchableOpacity
                     onPress={handleSignUpPress}
                     disabled={isLoading}
+                    className="ml-1"
                 >
                     <Text
                         style={{
                             color: Colors.light.blueTheme,
-                            opacity: isLoading ? 0.5 : 1
+                            opacity: isLoading ? 0.5 : 1,
+                            fontSize: width * 0.045
                         }}
-                        className="px-1 text-xl font-semibold"
+                        className="font-semibold"
                     >
                         SignUp
                     </Text>
                 </TouchableOpacity>
             </View>
 
-            {/* Input Fields */}
-            <View className="absolute top-[460px]">
-                {/* Email Input */}
+            {/* Input Fields Container - responsive and compact */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.48,  // 42% from top (moved down slightly)
+                    width: '100%',
+                    paddingHorizontal: width * 0.02  // More horizontal padding
+                }}
+            >
+                {/* Email Input - compact responsive */}
                 <View
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
-                    className="flex flex-row items-center justify-start w-[370px] h-[56px] rounded-[15px] mb-7"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        width: '100%',
+                        maxWidth: width * 0.9,  // Slightly smaller max width
+                        height: Math.max(48, height * 0.06),  // Min 48px, max 6% of height
+                        borderRadius: 15,
+                        marginBottom: height * 0.02  // 2% margin
+                    }}
+                    className="flex flex-row items-center"
                 >
                     {icons && (
                         <Image
                             source={icons.mail}
-                            className="w-[16px] h-[14px] mx-4"
+                            style={{
+                                width: width * 0.04,
+                                height: width * 0.035,
+                                marginLeft: width * 0.04,
+                                marginRight: width * 0.03
+                            }}
                         />
                     )}
                     <TextInput
                         style={{
-                            backgroundColor: Colors.light.whiteFfffff,
-                            color: Colors.light.blackPrimary
+                            backgroundColor: 'transparent',
+                            color: Colors.light.blackPrimary,
+                            flex: 1,
+                            fontSize: Math.min(16, width * 0.035),  // Max 16px font
+                            paddingRight: width * 0.04,
+                            paddingVertical: 0  // Remove vertical padding
                         }}
-                        className="h-[56px] w-[300px]"
                         placeholder="Enter Email or Phone Number"
                         placeholderTextColor={Colors.light.blackPrimary}
                         value={email}
@@ -239,23 +295,37 @@ const SignIn = ({ navigation }: Props) => {
                     />
                 </View>
 
-                {/* Password Input */}
+                {/* Password Input - compact responsive */}
                 <View
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
-                    className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px]"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        width: '100%',
+                        maxWidth: width * 0.90,  // Slightly smaller max width
+                        height: Math.max(48, height * 0.06),  // Min 48px, max 6% of height
+                        borderRadius: 15
+                    }}
+                    className="flex flex-row items-center"
                 >
                     {icons && (
                         <Image
                             source={icons.lock}
-                            className="w-[16px] h-[19px] mx-4"
+                            style={{
+                                width: width * 0.04,
+                                height: width * 0.048,
+                                marginLeft: width * 0.04,
+                                marginRight: width * 0.03
+                            }}
                         />
                     )}
                     <TextInput
                         style={{
-                            backgroundColor: Colors.light.whiteFfffff,
-                            color: Colors.light.blackPrimary
+                            backgroundColor: 'transparent',
+                            color: Colors.light.blackPrimary,
+                            flex: 1,
+                            fontSize: Math.min(16, width * 0.035),  // Max 16px font
+                            paddingVertical: 0,  // Remove vertical padding
+                            paddingRight: width * 0.13  // Space for eye icon
                         }}
-                        className="h-[56px] w-[250px]"
                         placeholder="Enter Password"
                         placeholderTextColor={Colors.light.blackPrimary}
                         secureTextEntry={!isPasswordVisible}
@@ -269,28 +339,42 @@ const SignIn = ({ navigation }: Props) => {
                         editable={!isLoading}
                     />
                     <TouchableOpacity
-                        className="absolute right-3 h-[56px] flex items-center justify-center"
+                        className="absolute right-0 flex items-center justify-center"
+                        style={{
+                            width: width * 0.12,
+                            height: '100%'
+                        }}
                         onPress={togglePasswordVisibility}
                         disabled={isLoading}
                     >
                         {icons && (
                             <Image
                                 source={isPasswordVisible ? icons.eyeopen : icons.eye}
-                                className="w-[16px] h-[12px] mx-4"
-                                style={{ opacity: isLoading ? 0.5 : 1 }}
+                                style={{
+                                    width: width * 0.04,
+                                    height: width * 0.03,
+                                    opacity: isLoading ? 0.5 : 1
+                                }}
                             />
                         )}
                     </TouchableOpacity>
                 </View>
 
-                {/* Error Message */}
+                {/* Error Message - responsive */}
                 {errorMessage ? (
-                    <View className="mt-5 w-[370px]">
+                    <View
+                        style={{
+                            marginTop: height * 0.015,
+                            width: '100%',
+                            maxWidth: width * 0.85
+                        }}
+                    >
                         <Text
                             style={{
-                                color: errorMessage.includes('successful') ? '#10B981' : '#EF4444'
+                                color: errorMessage.includes('successful') ? '#10B981' : '#EF4444',
+                                fontSize: width * 0.035
                             }}
-                            className="text-center text-sm font-medium"
+                            className="text-center font-medium"
                         >
                             {errorMessage}
                         </Text>
@@ -298,16 +382,23 @@ const SignIn = ({ navigation }: Props) => {
                 ) : null}
             </View>
 
-            {/* Forgot Password */}
-            <View className="absolute top-[630px]">
+            {/* Forgot Password - responsive positioning */}
+            <View
+                className="absolute"
+                style={{
+                    top: height * 0.65  // 58% from top (adjusted for compact inputs)
+                }}
+            >
                 <TouchableOpacity
                     onPress={handleResetPasswordPress}
                     disabled={isLoading}
+                    className="py-2 px-4"
                 >
                     <Text
                         style={{
                             color: Colors.light.secondaryText,
-                            opacity: isLoading ? 0.5 : 1
+                            opacity: isLoading ? 0.5 : 1,
+                            fontSize: width * 0.035
                         }}
                         className="underline"
                     >
@@ -316,15 +407,22 @@ const SignIn = ({ navigation }: Props) => {
                 </TouchableOpacity>
             </View>
 
-            {/* Login Button */}
-            <View className="absolute top-[670px]">
+            {/* Login Button - responsive */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.72,  // 64% from top (adjusted for compact inputs)
+                    width: '100%',
+                    paddingHorizontal: width * 0.08
+                }}
+            >
                 <CustomGradientButton
                     text={isLoading ? "Signing In..." : "Login"}
-                    width={370}
-                    height={56}
+                    width={Math.min(width * 0.85, 350)}  // Responsive width with max limit
+                    height={Math.max(48, height * 0.06)}  // Min 48px, max 6% of height
                     fontWeight={600}
                     borderRadius={100}
-                    fontSize={18}
+                    fontSize={Math.min(18, width * 0.045)}  // Max 18px font
                     textColor={Colors.light.whiteFfffff}
                     onPress={handleLogin}
                     disabled={isLoading}
@@ -334,11 +432,19 @@ const SignIn = ({ navigation }: Props) => {
                 />
             </View>
 
-            {/* Footer */}
-            <View className="absolute bottom-8">
+            {/* Footer - responsive positioning */}
+            <View
+                className="absolute items-center"
+                style={{
+                    bottom: height * 0.034  // 4% from bottom
+                }}
+            >
                 <Text
-                    style={{ color: Colors.light.whiteFfffff }}
-                    className="text-2xl font-bold"
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07
+                    }}
+                    className="font-bold"
                 >
                     MIRAGIO
                 </Text>
