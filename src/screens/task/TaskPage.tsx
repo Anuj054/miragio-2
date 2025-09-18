@@ -260,12 +260,13 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
 
     // FIXED: Navigation handlers
     const handleTaskNavigation = (task: Task) => {
+        // Only completed tasks should go to TaskSuccessful
         if (task.status === 'completed') {
-            // FIXED: Use type assertion if needed
             (navigation as any).navigate('TaskSuccessful');
             return;
         }
 
+        // Rejected tasks show alert only
         if (task.status === 'rejected') {
             Alert.alert(
                 "Task Rejected",
@@ -275,12 +276,15 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
             return;
         }
 
-        navigation.getParent()?.navigate('UserProfile', { from: 'taskpage' });
+        // For upcoming and pending tasks, navigate to TaskDetails
+        if (task.status === 'upcoming' || task.status === 'pending') {
+            navigation.navigate('TaskDetails', { taskId: String(task.id) });
+            return;
+        }
     };
 
-
     const handleProfilePress = () => {
-        // FIXED: Navigate to UserProfile in Main Stack
+
         navigation.getParent()?.navigate('UserProfile', { from: 'taskpage' });
     };
 

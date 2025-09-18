@@ -49,11 +49,8 @@ interface ApiTask {
     task_endtime: string;
     created_at: string;
     status: string;
+    documents: string | null;
     assigned_users: AssignedUser[];
-    // Add fields for downloadable content
-    task_video?: string;
-    task_image?: string;
-    downloadable_file?: string;
 }
 
 interface ApiResponse {
@@ -177,7 +174,34 @@ const TaskDetails = () => {
         }
     };
 
-    // Download function for task materials
+    // FIXED: Updated function to check if downloadable content is available
+    const hasDownloadableContent = useMemo(() => {
+        if (!taskDetail) return false;
+
+        // Check if documents field exists and is not empty/null
+        if (!taskDetail.documents ||
+            taskDetail.documents.trim() === '' ||
+            taskDetail.documents === 'null' ||
+            taskDetail.documents.toLowerCase() === 'null') {
+            return false;
+        }
+
+        const documents = taskDetail.documents.trim();
+
+        // If it's already a full URL, return true
+        if (documents.startsWith('http://') || documents.startsWith('https://')) {
+            return true;
+        }
+
+        // If it's a relative path from your API (like "uploads/filename.ext"), it's valid
+        if (documents.length > 0 && !documents.startsWith('http')) {
+            return true;
+        }
+
+        return false;
+    }, [taskDetail]);
+
+    // FIXED: Updated download function to handle both full URLs and relative paths
     const downloadTaskFile = async () => {
         try {
             setIsDownloading(true);
@@ -187,52 +211,80 @@ const TaskDetails = () => {
                 return;
             }
 
-            // Check if there's a downloadable file
-            const downloadUrl = taskDetail.task_video || taskDetail.task_image || taskDetail.downloadable_file;
-
-            if (!downloadUrl) {
+            // Check if there are documents to download
+            if (!taskDetail.documents ||
+                taskDetail.documents.trim() === '' ||
+                taskDetail.documents === 'null' ||
+                taskDetail.documents.toLowerCase() === 'null') {
                 Alert.alert('No Download Available', 'This task does not have any downloadable materials.');
                 return;
             }
 
-            // For now, we'll open the URL in browser/external app
+            let downloadUrl = taskDetail.documents.trim();
+
+            // If it's a relative path, prepend the base API URL
+            if (!downloadUrl.startsWith('http://') && !downloadUrl.startsWith('https://')) {
+                downloadUrl = `https://netinnovatus.tech/miragio_task/api/${downloadUrl}`;
+            }
+
+            console.log('Download URL:', downloadUrl); // For debugging
+
+            // Check if the URL can be opened
             const supported = await Linking.canOpenURL(downloadUrl);
 
             if (supported) {
-                await Linking.openURL(downloadUrl);
-                Alert.alert('Download Started', 'The file download has been initiated in your browser.');
+                // Show confirmation dialog
+                Alert.alert(
+                    'Download Document',
+                    `Do you want to download the task document?\n\nFile: ${getDownloadFileType()}`,
+                    [
+                        {
+                            text: 'Cancel',
+                            style: 'cancel',
+                        },
+                        {
+                            text: 'Download',
+                            onPress: async () => {
+                                try {
+                                    await Linking.openURL(downloadUrl);
+                                    Alert.alert('Download Started', 'The document download has been initiated in your browser.');
+                                } catch (error) {
+                                    console.error('Download error:', error);
+                                    Alert.alert('Download Failed', 'Failed to open the download link. Please try again.');
+                                }
+                            },
+                        },
+                    ]
+                );
             } else {
-                Alert.alert('Error', 'Unable to open the download link.');
+                Alert.alert('Error', 'Unable to open the download link. Please check if you have a browser installed.');
             }
 
         } catch (error) {
             console.error('Download error:', error);
-            Alert.alert('Download Failed', 'Failed to download the file. Please try again.');
+            Alert.alert('Download Failed', 'Failed to process the download. Please try again.');
         } finally {
             setIsDownloading(false);
         }
     };
 
-    // Check if downloadable content is available
-    const hasDownloadableContent = useMemo(() => {
-        if (!taskDetail) return false;
-        return !!(taskDetail.task_video || taskDetail.task_image || taskDetail.downloadable_file);
-    }, [taskDetail]);
-
-    // Get download file type for display
+    // FIXED: Updated function to get download file type for display
     const getDownloadFileType = () => {
-        if (!taskDetail) return 'File';
+        if (!taskDetail || !taskDetail.documents) return 'Document';
 
-        if (taskDetail.task_video) return 'Video';
-        if (taskDetail.task_image) return 'Image';
-        if (taskDetail.downloadable_file) {
-            const url = taskDetail.downloadable_file.toLowerCase();
-            if (url.includes('.pdf')) return 'PDF';
-            if (url.includes('.doc') || url.includes('.docx')) return 'Document';
-            if (url.includes('.zip') || url.includes('.rar')) return 'Archive';
-            return 'File';
-        }
-        return 'File';
+        const url = taskDetail.documents.toLowerCase();
+
+        if (url.includes('.pdf')) return 'PDF Document';
+        if (url.includes('.doc') || url.includes('.docx')) return 'Word Document';
+        if (url.includes('.xls') || url.includes('.xlsx')) return 'Excel Document';
+        if (url.includes('.ppt') || url.includes('.pptx')) return 'PowerPoint';
+        if (url.includes('.zip') || url.includes('.rar')) return 'Archive File';
+        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif')) return 'Image File';
+        if (url.includes('.mp4') || url.includes('.avi') || url.includes('.mov')) return 'Video File';
+        if (url.includes('.mp3') || url.includes('.wav')) return 'Audio File';
+        if (url.includes('.txt')) return 'Text File';
+
+        return 'Document';
     };
 
     const submitTask = async () => {
@@ -707,42 +759,55 @@ const TaskDetails = () => {
                         </View>
                     </View>
 
-                    {/* =================== DOWNLOAD MATERIALS CARD =================== */}
+                    {/* =================== FIXED DOWNLOAD MATERIALS CARD =================== */}
                     <TouchableOpacity
                         style={{
                             backgroundColor: Colors.light.backlight2,
-                            borderLeftColor: Colors.light.bgGreen,
-                            opacity: isDownloading ? 0.7 : 1
+                            borderLeftColor: hasDownloadableContent ? Colors.light.bgGreen : Colors.light.placeholderColorOp70,
+                            opacity: isDownloading ? 0.7 : (hasDownloadableContent ? 1 : 0.6)
                         }}
                         className="w-full rounded-lg border-l-2 mb-3"
-                        onPress={downloadTaskFile}
-                        disabled={isDownloading}
+                        onPress={hasDownloadableContent ? downloadTaskFile : undefined}
+                        disabled={isDownloading || !hasDownloadableContent}
                     >
                         <View className="flex-row p-3">
                             <View className="mr-2 items-center justify-center">
                                 <Image
-                                    source={icons.download || icons.go}
+                                    source={hasDownloadableContent ? (icons.download || icons.go) : (icons.download || icons.go)}
                                     className="h-[32px] w-[32px]"
                                     resizeMode="contain"
+
                                 />
                             </View>
 
                             <View className="flex-1">
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-1 font-bold">
-                                    {isDownloading ? 'Downloading...' : 'Download Materials'}
+                                <Text style={{
+                                    color: hasDownloadableContent ? Colors.light.whiteFefefe : Colors.light.placeholderColorOp70
+                                }} className="text-base mb-1 font-bold">
+                                    {isDownloading ? 'Downloading...' : (hasDownloadableContent ? 'Download Materials' : 'No Materials Available')}
                                 </Text>
                                 <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
-                                    {isDownloading ? 'Please wait...' : 'Download task materials and examples'}
+                                    {isDownloading
+                                        ? 'Please wait...'
+                                        : hasDownloadableContent
+                                            ? `Download ${getDownloadFileType().toLowerCase()}`
+                                            : 'No downloadable materials for this task'
+                                    }
                                 </Text>
                             </View>
 
-                            <View className="items-center justify-center">
-                                <Image
-                                    source={icons.go}
-                                    className="w-3 h-3"
-                                    style={{ opacity: isDownloading ? 0.5 : 1 }}
-                                />
-                            </View>
+                            {hasDownloadableContent && (
+                                <View className="items-center justify-center">
+                                    <Image
+                                        source={icons.go}
+                                        className="w-3 h-3"
+                                        style={{
+                                            opacity: isDownloading ? 0.5 : 1,
+                                            tintColor: Colors.light.bgGreen
+                                        }}
+                                    />
+                                </View>
+                            )}
                         </View>
                     </TouchableOpacity>
 

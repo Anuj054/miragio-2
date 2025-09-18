@@ -36,7 +36,8 @@ const AppContent = () => {
       .then(token => {
         console.log('🔥 FCM Token:', token);
 
-
+        // Show token in an alert popup for easy copying during dev
+        Alert.alert('FCM Token', token);
       })
       .catch(error => {
         console.error('❌ Error fetching FCM token:', error);
