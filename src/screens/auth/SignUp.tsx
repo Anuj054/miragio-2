@@ -48,7 +48,7 @@ const SignUp = ({ navigation }: Props) => {
         clearAllSignupData();
     }, []);
 
-    // ADDED: Handle back button properly
+    // Handle back button properly
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
@@ -128,7 +128,7 @@ const SignUp = ({ navigation }: Props) => {
         return true;
     };
 
-    // FIXED: Navigation handlers
+    // Navigation handlers
     const handleBackPress = () => {
         // Go back to Welcome to break the loop
         if (!isLoading) {
@@ -159,10 +159,11 @@ const SignUp = ({ navigation }: Props) => {
 
         try {
             // Store signup data in AsyncStorage
+            // UPDATED: Ensure referral code is properly handled as optional
             const signupData = {
                 email: email.trim(),
                 password: password,
-                referral_code: referralCode.trim() || "",
+                referral_code: referralCode.trim() || "", // Empty string if no referral code
                 user_role: "user",
                 status: "1",
             };
@@ -200,14 +201,13 @@ const SignUp = ({ navigation }: Props) => {
                 <TouchableOpacity
                     className="absolute flex items-center justify-center"
                     style={{
-                        left: width * 0.04,  // 4% from left
-                        top: height * 0.09,  // 6% from top
-                        width: width * 0.12, // Touch area
+                        left: width * 0.04,
+                        top: height * 0.09,
+                        width: width * 0.12,
                         height: height * 0.06,
                         zIndex: 10
                     }}
                     onPress={handleBackPress}
-
                 >
                     {icons && (
                         <Image
@@ -225,7 +225,7 @@ const SignUp = ({ navigation }: Props) => {
                     source={logo}
                     style={{
                         position: 'absolute',
-                        top: height * 0.08,  // 8% from top
+                        top: height * 0.08,
                         width: width * 0.25,
                         height: width * 0.22
                     }}
@@ -236,7 +236,7 @@ const SignUp = ({ navigation }: Props) => {
                     style={{
                         color: Colors.light.whiteFfffff,
                         position: 'absolute',
-                        top: height * 0.23,  // 18% from top
+                        top: height * 0.23,
                         fontSize: width * 0.07,
                         lineHeight: width * 0.08
                     }}
@@ -249,7 +249,7 @@ const SignUp = ({ navigation }: Props) => {
                 <View
                     className="absolute items-center"
                     style={{
-                        top: height * 0.32,  // 26% from top
+                        top: height * 0.32,
                         width: '100%',
                         paddingHorizontal: width * 0.05
                     }}
@@ -396,7 +396,7 @@ const SignUp = ({ navigation }: Props) => {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Referral Code Input - responsive */}
+                    {/* Referral Code Input - UPDATED: Made clearly optional */}
                     <View
                         style={{
                             backgroundColor: Colors.light.whiteFfffff,
@@ -416,7 +416,7 @@ const SignUp = ({ navigation }: Props) => {
                                 paddingHorizontal: width * 0.04,
                                 paddingVertical: 0
                             }}
-                            placeholder="Enter Referral Code (Optional)"
+                            placeholder="Referral Code (Optional)"
                             placeholderTextColor={Colors.light.placeholderColor}
                             value={referralCode}
                             onChangeText={(text) => {
@@ -454,7 +454,7 @@ const SignUp = ({ navigation }: Props) => {
                 <View
                     className="absolute flex flex-row items-start w-full"
                     style={{
-                        top: height * 0.756,  // 58% from top
+                        top: height * 0.756,
                         paddingHorizontal: width * 0.08
                     }}
                 >
@@ -515,7 +515,7 @@ const SignUp = ({ navigation }: Props) => {
                 <View
                     className="absolute items-center"
                     style={{
-                        top: height * 0.67,  // 68% from top
+                        top: height * 0.67,
                         width: '100%',
                         paddingHorizontal: width * 0.02
                     }}
@@ -540,7 +540,7 @@ const SignUp = ({ navigation }: Props) => {
                 <View
                     className="absolute flex flex-row items-center"
                     style={{
-                        top: height * 0.85,  // 78% from top
+                        top: height * 0.85,
                         paddingHorizontal: width * 0.04
                     }}
                 >
@@ -574,7 +574,7 @@ const SignUp = ({ navigation }: Props) => {
                 <View
                     className="absolute items-center"
                     style={{
-                        bottom: height * 0.034  // 4% from bottom
+                        bottom: height * 0.034
                     }}
                 >
                     <Text

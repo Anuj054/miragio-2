@@ -496,7 +496,7 @@ const UserDetails = ({ navigation }: Props) => {
             <View
                 className="absolute items-center"
                 style={{
-                    top: height * 0.567,  // 52% from top
+                    top: height * 0.59,  // 52% from top
                     width: '100%',
                     paddingHorizontal: width * 0.09
                 }}

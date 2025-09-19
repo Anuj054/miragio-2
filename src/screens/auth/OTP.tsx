@@ -76,8 +76,7 @@ const Otp = ({ navigation, route }: Props) => {
             // FCM token is automatically handled by UserContext.verifyOTP()
             // No need for duplicate calls!
 
-            // Navigate to success page
-            setTimeout(() => navigation.navigate('KycSuccess'), 1500);
+            ;
         } catch (error) {
             setErrorMessage('Verification failed. Please check your internet connection.');
         } finally {
