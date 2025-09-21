@@ -16,7 +16,7 @@ export type AuthStackParamList = {
     SignUp: undefined;
     KYC: undefined;
     UserDetails: undefined;
-    Otp: { userId?: string | undefined }; // UPDATED: Explicitly allow undefined
+    Otp: { userId?: string | any }; // UPDATED: Explicitly allow undefined
     KycSuccess: undefined;
     ResetPassword: undefined;
     VerifyCode: { email?: string };

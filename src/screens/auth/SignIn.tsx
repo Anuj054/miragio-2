@@ -18,6 +18,10 @@ import logo from '../../assets/images/MIRAGIO--LOGO.png';
 import CustomGradientButton from '../../components/CustomGradientButton';
 import { useUser } from '../../context/UserContext';
 import type { AuthStackParamList } from '../../navigation/types';
+// Translation imports
+import { TranslatedText } from '../../components/TranslatedText';
+import { useTranslation } from '../../context/TranslationContext';
+import { usePlaceholder } from '../../hooks/useTranslatedText';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignIn'>;
 
@@ -25,12 +29,17 @@ const { width, height } = Dimensions.get('window');
 
 const SignIn = ({ navigation }: Props) => {
     const { login } = useUser();
+    const { currentLanguage } = useTranslation();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    // Translated placeholders
+    const emailPlaceholder = usePlaceholder('Enter Email or Phone Number', 'ईमेल या फोन नंबर दर्ज करें');
+    const passwordPlaceholder = usePlaceholder('Enter Password', 'पासवर्ड दर्ज करें');
 
     useEffect(() => {
         clearOldSignupCredentials();
@@ -76,18 +85,18 @@ const SignIn = ({ navigation }: Props) => {
 
     const validateForm = () => {
         if (!email.trim()) {
-            setErrorMessage("Please enter your email");
+            setErrorMessage(currentLanguage === 'hi' ? "कृपया अपना ईमेल दर्ज करें" : "Please enter your email");
             return false;
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email.trim())) {
-            setErrorMessage("Please enter a valid email address");
+            setErrorMessage(currentLanguage === 'hi' ? "कृपया वैध ईमेल पता दर्ज करें" : "Please enter a valid email address");
             return false;
         }
 
         if (!password.trim()) {
-            setErrorMessage("Please enter your password");
+            setErrorMessage(currentLanguage === 'hi' ? "कृपया अपना पासवर्ड दर्ज करें" : "Please enter your password");
             return false;
         }
 
@@ -130,7 +139,7 @@ const SignIn = ({ navigation }: Props) => {
             const result = await login(email.trim(), password.trim());
 
             if (result.success) {
-                setErrorMessage('Login successful! Redirecting...');
+                setErrorMessage(currentLanguage === 'hi' ? 'लॉगिन सफल! रीडायरेक्ट कर रहे हैं...' : 'Login successful! Redirecting...');
 
                 // UserContext login() will set isAuthenticated = true
                 // RootNavigator will automatically switch from Auth to Main stack
@@ -141,7 +150,7 @@ const SignIn = ({ navigation }: Props) => {
             }
         } catch (error) {
             console.error('Login error:', error);
-            setErrorMessage('An error occurred. Please try again.');
+            setErrorMessage(currentLanguage === 'hi' ? 'एक त्रुटि आई है। कृपया फिर से कोशिश करें।' : 'An error occurred. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -167,7 +176,6 @@ const SignIn = ({ navigation }: Props) => {
                     height: height * 0.06
                 }}
                 onPress={handleBackPress}
-
             >
                 {icons && (
                     <Image
@@ -185,27 +193,28 @@ const SignIn = ({ navigation }: Props) => {
                 source={logo}
                 style={{
                     position: 'absolute',
-                    top: height * 0.21,  // 15% from top
+                    top: height * 0.20,  // 15% from top
                     width: width * 0.25,
                     height: width * 0.22
                 }}
             />
 
-            {/* Title - responsive text */}
-            <Text
+            {/* Title - responsive text with translation */}
+            <TranslatedText
                 style={{
                     color: Colors.light.whiteFfffff,
                     position: 'absolute',
                     top: height * 0.34,  // 25% from top
                     fontSize: width * 0.07,
-                    lineHeight: width * 0.08
+                    lineHeight: width * 0.1,
+                    width: width * 1
                 }}
                 className="font-extrabold text-center"
             >
                 Sign in to your Account
-            </Text>
+            </TranslatedText>
 
-            {/* Sign up navigation link - responsive */}
+            {/* Sign up navigation link - responsive with translation */}
             <View
                 className="flex flex-row absolute items-center"
                 style={{
@@ -213,7 +222,7 @@ const SignIn = ({ navigation }: Props) => {
                     paddingHorizontal: width * 0.04
                 }}
             >
-                <Text
+                <TranslatedText
                     style={{
                         color: Colors.light.whiteFfffff,
                         fontSize: width * 0.04
@@ -221,13 +230,13 @@ const SignIn = ({ navigation }: Props) => {
                     className="font-medium"
                 >
                     Don't have an account ?
-                </Text>
+                </TranslatedText>
                 <TouchableOpacity
                     onPress={handleSignUpPress}
                     disabled={isLoading}
                     className="ml-1"
                 >
-                    <Text
+                    <TranslatedText
                         style={{
                             color: Colors.light.blueTheme,
                             opacity: isLoading ? 0.5 : 1,
@@ -236,7 +245,7 @@ const SignIn = ({ navigation }: Props) => {
                         className="font-semibold"
                     >
                         SignUp
-                    </Text>
+                    </TranslatedText>
                 </TouchableOpacity>
             </View>
 
@@ -254,10 +263,10 @@ const SignIn = ({ navigation }: Props) => {
                     style={{
                         backgroundColor: Colors.light.whiteFfffff,
                         width: '100%',
-                        maxWidth: width * 0.9,  // Slightly smaller max width
-                        height: Math.max(48, height * 0.06),  // Min 48px, max 6% of height
+                        maxWidth: width * 0.9,
+                        height: Math.max(48, height * 0.06),
                         borderRadius: 15,
-                        marginBottom: height * 0.02  // 2% margin
+                        marginBottom: height * 0.02
                     }}
                     className="flex flex-row items-center"
                 >
@@ -277,11 +286,11 @@ const SignIn = ({ navigation }: Props) => {
                             backgroundColor: 'transparent',
                             color: Colors.light.blackPrimary,
                             flex: 1,
-                            fontSize: Math.min(16, width * 0.035),  // Max 16px font
+                            fontSize: Math.min(16, width * 0.035),
                             paddingRight: width * 0.04,
-                            paddingVertical: 0  // Remove vertical padding
+                            paddingVertical: 0
                         }}
-                        placeholder="Enter Email or Phone Number"
+                        placeholder={emailPlaceholder}
                         placeholderTextColor={Colors.light.blackPrimary}
                         value={email}
                         onChangeText={(text) => {
@@ -300,8 +309,8 @@ const SignIn = ({ navigation }: Props) => {
                     style={{
                         backgroundColor: Colors.light.whiteFfffff,
                         width: '100%',
-                        maxWidth: width * 0.90,  // Slightly smaller max width
-                        height: Math.max(48, height * 0.06),  // Min 48px, max 6% of height
+                        maxWidth: width * 0.90,
+                        height: Math.max(48, height * 0.06),
                         borderRadius: 15
                     }}
                     className="flex flex-row items-center"
@@ -322,11 +331,11 @@ const SignIn = ({ navigation }: Props) => {
                             backgroundColor: 'transparent',
                             color: Colors.light.blackPrimary,
                             flex: 1,
-                            fontSize: Math.min(16, width * 0.035),  // Max 16px font
-                            paddingVertical: 0,  // Remove vertical padding
-                            paddingRight: width * 0.13  // Space for eye icon
+                            fontSize: Math.min(16, width * 0.035),
+                            paddingVertical: 0,
+                            paddingRight: width * 0.13
                         }}
-                        placeholder="Enter Password"
+                        placeholder={passwordPlaceholder}
                         placeholderTextColor={Colors.light.blackPrimary}
                         secureTextEntry={!isPasswordVisible}
                         value={password}
@@ -382,11 +391,11 @@ const SignIn = ({ navigation }: Props) => {
                 ) : null}
             </View>
 
-            {/* Forgot Password - responsive positioning */}
+            {/* Forgot Password - responsive positioning with translation */}
             <View
                 className="absolute"
                 style={{
-                    top: height * 0.65  // 58% from top (adjusted for compact inputs)
+                    top: height * 0.65
                 }}
             >
                 <TouchableOpacity
@@ -394,7 +403,7 @@ const SignIn = ({ navigation }: Props) => {
                     disabled={isLoading}
                     className="py-2 px-4"
                 >
-                    <Text
+                    <TranslatedText
                         style={{
                             color: Colors.light.secondaryText,
                             opacity: isLoading ? 0.5 : 1,
@@ -403,26 +412,26 @@ const SignIn = ({ navigation }: Props) => {
                         className="underline"
                     >
                         Forgot Your Password ?
-                    </Text>
+                    </TranslatedText>
                 </TouchableOpacity>
             </View>
 
-            {/* Login Button - responsive */}
+            {/* Login Button - responsive with translation */}
             <View
                 className="absolute items-center"
                 style={{
-                    top: height * 0.72,  // 64% from top (adjusted for compact inputs)
+                    top: height * 0.72,
                     width: '100%',
                     paddingHorizontal: width * 0.01
                 }}
             >
                 <CustomGradientButton
-                    text={isLoading ? "Signing In..." : "Login"}
-                    width={Math.min(width * 0.9, 500)}  // Responsive width with max limit
-                    height={Math.max(48, height * 0.06)}  // Min 48px, max 6% of height
+                    text={isLoading ? (currentLanguage === 'hi' ? "साइन इन कर रहे हैं..." : "Signing In...") : (currentLanguage === 'hi' ? "लॉगिन" : "Login")}
+                    width={Math.min(width * 0.9, 500)}
+                    height={Math.max(48, height * 0.06)}
                     fontWeight={600}
                     borderRadius={100}
-                    fontSize={Math.min(18, width * 0.045)}  // Max 18px font
+                    fontSize={Math.min(18, width * 0.045)}
                     textColor={Colors.light.whiteFfffff}
                     onPress={handleLogin}
                     disabled={isLoading}
@@ -436,7 +445,7 @@ const SignIn = ({ navigation }: Props) => {
             <View
                 className="absolute items-center"
                 style={{
-                    bottom: height * 0.034  // 4% from bottom
+                    bottom: height * 0.034
                 }}
             >
                 <Text

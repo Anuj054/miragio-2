@@ -9,17 +9,25 @@ import CustomGradientButton from "../../components/CustomGradientButton";
 import EmailSentModal from "../../components/EmailSentModal";
 import { Colors } from "../../constants/Colors";
 import type { AuthStackParamList } from '../../navigation/types';
+// Translation imports - USING OUR CUSTOM COMPONENTS
+import { TranslatedText } from '../../components/TranslatedText';
+import { useTranslation } from '../../context/TranslationContext';
+import { usePlaceholder } from '../../hooks/useTranslatedText';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
 
 const { width, height } = Dimensions.get('window');
 
 const ResetPassword = ({ navigation }: Props) => {
+    const { currentLanguage } = useTranslation();
 
     const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
     const [email, setEmail] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>("");
+
+    // Using our custom placeholder hook
+    const emailPlaceholder = usePlaceholder('Email', 'ईमेल');
 
     // Email validation function
     const isValidEmail = (email: string): boolean => {
@@ -27,39 +35,12 @@ const ResetPassword = ({ navigation }: Props) => {
         return emailRegex.test(email);
     };
 
-    // FIXED: Send reset code function - using the parameter to avoid warning
+    // Send reset code function
     const sendResetCode = async (userEmail: string) => {
         try {
-            // Simulate API call delay
             await new Promise<void>(resolve => setTimeout(() => resolve(), 2000));
-
-            // TODO: Replace with actual API call when ready
-            console.log('Sending reset code to:', userEmail); // Using userEmail parameter
+            console.log('Sending reset code to:', userEmail);
             return { success: true, message: 'Verification code sent successfully' };
-
-            /* 
-            // UNCOMMENT WHEN YOU HAVE REAL API:
-            const response = await fetch('https://netinnovatus.tech/miragio_task/api/api.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "reset_password_request",
-                    email: userEmail  // This uses the parameter when API is active
-                }),
-            });
-
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                return { success: true, message: 'Verification code sent successfully' };
-            } else {
-                return { success: false, message: result.message || 'Failed to send verification code' };
-            }
-            */
-
         } catch (error) {
             console.error('Reset password API error:', error);
             return { success: false, message: 'Network error. Please try again.' };
@@ -68,52 +49,44 @@ const ResetPassword = ({ navigation }: Props) => {
 
     // Handle request button press
     const handleRequestLoginLink = async () => {
-        // Clear previous error
         setErrorMessage("");
 
-        // Validate email input
+        // Validate email input - using conditional for error messages
         if (!email.trim()) {
-            setErrorMessage('Please enter your email address');
+            setErrorMessage(currentLanguage === 'hi' ? 'कृपया अपना ईमेल पता दर्ज करें' : 'Please enter your email address');
             return;
         }
 
         if (!isValidEmail(email.trim())) {
-            setErrorMessage('Please enter a valid email address');
+            setErrorMessage(currentLanguage === 'hi' ? 'कृपया वैध ईमेल पता दर्ज करें' : 'Please enter a valid email address');
             return;
         }
 
         setIsLoading(true);
 
         try {
-            // Call the API function
             const result = await sendResetCode(email.trim());
 
             if (result.success) {
-                // Show success modal
                 setShowEmailModal(true);
             } else {
-                // Show error message
                 setErrorMessage(result.message);
             }
         } catch (error) {
             console.error('Unexpected error:', error);
-            setErrorMessage('Something went wrong. Please try again.');
+            setErrorMessage(currentLanguage === 'hi' ? 'कुछ गलत हुआ। कृपया फिर से कोशिश करें।' : 'Something went wrong. Please try again.');
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Handle modal close and navigation
     const handleModalClose = () => {
         setShowEmailModal(false);
-
-        // Navigate to verify code screen
         setTimeout(() => {
             navigation.navigate('VerifyCode', { email: email.trim() });
         }, 100);
     };
 
-    // Back button handler
     const handleBackPress = (): void => {
         if (!isLoading) {
             navigation.navigate('SignIn');
@@ -122,7 +95,6 @@ const ResetPassword = ({ navigation }: Props) => {
 
     return (
         <View className="flex-1 items-center">
-
             {/* Background Image */}
             <Image
                 source={bg}
@@ -131,18 +103,17 @@ const ResetPassword = ({ navigation }: Props) => {
                 style={{ width, height }}
             />
 
-            {/* Back Button - responsive positioning */}
+            {/* Back Button */}
             <TouchableOpacity
                 className="absolute flex items-center justify-center"
                 style={{
-                    left: width * 0.04,  // 4% from left
-                    top: height * 0.09,  // 6% from top
-                    width: width * 0.12, // Touch area
+                    left: width * 0.04,
+                    top: height * 0.09,
+                    width: width * 0.12,
                     height: height * 0.06,
                     zIndex: 10
                 }}
                 onPress={handleBackPress}
-
             >
                 {icons && (
                     <Image
@@ -156,71 +127,72 @@ const ResetPassword = ({ navigation }: Props) => {
                 )}
             </TouchableOpacity>
 
-            {/* Logo - responsive positioning */}
+            {/* Logo */}
             <Image
                 source={logo}
                 style={{
                     position: 'absolute',
-                    top: height * 0.08,  // 8% from top
+                    top: height * 0.08,
                     width: width * 0.25,
                     height: width * 0.22
                 }}
             />
 
-            {/* Illustration - responsive positioning */}
+            {/* Illustration */}
             <View
                 className="absolute items-center"
                 style={{
-                    top: height * 0.30  // 24% from top
+                    top: height * 0.30
                 }}
             >
                 <Image
                     source={resetpassimg}
                     style={{
-                        height: height * 0.2,   // 20% of screen height
-                        width: width * 0.36,    // 36% of screen width
+                        height: height * 0.2,
+                        width: width * 0.36,
                         resizeMode: 'contain'
                     }}
                 />
             </View>
 
-            {/* Reset Password Instructions - responsive */}
+            {/* Reset Password Instructions - USING TranslatedText */}
             <View
                 className="absolute flex flex-col justify-center items-center"
                 style={{
-                    top: height * 0.54,  // 46% from top
-                    width: width * 0.8,  // 80% of screen width
+                    top: height * 0.54,
+                    width: width * 0.8,
                     paddingHorizontal: width * 0.04
                 }}
             >
-                <Text
+                <TranslatedText
                     style={{
                         color: Colors.light.whiteFfffff,
                         fontSize: width * 0.07,
-                        lineHeight: width * 0.08
+                        lineHeight: width * 0.09,
+                        width: width * 0.9
                     }}
                     className="font-bold text-center"
                 >
                     Reset Password
-                </Text>
-                <Text
+                </TranslatedText>
+                <TranslatedText
                     style={{
                         color: Colors.light.whiteFfffff,
                         fontSize: width * 0.045,
-                        lineHeight: width * 0.055,
+                        lineHeight: width * 0.07,
                         marginTop: height * 0.02
                     }}
                     className="text-center"
                 >
                     We'll send a verification code to your email address.
-                </Text>
+                </TranslatedText>
             </View>
 
-            {/* Email Input Section - responsive */}
+            {/* Email Input Section - using our placeholder hook */}
             <View
                 className="absolute items-center"
                 style={{
-                    top: height * 0.69,  // 62% from top
+                    top: height * 0.69,
                     width: '100%',
                     paddingHorizontal: width * 0.05
                 }}
@@ -244,7 +216,7 @@ const ResetPassword = ({ navigation }: Props) => {
                             paddingHorizontal: width * 0.04,
                             paddingVertical: 0
                         }}
-                        placeholder="Email"
+                        placeholder={emailPlaceholder}
                         placeholderTextColor={Colors.light.placeholderColor}
                         value={email}
                         onChangeText={(text) => {
@@ -257,7 +229,7 @@ const ResetPassword = ({ navigation }: Props) => {
                     />
                 </View>
 
-                {/* Error message display - responsive */}
+                {/* Error message display */}
                 {errorMessage && (
                     <Text
                         style={{
@@ -275,17 +247,17 @@ const ResetPassword = ({ navigation }: Props) => {
                 )}
             </View>
 
-            {/* Submit Button - responsive */}
+            {/* Submit Button - USING conditional for button text only */}
             <View
                 className="absolute items-center"
                 style={{
-                    top: height * 0.8,  // 72% from top
+                    top: height * 0.8,
                     width: '100%',
                     paddingHorizontal: width * 0.02
                 }}
             >
                 <CustomGradientButton
-                    text={isLoading ? "Sending..." : "Send Verification Code"}
+                    text={isLoading ? (currentLanguage === 'hi' ? "भेज रहे हैं..." : "Sending...") : (currentLanguage === 'hi' ? "सत्यापन कोड भेजें" : "Send Verification Code")}
                     width={Math.min(width * 0.9, 500)}
                     height={Math.max(48, height * 0.06)}
                     borderRadius={15}
@@ -300,11 +272,11 @@ const ResetPassword = ({ navigation }: Props) => {
                 />
             </View>
 
-            {/* Footer Brand Name - responsive */}
+            {/* Footer */}
             <View
                 className="absolute items-center"
                 style={{
-                    bottom: height * 0.034  // 4% from bottom
+                    bottom: height * 0.034
                 }}
             >
                 <Text
@@ -324,9 +296,8 @@ const ResetPassword = ({ navigation }: Props) => {
                 onClose={handleModalClose}
                 email={email || "k*******9@gmail.com"}
             />
-
-        </View >
-    )
-}
+        </View>
+    );
+};
 
 export default ResetPassword;

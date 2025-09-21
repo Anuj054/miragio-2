@@ -8,16 +8,21 @@ import CustomGradientButton from "../../components/CustomGradientButton";
 import { Colors } from "../../constants/Colors";
 import type { AuthStackParamList } from '../../navigation/types';
 
+// ✅ Translation
+import { useTranslation } from '../../context/TranslationContext';
+
 type Props = NativeStackScreenProps<AuthStackParamList, 'VerifyCode'>;
 
 const { width, height } = Dimensions.get('window');
 
 const VerifyCode = ({ navigation, route }: Props) => {
+    const { currentLanguage } = useTranslation();
+    const isHi = currentLanguage === 'hi';
+
     // Type guard for email parameter
     const email = route.params?.email;
 
     if (!email) {
-        // Handle case where email is not provided
         navigation.goBack();
         return null;
     }
@@ -33,164 +38,81 @@ const VerifyCode = ({ navigation, route }: Props) => {
     useEffect(() => {
         if (timer > 0) {
             const interval = setInterval(() => {
-                setTimer(timer - 1);
+                setTimer(t => t - 1);
             }, 1000);
             return () => clearInterval(interval);
         }
     }, [timer]);
 
-    // Handle code input change
     const handleCodeChange = (text: string, index: number) => {
-        // Only allow numeric input
         const numericText = text.replace(/[^0-9]/g, '');
-
         const newCode = [...code];
         newCode[index] = numericText;
         setCode(newCode);
-
-        // Clear error message when user starts typing
         if (errorMessage) setErrorMessage("");
-
-        // Auto focus next input
         if (numericText && index < 5) {
             inputRefs.current[index + 1]?.focus();
         }
     };
 
-    // Handle backspace
     const handleKeyPress = (key: string, index: number) => {
         if (key === 'Backspace' && !code[index] && index > 0) {
             inputRefs.current[index - 1]?.focus();
         }
     };
 
-    // FIXED: Function to verify reset code with proper parameter usage
     const verifyResetCode = async (userEmail: string, verificationCode: string): Promise<{ success: boolean, resetToken?: string, message?: string }> => {
         try {
-            // Simulate API call delay
-            await new Promise<void>(resolve => setTimeout(() => resolve(), 2000));
-
-            // Log parameters to show they're being used (remove in production)
-            console.log('Verifying code for:', userEmail, 'Code:', verificationCode);
-
-            // TODO: Replace with actual API call when ready
+            await new Promise<void>(resolve => setTimeout(resolve, 2000));
             return { success: true, resetToken: 'dummy_token' };
-
-            /* 
-            // UNCOMMENT WHEN YOU HAVE REAL API:
-            const response = await fetch('https://netinnovatus.tech/miragio_task/api/api.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "verify_reset_code",
-                    email: userEmail,  // Using userEmail parameter
-                    code: verificationCode,  // Using verificationCode parameter
-                }),
-            });
-
-            const data = await response.json();
-
-            if (data.status === 'success') {
-                return { success: true, resetToken: data.resetToken || 'dummy_token' };
-            } else {
-                return { success: false, message: data.message || 'Invalid verification code' };
-            }
-            */
-        } catch (error) {
-            return { success: false, message: 'Network error. Please try again.' };
+        } catch {
+            return { success: false, message: isHi ? 'नेटवर्क त्रुटि। कृपया पुनः प्रयास करें।' : 'Network error. Please try again.' };
         }
     };
 
-    // Function to resend reset code
-    const resendResetCode = async (): Promise<void> => { // FIXED: Added explicit return type
+    const resendResetCode = async (): Promise<void> => {
         if (resendLoading || timer > 0) return;
 
         setResendLoading(true);
         setErrorMessage("");
-
         try {
-            // Simulate API call delay
-            await new Promise<void>(resolve => setTimeout(() => resolve(), 1000));
-
-            // TODO: Replace with actual API call when ready
+            await new Promise<void>(resolve => setTimeout(resolve, 1000));
             setTimer(60);
-            setErrorMessage("New verification code sent to your email");
-            setCode(['', '', '', '', '', '']); // Clear current code
+            setErrorMessage(isHi ? 'नया सत्यापन कोड आपके ईमेल पर भेज दिया गया है' : 'New verification code sent to your email');
+            setCode(['', '', '', '', '', '']);
             inputRefs.current[0]?.focus();
-
-            // Clear success message after 3 seconds
             setTimeout(() => setErrorMessage(""), 3000);
-
-            /* 
-            // UNCOMMENT WHEN YOU HAVE REAL API:
-            const response = await fetch('https://netinnovatus.tech/miragio_task/api/api.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "resend_reset_code",
-                    email: email,
-                }),
-            });
-
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                setTimer(60);
-                setErrorMessage("New verification code sent to your email");
-                setCode(['', '', '', '', '', '']); // Clear current code
-                inputRefs.current[0]?.focus();
-                
-                // Clear success message after 3 seconds
-                setTimeout(() => setErrorMessage(""), 3000);
-            } else {
-                setErrorMessage("Failed to resend code. Please try again.");
-            }
-            */
-        } catch (error) {
-            setErrorMessage("Network error. Please try again.");
+        } catch {
+            setErrorMessage(isHi ? 'कोड पुनः भेजने में विफल। कृपया पुनः प्रयास करें।' : 'Failed to resend code. Please try again.');
         } finally {
             setResendLoading(false);
         }
     };
 
-    // Handle verify button press
     const handleVerifyCode = async () => {
         const enteredCode = code.join('');
         setErrorMessage("");
-
         if (enteredCode.length !== 6) {
-            setErrorMessage("Please enter the complete 6-digit code");
+            setErrorMessage(isHi ? 'कृपया पूरा 6 अंकों का कोड दर्ज करें' : 'Please enter the complete 6-digit code');
             return;
         }
-
         setIsLoading(true);
-
         try {
             const result = await verifyResetCode(email, enteredCode);
-
             if (result.success) {
-                // Navigate directly to ResetSuccess
                 navigation.navigate('ResetSuccess');
             } else {
-                setErrorMessage(result.message || 'Verification failed');
-                // Clear code inputs on error
+                setErrorMessage(result.message || (isHi ? 'सत्यापन विफल रहा' : 'Verification failed'));
                 setCode(['', '', '', '', '', '']);
                 inputRefs.current[0]?.focus();
             }
-        } catch (error) {
-            setErrorMessage("Something went wrong. Please try again.");
+        } catch {
+            setErrorMessage(isHi ? 'कुछ गलत हुआ। कृपया पुनः प्रयास करें।' : 'Something went wrong. Please try again.');
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Back button handler
     const handleBackPress = (): void => {
         if (!isLoading) {
             navigation.goBack();
@@ -207,47 +129,45 @@ const VerifyCode = ({ navigation, route }: Props) => {
                 style={{ width, height }}
             />
 
-            {/* Back Button - responsive positioning */}
+            {/* Back Button */}
             <TouchableOpacity
                 className="absolute flex items-center justify-center"
                 style={{
-                    left: width * 0.04,  // 4% from left
-                    top: height * 0.09,  // 6% from top
-                    width: width * 0.12, // Touch area
+                    left: width * 0.04,
+                    top: height * 0.09,
+                    width: width * 0.12,
                     height: height * 0.06,
                     zIndex: 10
                 }}
                 onPress={handleBackPress}
                 disabled={isLoading}
             >
-                {icons && (
-                    <Image
-                        source={icons.back}
-                        style={{
-                            width: width * 0.06,
-                            height: width * 0.07,
-                            opacity: isLoading ? 0.5 : 1
-                        }}
-                    />
-                )}
+                <Image
+                    source={icons.back}
+                    style={{
+                        width: width * 0.06,
+                        height: width * 0.07,
+                        opacity: isLoading ? 0.5 : 1
+                    }}
+                />
             </TouchableOpacity>
 
-            {/* Logo - responsive positioning */}
+            {/* Logo */}
             <Image
                 source={logo}
                 style={{
                     position: 'absolute',
-                    top: height * 0.08,  // 8% from top
+                    top: height * 0.08,
                     width: width * 0.25,
                     height: width * 0.22
                 }}
             />
 
-            {/* Verification Instructions - responsive */}
+            {/* Verification Instructions */}
             <View
                 className="absolute flex flex-col justify-center items-center"
                 style={{
-                    top: height * 0.31,  // 25% from top
+                    top: height * 0.31,
                     width: width * 0.80,
                     paddingHorizontal: width * 0.04
                 }}
@@ -256,22 +176,25 @@ const VerifyCode = ({ navigation, route }: Props) => {
                     style={{
                         color: Colors.light.whiteFfffff,
                         fontSize: width * 0.074,
-                        lineHeight: width * 0.08
+                        lineHeight: width * 0.096,
+                        width: width * 0.6
                     }}
                     className="font-bold text-center"
                 >
-                    Verify Code
+                    {isHi ? 'कोड सत्यापित करें' : 'Verify Code'}
                 </Text>
                 <Text
                     style={{
                         color: Colors.light.whiteFfffff,
                         fontSize: width * 0.049,
-                        lineHeight: width * 0.055,
+                        lineHeight: width * 0.07,
                         marginTop: height * 0.027
                     }}
                     className="text-center"
                 >
-                    We've sent a 6-digit verification code to
+                    {isHi
+                        ? 'हमने आपके ईमेल पर 6 अंकों का सत्यापन कोड भेजा है'
+                        : "We've sent a 6-digit verification code to"}
                 </Text>
                 <Text
                     style={{
@@ -286,11 +209,11 @@ const VerifyCode = ({ navigation, route }: Props) => {
                 </Text>
             </View>
 
-            {/* Code Input Section - responsive */}
+            {/* Code Input Section */}
             <View
                 className="absolute flex flex-row justify-between"
                 style={{
-                    top: height * 0.52,  // 42% from top
+                    top: height * 0.52,
                     width: width * 0.85,
                     paddingHorizontal: width * 0.02
                 }}
@@ -298,9 +221,7 @@ const VerifyCode = ({ navigation, route }: Props) => {
                 {code.map((digit, index) => (
                     <TextInput
                         key={index}
-                        ref={(ref) => {
-                            inputRefs.current[index] = ref;
-                        }}
+                        ref={(ref) => { inputRefs.current[index] = ref; }}
                         style={{
                             backgroundColor: Colors.light.whiteFfffff,
                             color: Colors.light.blackPrimary,
@@ -309,8 +230,8 @@ const VerifyCode = ({ navigation, route }: Props) => {
                             fontWeight: 'bold',
                             borderWidth: 2,
                             borderColor: digit ? Colors.light.blueTheme : '#E5E7EB',
-                            width: width * 0.12,  // 12% of screen width
-                            height: Math.max(48, height * 0.06),  // Min 48px, responsive height
+                            width: width * 0.12,
+                            height: Math.max(48, height * 0.06),
                             borderRadius: 15
                         }}
                         value={digit}
@@ -324,19 +245,19 @@ const VerifyCode = ({ navigation, route }: Props) => {
                 ))}
             </View>
 
-            {/* Error Message Section - responsive */}
+            {/* Error Message */}
             {errorMessage && (
                 <View
                     className="absolute"
                     style={{
-                        top: height * 0.52,  // 52% from top
+                        top: height * 0.52,
                         width: width * 0.85,
                         paddingHorizontal: width * 0.04
                     }}
                 >
                     <Text
                         style={{
-                            color: errorMessage.includes('sent') ? '#10B981' : '#FF4444',
+                            color: errorMessage.includes('भेजा') || errorMessage.includes('sent') ? '#10B981' : '#FF4444',
                             fontSize: width * 0.035,
                             textAlign: 'center',
                             fontWeight: '500',
@@ -347,11 +268,11 @@ const VerifyCode = ({ navigation, route }: Props) => {
                 </View>
             )}
 
-            {/* Resend Code Section - responsive */}
+            {/* Resend Code */}
             <View
                 className="absolute flex flex-row items-center justify-center"
                 style={{
-                    top: height * 0.62,  // 58% from top
+                    top: height * 0.62,
                     width: width * 0.85,
                     paddingHorizontal: width * 0.04
                 }}
@@ -362,7 +283,7 @@ const VerifyCode = ({ navigation, route }: Props) => {
                         fontSize: width * 0.038
                     }}
                 >
-                    Didn't receive the code?
+                    {isHi ? 'कोड प्राप्त नहीं हुआ?' : "Didn't receive the code?"}
                 </Text>
                 <TouchableOpacity
                     onPress={resendResetCode}
@@ -371,28 +292,39 @@ const VerifyCode = ({ navigation, route }: Props) => {
                 >
                     <Text
                         style={{
-                            color: (timer > 0 || resendLoading || isLoading) ? Colors.light.placeholderColor : Colors.light.blueTheme,
-                            textDecorationLine: (timer > 0 || resendLoading || isLoading) ? 'none' : 'underline',
+                            color: (timer > 0 || resendLoading || isLoading)
+                                ? Colors.light.placeholderColor
+                                : Colors.light.blueTheme,
+                            textDecorationLine:
+                                timer > 0 || resendLoading || isLoading ? 'none' : 'underline',
                             fontSize: width * 0.038
                         }}
                         className="font-semibold"
                     >
-                        {resendLoading ? 'Sending...' : timer > 0 ? `Resend in ${timer}s` : 'Resend'}
+                        {resendLoading
+                            ? (isHi ? 'भेजा जा रहा है...' : 'Sending...')
+                            : timer > 0
+                                ? (isHi ? `पुनः भेजें ${timer} सेकंड में` : `Resend in ${timer}s`)
+                                : (isHi ? 'पुनः भेजें' : 'Resend')}
                     </Text>
                 </TouchableOpacity>
             </View>
 
-            {/* Verify Button - responsive */}
+            {/* Verify Button */}
             <View
                 className="absolute items-center"
                 style={{
-                    top: height * 0.69,  // 66% from top
+                    top: height * 0.69,
                     width: '100%',
                     paddingHorizontal: width * 0.08
                 }}
             >
                 <CustomGradientButton
-                    text={isLoading ? "Verifying..." : "Verify Code"}
+                    text={
+                        isLoading
+                            ? (isHi ? 'सत्यापित कर रहे हैं...' : 'Verifying...')
+                            : (isHi ? 'कोड सत्यापित करें' : 'Verify Code')
+                    }
                     width={Math.min(width * 0.9, 500)}
                     height={Math.max(48, height * 0.06)}
                     borderRadius={15}
@@ -407,11 +339,11 @@ const VerifyCode = ({ navigation, route }: Props) => {
                 />
             </View>
 
-            {/* Footer Brand Name - responsive */}
+            {/* Footer */}
             <View
                 className="absolute items-center"
                 style={{
-                    bottom: height * 0.034  // 4% from bottom
+                    bottom: height * 0.034
                 }}
             >
                 <Text

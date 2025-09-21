@@ -20,12 +20,18 @@ import bg from '../../assets/images/bg.png';
 import logo from '../../assets/images/MIRAGIO--LOGO.png';
 import CustomGradientButton from '../../components/CustomGradientButton';
 import type { AuthStackParamList } from '../../navigation/types';
+// Translation imports - USING OUR CUSTOM COMPONENTS
+import { TranslatedText } from '../../components/TranslatedText';
+import { useTranslation } from '../../context/TranslationContext';
+import { usePlaceholder } from '../../hooks/useTranslatedText';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 
 const { width, height } = Dimensions.get('window');
 
 const SignUp = ({ navigation }: Props) => {
+    const { currentLanguage } = useTranslation();
+
     // State for password visibility toggles
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
@@ -43,7 +49,11 @@ const SignUp = ({ navigation }: Props) => {
     const [errorMessage, setErrorMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    // Clear all signup-related data when component mounts (fresh start)
+    // Using our custom placeholder hooks
+    const emailPlaceholder = usePlaceholder('Enter Email', 'ईमेल दर्ज करें');
+
+
+
     useEffect(() => {
         clearAllSignupData();
     }, []);
@@ -91,37 +101,37 @@ const SignUp = ({ navigation }: Props) => {
         setIsConfirmPasswordVisible(!isConfirmPasswordVisible);
     };
 
-    // Validate form inputs
+    // Validate form inputs with translation
     const validateForm = () => {
         if (!email.trim()) {
-            setErrorMessage("Please enter your email");
+            setErrorMessage(currentLanguage === 'hi' ? "कृपया अपना ईमेल दर्ज करें" : "Please enter your email");
             return false;
         }
 
         // Email validation regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email.trim())) {
-            setErrorMessage("Please enter a valid email address");
+            setErrorMessage(currentLanguage === 'hi' ? "कृपया वैध ईमेल पता दर्ज करें" : "Please enter a valid email address");
             return false;
         }
 
         if (!password.trim()) {
-            setErrorMessage("Please enter a password");
+            setErrorMessage(currentLanguage === 'hi' ? "कृपया पासवर्ड दर्ज करें" : "Please enter a password");
             return false;
         }
 
         if (password.length < 6) {
-            setErrorMessage("Password must be at least 6 characters long");
+            setErrorMessage(currentLanguage === 'hi' ? "पासवर्ड कम से कम 6 अक्षर का होना चाहिए" : "Password must be at least 6 characters long");
             return false;
         }
 
         if (password !== confirmPassword) {
-            setErrorMessage("Passwords do not match");
+            setErrorMessage(currentLanguage === 'hi' ? "पासवर्ड मैच नहीं करते" : "Passwords do not match");
             return false;
         }
 
         if (!isChecked) {
-            setErrorMessage("Please accept terms and conditions");
+            setErrorMessage(currentLanguage === 'hi' ? "कृपया नियम और शर्तों को स्वीकार करें" : "Please accept terms and conditions");
             return false;
         }
 
@@ -176,7 +186,7 @@ const SignUp = ({ navigation }: Props) => {
 
         } catch (error) {
             console.error('Error storing signup data:', error);
-            setErrorMessage("Something went wrong. Please try again.");
+            setErrorMessage(currentLanguage === 'hi' ? "कुछ गलत हुआ। कृपया फिर से कोशिश करें।" : "Something went wrong. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -231,19 +241,20 @@ const SignUp = ({ navigation }: Props) => {
                     }}
                 />
 
-                {/* Title - responsive text */}
-                <Text
+                {/* Title - USING TranslatedText */}
+                <TranslatedText
                     style={{
                         color: Colors.light.whiteFfffff,
                         position: 'absolute',
                         top: height * 0.23,
                         fontSize: width * 0.07,
-                        lineHeight: width * 0.08
+                        lineHeight: width * 0.09,
+                        width: width * 0.9
                     }}
                     className="font-extrabold text-center"
                 >
                     Create An Account
-                </Text>
+                </TranslatedText>
 
                 {/* Input Fields Container - responsive */}
                 <View
@@ -254,7 +265,7 @@ const SignUp = ({ navigation }: Props) => {
                         paddingHorizontal: width * 0.05
                     }}
                 >
-                    {/* Email Input - responsive */}
+                    {/* Email Input - responsive with translation */}
                     <View
                         style={{
                             backgroundColor: Colors.light.whiteFfffff,
@@ -275,7 +286,7 @@ const SignUp = ({ navigation }: Props) => {
                                 paddingHorizontal: width * 0.04,
                                 paddingVertical: 0
                             }}
-                            placeholder="Enter Email"
+                            placeholder={emailPlaceholder}
                             placeholderTextColor={Colors.light.placeholderColor}
                             value={email}
                             onChangeText={(text) => {
@@ -288,7 +299,7 @@ const SignUp = ({ navigation }: Props) => {
                         />
                     </View>
 
-                    {/* Password Input - responsive */}
+                    {/* Password Input - responsive with translation */}
                     <View
                         style={{
                             backgroundColor: Colors.light.whiteFfffff,
@@ -310,7 +321,7 @@ const SignUp = ({ navigation }: Props) => {
                                 paddingRight: width * 0.13,
                                 paddingVertical: 0
                             }}
-                            placeholder="Enter Password"
+                            placeholder={currentLanguage === 'hi' ? 'पासवर्ड दर्ज करें' : 'Enter Password'}
                             secureTextEntry={!isPasswordVisible}
                             placeholderTextColor={Colors.light.placeholderColor}
                             value={password}
@@ -342,7 +353,7 @@ const SignUp = ({ navigation }: Props) => {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Confirm Password Input - responsive */}
+                    {/* Confirm Password Input - responsive with translation */}
                     <View
                         style={{
                             backgroundColor: Colors.light.whiteFfffff,
@@ -364,7 +375,7 @@ const SignUp = ({ navigation }: Props) => {
                                 paddingRight: width * 0.13,
                                 paddingVertical: 0
                             }}
-                            placeholder="Confirm Password"
+                            placeholder={currentLanguage === 'hi' ? 'पासवर्ड की पुष्टि करें' : 'Confirm Password'}
                             placeholderTextColor={Colors.light.placeholderColor}
                             secureTextEntry={!isConfirmPasswordVisible}
                             value={confirmPassword}
@@ -396,7 +407,7 @@ const SignUp = ({ navigation }: Props) => {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Referral Code Input - UPDATED: Made clearly optional */}
+                    {/* Referral Code Input - with translation */}
                     <View
                         style={{
                             backgroundColor: Colors.light.whiteFfffff,
@@ -416,7 +427,7 @@ const SignUp = ({ navigation }: Props) => {
                                 paddingHorizontal: width * 0.04,
                                 paddingVertical: 0
                             }}
-                            placeholder="Referral Code (Optional)"
+                            placeholder={currentLanguage === 'hi' ? 'रेफरल कोड (वैकल्पिक)' : 'Referral Code (Optional)'}
                             placeholderTextColor={Colors.light.placeholderColor}
                             value={referralCode}
                             onChangeText={(text) => {
@@ -450,7 +461,7 @@ const SignUp = ({ navigation }: Props) => {
                     ) : null}
                 </View>
 
-                {/* Terms and Conditions Section - responsive */}
+                {/* Terms and Conditions Section - responsive with translation */}
                 <View
                     className="absolute flex flex-row items-start w-full"
                     style={{
@@ -483,18 +494,18 @@ const SignUp = ({ navigation }: Props) => {
                                 }}
                                 className="font-semibold"
                             >
-                                I agree to
+                                {currentLanguage === 'hi' ? 'मैं सहमत हूं' : 'I agree to'}
                                 <Text className="font-bold"> MIRAGIO</Text>
                             </Text>
                             <TouchableOpacity>
                                 <Text
                                     style={{
                                         color: Colors.light.blueTheme,
-                                        fontSize: width * 0.04
+                                        fontSize: width * 0.047
                                     }}
                                     className="font-bold"
                                 >
-                                    {' '}terms &
+                                    {currentLanguage === 'hi' ? ' नियम और' : ' terms &'}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -506,12 +517,12 @@ const SignUp = ({ navigation }: Props) => {
                             }}
                             className="font-bold"
                         >
-                            conditions
+                            {currentLanguage === 'hi' ? 'शर्तें से' : 'conditions'}
                         </Text>
                     </View>
                 </View>
 
-                {/* Next Button - responsive */}
+                {/* Next Button - responsive with translation */}
                 <View
                     className="absolute items-center"
                     style={{
@@ -521,7 +532,7 @@ const SignUp = ({ navigation }: Props) => {
                     }}
                 >
                     <CustomGradientButton
-                        text={isLoading ? "Saving..." : "Next"}
+                        text={isLoading ? (currentLanguage === 'hi' ? "सेव कर रहे हैं..." : "Saving...") : (currentLanguage === 'hi' ? "अगला" : "Next")}
                         width={Math.min(width * 0.9, 500)}
                         height={Math.max(48, height * 0.06)}
                         borderRadius={28}
@@ -536,7 +547,7 @@ const SignUp = ({ navigation }: Props) => {
                     />
                 </View>
 
-                {/* Sign In Navigation Link - responsive */}
+                {/* Sign In Navigation Link - responsive with translation */}
                 <View
                     className="absolute flex flex-row items-center"
                     style={{
@@ -551,7 +562,7 @@ const SignUp = ({ navigation }: Props) => {
                         }}
                         className="font-semibold"
                     >
-                        Already have an account ?
+                        {currentLanguage === 'hi' ? 'क्या आपके पास पहले से खाता है?' : 'Already have an account ?'}
                     </Text>
                     <TouchableOpacity
                         onPress={handleSignInPress}
@@ -565,7 +576,7 @@ const SignUp = ({ navigation }: Props) => {
                             }}
                             className="font-bold"
                         >
-                            Login
+                            {currentLanguage === 'hi' ? 'लॉगिन' : 'Login'}
                         </Text>
                     </TouchableOpacity>
                 </View>

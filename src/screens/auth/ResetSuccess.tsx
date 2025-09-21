@@ -1,26 +1,30 @@
+import React from "react";
 import { Image, Text, View, Dimensions } from "react-native";
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import bg from "../../assets/images/bg.png";
 import tick from "../../assets/images/tick.png";
 import CustomGradientButton from "../../components/CustomGradientButton";
 import { Colors } from "../../constants/Colors";
-import type { AuthStackParamList } from '../../navigation/types';
+import type { AuthStackParamList } from "../../navigation/types";
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'ResetSuccess'>;
+// ✅ Translation
+import { useTranslation } from "../../context/TranslationContext";
+import { TranslatedText } from "../../components/TranslatedText";
 
-const { width, height } = Dimensions.get('window');
+type Props = NativeStackScreenProps<AuthStackParamList, "ResetSuccess">;
+
+const { width, height } = Dimensions.get("window");
 
 const ResetSuccess = ({ navigation }: Props) => {
+    const { currentLanguage } = useTranslation();
+    const isHi = currentLanguage === "hi";
 
-    // Handle login button press
     const handleLoginPress = () => {
-        // Navigate to SignIn screen
-        navigation.navigate('SignIn');
+        navigation.navigate("SignIn");
     };
 
     return (
         <View className="flex-1 items-center">
-
             {/* Background Image */}
             <Image
                 source={bg}
@@ -29,66 +33,69 @@ const ResetSuccess = ({ navigation }: Props) => {
                 style={{ width, height }}
             />
 
-            {/* Success Icon Section - responsive */}
+            {/* Success Icon Section */}
             <View
                 className="absolute items-center"
                 style={{
-                    top: height * 0.19  // 18% from top
+                    top: height * 0.19,
                 }}
             >
                 <Image
                     source={tick}
                     style={{
-                        width: Math.min(width * 0.9, 350),  // 80% of width, max 320px
-                        height: Math.min(width * 0.9, 350), // Keep square aspect ratio
-                        resizeMode: 'contain'
+                        width: Math.min(width * 0.9, 350),
+                        height: Math.min(width * 0.9, 350),
+                        resizeMode: "contain",
                     }}
                 />
             </View>
 
-            {/* Success Message Section - responsive */}
+            {/* Success Message Section */}
             <View
                 className="absolute flex justify-center items-center"
                 style={{
-                    top: height * 0.66,  // 58% from top
+                    top: height * 0.66,
                     width: width * 0.85,
-                    paddingHorizontal: width * 0.04
+                    paddingHorizontal: width * 0.04,
                 }}
             >
-                <Text
+                <TranslatedText
+                    className="font-bold text-center"
                     style={{
                         color: Colors.light.whiteFefefe,
                         fontSize: width * 0.069,
-                        lineHeight: width * 0.075
+                        lineHeight: width * 0.09,
                     }}
-                    className="font-bold text-center"
                 >
-                    Password Successfully Changed
-                </Text>
-                <Text
+                    {isHi ? "पासवर्ड सफलतापूर्वक बदला गया" : "Password Successfully Changed"}
+                </TranslatedText>
+
+                <TranslatedText
+                    className="text-center"
                     style={{
                         color: Colors.light.whiteFefefe,
                         fontSize: width * 0.049,
-                        lineHeight: width * 0.055,
-                        marginTop: height * 0.02
+                        lineHeight: width * 0.06,
+                        marginTop: height * 0.02,
                     }}
-                    className="text-center"
                 >
-                    You'll redirect to Login Page
-                </Text>
+                    {isHi
+                        ? "आप लॉगिन पेज पर रीडायरेक्ट हो जाएंगे"
+                        : "You'll redirect to Login Page"}
+                </TranslatedText>
             </View>
 
-            {/* Login Button Section - responsive */}
+            {/* Login Button */}
             <View
                 className="absolute items-center"
                 style={{
-                    top: height * 0.84,  // 72% from top
-                    width: '100%',
-                    paddingHorizontal: width * 0.02
+                    top: height * 0.84,
+                    width: "100%",
+                    paddingHorizontal: width * 0.02,
                 }}
             >
                 <CustomGradientButton
-                    text="Login"
+                    text={isHi ? "लॉगिन" : "Login"}
                     width={Math.min(width * 0.9, 500)}
                     height={Math.max(48, height * 0.06)}
                     fontWeight={600}
@@ -99,26 +106,25 @@ const ResetSuccess = ({ navigation }: Props) => {
                 />
             </View>
 
-            {/* Footer Brand Name - responsive */}
+            {/* Footer Brand Name */}
             <View
                 className="absolute items-center"
                 style={{
-                    bottom: height * 0.034  // 4% from bottom
+                    bottom: height * 0.034,
                 }}
             >
                 <Text
                     style={{
                         color: Colors.light.whiteFfffff,
-                        fontSize: width * 0.07
+                        fontSize: width * 0.07,
                     }}
                     className="font-bold"
                 >
                     MIRAGIO
                 </Text>
             </View>
-
-        </View >
-    )
+        </View>
+    );
 };
 
 export default ResetSuccess;
