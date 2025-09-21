@@ -9,11 +9,10 @@ import {
 import verified from '../assets/images/verified.gif';
 import CustomGradientButton from './CustomGradientButton';
 import { Colors } from '../constants/Colors';
+import { useTranslation } from '../context/TranslationContext'; // ✅ Language context
 
-// Get screen dimensions for responsive design
 const { width } = Dimensions.get('window');
 
-// TypeScript interface for component props
 interface VerificationModalProps {
     visible: boolean;
     onClose: () => void;
@@ -25,17 +24,23 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
     onClose,
     onBackToTask
 }) => {
+    // ✅ Get current language from context
+    const { currentLanguage } = useTranslation();
+    const isHindi = currentLanguage === 'hi';
+
     return (
         <Modal
             animationType="fade"
-            transparent={true}
+            transparent
             visible={visible}
             onRequestClose={onClose}
         >
-            {/* =================== MODAL OVERLAY BACKGROUND =================== */}
-            <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-
-                {/* =================== MODAL CONTENT CONTAINER =================== */}
+            {/* Overlay */}
+            <View
+                className="flex-1 justify-center items-center"
+                style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+            >
+                {/* Modal content */}
                 <View
                     style={{
                         backgroundColor: Colors.light.whiteFfffff,
@@ -53,9 +58,8 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                     }}
                     className="items-center"
                 >
-                    {/* =================== VERIFICATION ICON SECTION =================== */}
+                    {/* Icon */}
                     <View className="mb-4">
-                        {/* Animated verification GIF icon */}
                         <Image
                             source={verified}
                             className="w-[80px] h-[80px]"
@@ -63,23 +67,28 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                         />
                     </View>
 
-                    {/* =================== MODAL CONTENT SECTION =================== */}
-
-                    {/* Modal title */}
-                    <Text style={{ color: Colors.light.bgBlueBtn }} className="text-2xl font-extrabold mb-3 text-center">
-                        Verification
+                    {/* Title */}
+                    <Text
+                        style={{ color: Colors.light.bgBlueBtn }}
+                        className="text-2xl font-extrabold mb-3 text-center"
+                    >
+                        {isHindi ? 'सत्यापन' : 'Verification'}
                     </Text>
 
-                    {/* Verification message */}
-                    <Text style={{ color: Colors.light.backlight2 }} className="text-center text-base leading-5 mb-4 px-3">
-                        We are verifying your task once verification done your token will be credit to your account
+                    {/* Message */}
+                    <Text
+                        style={{ color: Colors.light.backlight2 }}
+                        className="text-center text-base leading-5 mb-4 px-3"
+                    >
+                        {isHindi
+                            ? 'हम आपके कार्य की जांच कर रहे हैं। सत्यापन पूर्ण होने पर आपके खाते में टोकन जोड़ दिए जाएंगे।'
+                            : 'We are verifying your task. Once verification is done, your token will be credited to your account.'}
                     </Text>
 
-                    {/* =================== ACTION BUTTON SECTION =================== */}
+                    {/* Action button */}
                     <View className="flex items-center justify-center pb-3">
-                        {/* Back to task button */}
                         <CustomGradientButton
-                            text="Back to task/home"
+                            text={isHindi ? 'कार्य/होम पर वापस जाएँ' : 'Back to task/home'}
                             width={180}
                             height={38}
                             borderRadius={12}
