@@ -1,4 +1,4 @@
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View, Alert, StatusBar } from "react-native";
+import { Image, ScrollView, Text, TextInput, TouchableOpacity, View, Alert, StatusBar, Dimensions } from "react-native";
 import { useState } from "react";
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg2 from "../../assets/images/bg2.png";
@@ -27,6 +27,9 @@ import type { MainStackParamList } from "../../navigation/types";
 
 // Define props type for React Navigation
 type Props = NativeStackScreenProps<MainStackParamList, 'MorePagesScreen'>;
+
+// Get screen dimensions for responsive design
+const { width, height } = Dimensions.get('window');
 
 const MorePagesScreen = ({ navigation }: Props) => {
     // State for search functionality
@@ -67,7 +70,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
         );
     };
 
-    // FIXED: Handle navigation to different settings pages with proper typing
+    // Handle navigation to different settings pages with proper typing
     const handleSettingsNavigation = (route: keyof MainStackParamList, title: string) => {
         if (route && !isLoading) {
             try {
@@ -296,36 +299,83 @@ const MorePagesScreen = ({ navigation }: Props) => {
         return acc;
     }, {} as Record<string, typeof settingsItems>);
 
-    // Render settings item with better styling
+    // Render settings item with responsive styling
     const renderSettingsItem = (item: typeof settingsItems[0]) => (
         <TouchableOpacity
             key={item.id}
-            style={{ backgroundColor: Colors.light.backlight2 }}
-            className="min-h-[60px] flex flex-row items-center justify-between px-4 py-3"
+            style={{
+                backgroundColor: Colors.light.backlight2,
+                minHeight: height * 0.075,
+                paddingHorizontal: width * 0.04,
+                paddingVertical: height * 0.015
+            }}
+            className="flex flex-row items-center justify-between"
             onPress={() => handleSettingsNavigation(item.route, item.title)}
             activeOpacity={0.7}
             disabled={isLoading}
         >
             {/* Settings item icon */}
-            <View style={{ backgroundColor: Colors.light.whiteFefefe }} className="flex items-center justify-center rounded-[12px] w-[40px] h-[40px] mr-4">
-                <Image source={item.icon} className="h-[24px] w-[24px]" />
+            <View
+                style={{
+                    backgroundColor: Colors.light.whiteFefefe,
+                    width: width * 0.1,
+                    height: width * 0.1,
+                    borderRadius: width * 0.03,
+                    marginRight: width * 0.04
+                }}
+                className="flex items-center justify-center"
+            >
+                <Image
+                    source={item.icon}
+                    style={{
+                        height: width * 0.06,
+                        width: width * 0.06
+                    }}
+                />
             </View>
 
             {/* Settings item content */}
             <View className="flex-1">
-                <View style={{ borderColor: Colors.light.placeholderColorOp70 }} className={`flex-row justify-between items-center ${item.hasBottomBorder ? 'border-b pb-3' : ''}`}>
-                    <View className="flex-1 mr-3">
-                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-lg font-semibold mb-1">
+                <View
+                    style={{
+                        borderColor: Colors.light.placeholderColorOp70,
+                        paddingBottom: item.hasBottomBorder ? height * 0.015 : 0
+                    }}
+                    className={`flex-row justify-between items-center ${item.hasBottomBorder ? 'border-b' : ''}`}
+                >
+                    <View
+                        className="flex-1"
+                        style={{ marginRight: width * 0.03 }}
+                    >
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.045,
+                                marginBottom: height * 0.005
+                            }}
+                            className="font-semibold"
+                        >
                             {item.title}
                         </Text>
-                        <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
+                        <Text
+                            style={{
+                                color: Colors.light.placeholderColorOp70,
+                                fontSize: width * 0.035
+                            }}
+                        >
                             {item.description}
                         </Text>
                     </View>
 
                     {/* Navigation arrow */}
                     <View className="flex items-center justify-center">
-                        <Image source={icons.go} className="h-[14px] w-[14px]" />
+                        <Image
+                            source={icons.go}
+                            style={{
+                                height: width * 0.035,
+                                width: width * 0.035
+                            }}
+                        />
                     </View>
                 </View>
             </View>
@@ -343,7 +393,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
             {/* =================== HEADER SECTION MATCHING TASKPAGE =================== */}
-            <View className="relative h-32">
+            <View style={{ height: height * 0.14 }}>
                 {/* Background image */}
                 <Image
                     source={bg2}
@@ -352,25 +402,45 @@ const MorePagesScreen = ({ navigation }: Props) => {
                 />
 
                 {/* Header Content with proper flexbox layout */}
-                <View className="flex-1 pt-12 pb-4 px-4">
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
                     {/* Header row with proper spacing */}
-                    <View className="flex-row items-center justify-between h-16">
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
                         {/* Back button */}
                         <TouchableOpacity
                             onPress={handleBackPress}
-                            className="w-10 h-10 items-center justify-center"
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1
+                            }}
+                            className="items-center justify-center"
                             disabled={isLoading}
                         >
                             <Image
                                 source={icons.back}
-                                className="w-4 h-6"
+                                style={{
+                                    width: width * 0.04,
+                                    height: width * 0.06
+                                }}
                             />
                         </TouchableOpacity>
 
                         {/* Centered title */}
                         <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium"
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.075
+                            }}
+                            className="font-medium"
                         >
                             Settings
                         </Text>
@@ -378,12 +448,19 @@ const MorePagesScreen = ({ navigation }: Props) => {
                         {/* Search toggle button */}
                         <TouchableOpacity
                             onPress={() => setSearchVisible(!searchVisible)}
-                            className="w-10 h-10 items-center justify-center"
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1
+                            }}
+                            className="items-center justify-center"
                             disabled={isLoading}
                         >
                             <Image
                                 source={icons.search}
-                                className="h-5 w-5"
+                                style={{
+                                    height: width * 0.05,
+                                    width: width * 0.05
+                                }}
                             />
                         </TouchableOpacity>
                     </View>
@@ -391,19 +468,37 @@ const MorePagesScreen = ({ navigation }: Props) => {
 
                 {/* Bottom border */}
                 <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                    className="absolute bottom-0 w-full"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        height: 1
+                    }}
                 />
             </View>
 
             {/* =================== SEARCH INPUT SECTION =================== */}
             {searchVisible && (
-                <View style={{ backgroundColor: Colors.light.blackPrimary, borderColor: Colors.light.backlight2 }} className="px-4 py-3 border-b">
+                <View
+                    style={{
+                        backgroundColor: Colors.light.blackPrimary,
+                        borderColor: Colors.light.backlight2,
+                        paddingHorizontal: width * 0.04,
+                        paddingVertical: height * 0.015
+                    }}
+                    className="border-b"
+                >
                     <View className="relative">
                         {/* Search input field */}
                         <TextInput
-                            style={{ backgroundColor: Colors.light.backlight2, color: Colors.light.whiteFefefe }}
-                            className="px-4 py-3 pr-12 rounded-[10px] text-base"
+                            style={{
+                                backgroundColor: Colors.light.backlight2,
+                                color: Colors.light.whiteFefefe,
+                                paddingHorizontal: width * 0.04,
+                                paddingVertical: height * 0.015,
+                                paddingRight: width * 0.12,
+                                borderRadius: width * 0.025,
+                                fontSize: width * 0.04
+                            }}
                             placeholder="Search settings..."
                             placeholderTextColor={Colors.light.placeholderColorOp70}
                             value={searchQuery}
@@ -413,10 +508,26 @@ const MorePagesScreen = ({ navigation }: Props) => {
                         {/* Clear search button */}
                         {searchQuery.length > 0 && (
                             <TouchableOpacity
-                                className="absolute right-3 top-0 bottom-0 w-8 flex items-center justify-center"
+                                style={{
+                                    position: 'absolute',
+                                    right: width * 0.03,
+                                    top: 0,
+                                    bottom: 0,
+                                    width: width * 0.08,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}
                                 onPress={() => setSearchQuery("")}
                             >
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-xl font-bold">×</Text>
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.05
+                                    }}
+                                    className="font-bold"
+                                >
+                                    ×
+                                </Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -427,7 +538,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 120 }}
+                contentContainerStyle={{ paddingBottom: height * 0.15 }}
             >
                 <View className="flex justify-center w-full">
                     {searchQuery.length > 0 ? (
@@ -435,24 +546,60 @@ const MorePagesScreen = ({ navigation }: Props) => {
                         filteredSettings.length > 0 ? (
                             <View>
                                 {/* Search results header */}
-                                <View className="px-5 pt-5 pb-2">
-                                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-lg font-semibold">
+                                <View
+                                    style={{
+                                        paddingHorizontal: width * 0.05,
+                                        paddingTop: height * 0.025,
+                                        paddingBottom: height * 0.01
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFefefe,
+                                            fontSize: width * 0.045
+                                        }}
+                                        className="font-semibold"
+                                    >
                                         Search Results ({filteredSettings.length})
                                     </Text>
                                 </View>
                                 {/* Render filtered settings items */}
-                                <View className="mx-3 rounded-[15px] overflow-hidden" style={{ backgroundColor: Colors.light.backlight2 }}>
+                                <View
+                                    style={{
+                                        marginHorizontal: width * 0.03,
+                                        borderRadius: width * 0.04,
+                                        backgroundColor: Colors.light.backlight2
+                                    }}
+                                    className="overflow-hidden"
+                                >
                                     {filteredSettings.map(renderSettingsItem)}
                                 </View>
                             </View>
                         ) : (
-                            /* No search results found */
-                            <View className="flex items-center justify-center py-20">
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-lg text-center">
+
+                            <View
+                                className="flex items-center justify-center"
+                                style={{ paddingVertical: height * 0.1 }}
+                            >
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.045
+                                    }}
+                                    className="text-center"
+                                >
                                     No settings found for "{searchQuery}"
                                 </Text>
-                                <TouchableOpacity onPress={clearSearch} className="mt-4">
-                                    <Text style={{ color: Colors.light.blueTheme }} className="text-base">
+                                <TouchableOpacity
+                                    onPress={clearSearch}
+                                    style={{ marginTop: height * 0.02 }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: Colors.light.blueTheme,
+                                            fontSize: width * 0.04
+                                        }}
+                                    >
                                         Clear Search
                                     </Text>
                                 </TouchableOpacity>
@@ -463,13 +610,32 @@ const MorePagesScreen = ({ navigation }: Props) => {
                         <>
                             {/* Updates Section */}
                             {groupedSettings.Updates && (
-                                <View className="mb-6">
-                                    <View className="px-5 pt-5 pb-2">
-                                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-lg font-semibold">
+                                <View style={{ marginBottom: height * 0.03 }}>
+                                    <View
+                                        style={{
+                                            paddingHorizontal: width * 0.05,
+                                            paddingTop: height * 0.025,
+                                            paddingBottom: height * 0.01
+                                        }}
+                                    >
+                                        <Text
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.045
+                                            }}
+                                            className="font-semibold"
+                                        >
                                             Updates
                                         </Text>
                                     </View>
-                                    <View className="mx-3 rounded-[15px] overflow-hidden" style={{ backgroundColor: Colors.light.backlight2 }}>
+                                    <View
+                                        style={{
+                                            marginHorizontal: width * 0.03,
+                                            borderRadius: width * 0.04,
+                                            backgroundColor: Colors.light.backlight2
+                                        }}
+                                        className="overflow-hidden"
+                                    >
                                         {groupedSettings.Updates.map(renderSettingsItem)}
                                     </View>
                                 </View>
@@ -477,13 +643,32 @@ const MorePagesScreen = ({ navigation }: Props) => {
 
                             {/* Help Section */}
                             {groupedSettings.Help && (
-                                <View className="mb-6">
-                                    <View className="px-5 pt-5 pb-2">
-                                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-lg font-semibold">
+                                <View style={{ marginBottom: height * 0.03 }}>
+                                    <View
+                                        style={{
+                                            paddingHorizontal: width * 0.05,
+                                            paddingTop: height * 0.025,
+                                            paddingBottom: height * 0.01
+                                        }}
+                                    >
+                                        <Text
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.045
+                                            }}
+                                            className="font-semibold"
+                                        >
                                             Help
                                         </Text>
                                     </View>
-                                    <View className="mx-3 rounded-[15px] overflow-hidden" style={{ backgroundColor: Colors.light.backlight2 }}>
+                                    <View
+                                        style={{
+                                            marginHorizontal: width * 0.03,
+                                            borderRadius: width * 0.04,
+                                            backgroundColor: Colors.light.backlight2
+                                        }}
+                                        className="overflow-hidden"
+                                    >
                                         {groupedSettings.Help.map(renderSettingsItem)}
                                     </View>
                                 </View>
@@ -491,13 +676,32 @@ const MorePagesScreen = ({ navigation }: Props) => {
 
                             {/* System Section */}
                             {groupedSettings.System && (
-                                <View className="mb-6">
-                                    <View className="px-5 pt-5 pb-2">
-                                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-lg font-semibold">
+                                <View style={{ marginBottom: height * 0.03 }}>
+                                    <View
+                                        style={{
+                                            paddingHorizontal: width * 0.05,
+                                            paddingTop: height * 0.025,
+                                            paddingBottom: height * 0.01
+                                        }}
+                                    >
+                                        <Text
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.045
+                                            }}
+                                            className="font-semibold"
+                                        >
                                             System
                                         </Text>
                                     </View>
-                                    <View className="mx-3 rounded-[15px] overflow-hidden" style={{ backgroundColor: Colors.light.backlight2 }}>
+                                    <View
+                                        style={{
+                                            marginHorizontal: width * 0.03,
+                                            borderRadius: width * 0.04,
+                                            backgroundColor: Colors.light.backlight2
+                                        }}
+                                        className="overflow-hidden"
+                                    >
                                         {groupedSettings.System.map(renderSettingsItem)}
                                     </View>
                                 </View>
@@ -506,15 +710,38 @@ const MorePagesScreen = ({ navigation }: Props) => {
                     )}
 
                     {/* =================== LOGOUT BUTTON SECTION =================== */}
-                    <View className="px-3 mt-6 mb-4">
+                    <View
+                        style={{
+                            paddingHorizontal: width * 0.03,
+                            marginTop: height * 0.03,
+                            marginBottom: height * 0.02
+                        }}
+                    >
                         <TouchableOpacity
-                            style={{ backgroundColor: Colors.light.bgBlueBtn }}
-                            className="flex items-center justify-center h-[56px] rounded-[15px] flex-row"
+                            style={{
+                                backgroundColor: Colors.light.bgBlueBtn,
+                                height: height * 0.06,
+                                borderRadius: width * 0.04
+                            }}
+                            className="flex items-center justify-center flex-row"
                             onPress={handleLogout}
                             disabled={isLoading}
                         >
-                            <Image source={icons.logout} className="h-[20px] w-[20px] mr-3" />
-                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-bold">
+                            <Image
+                                source={icons.logout}
+                                style={{
+                                    height: width * 0.05,
+                                    width: width * 0.05,
+                                    marginRight: width * 0.03
+                                }}
+                            />
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05
+                                }}
+                                className="font-bold"
+                            >
                                 {isLoading ? 'Logging out...' : 'Logout'}
                             </Text>
                         </TouchableOpacity>
