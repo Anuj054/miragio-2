@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Dimensions } from 'react-native';
 import { Colors } from '../constants/Colors';
 
+// Get screen dimensions
+const { width, height } = Dimensions.get('window');
 
 interface PaymentMethodModalProps {
     visible: boolean;
@@ -83,16 +85,15 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
         try {
             setFormLoading(true);
 
-            // Updated to match your API format
             const response = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    action: "addUpi", // Changed from "add_upi_id"
-                    user_id: parseInt(userId), // Ensure it's a number
-                    upi: upiId.trim() // Changed from "upi_id"
+                    action: "addUpi",
+                    user_id: parseInt(userId),
+                    upi: upiId.trim()
                 }),
             });
 
@@ -109,7 +110,6 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                     }
                 ]);
             } else {
-                // Handle specific error messages from API
                 const errorMessage = data.message || "Failed to add UPI ID";
                 Alert.alert("Error", errorMessage);
             }
@@ -148,20 +148,19 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
         try {
             setFormLoading(true);
 
-            // Updated to match your API format exactly
             const response = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    action: "addBankDetails", // Changed from "add_bank_details"
-                    user_id: parseInt(userId), // Ensure it's a number
-                    bank_holder_name: accountHolderName, // Changed from account_holder_name
+                    action: "addBankDetails",
+                    user_id: parseInt(userId),
+                    bank_holder_name: accountHolderName,
                     account_number: accountNumber,
-                    confirm_account_number: confirmAccountNumber, // Added this field
+                    confirm_account_number: confirmAccountNumber,
                     bank_name: bankName,
-                    branch: branch, // Added this field
+                    branch: branch,
                     ifsc_code: ifscCode.toUpperCase(),
                     pan_number: panNumber.toUpperCase()
                 }),
@@ -180,7 +179,6 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                     }
                 ]);
             } else {
-                // Handle specific error messages from API
                 const errorMessage = data.message || "Failed to add bank details";
                 Alert.alert("Error", errorMessage);
             }
@@ -211,26 +209,43 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                         shadowOpacity: 0.15,
                         shadowRadius: 8,
                         elevation: 5,
+                        borderTopLeftRadius: 16,
+                        borderTopRightRadius: 16,
+                        padding: width * 0.04,
+                        maxHeight: height * 0.8
                     }}
-                    className="rounded-t-2xl p-4 max-h-[80%]"
                 >
-                    {/* Modal Header - Smaller */}
-                    <View className="flex-row items-center justify-between mb-4">
+                    {/* Modal Header */}
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ marginBottom: height * 0.02 }}
+                    >
                         <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="text-lg font-bold"
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.045
+                            }}
+                            className="font-bold"
                         >
                             {modalStep === 'select' ? 'Add Payment Method' :
                                 modalStep === 'upi' ? 'Add UPI ID' : 'Add Bank Account'}
                         </Text>
                         <TouchableOpacity
                             onPress={handleClose}
-                            className="w-6 h-6 items-center justify-center rounded-full"
-                            style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                            style={{
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                width: width * 0.06,
+                                height: width * 0.06,
+                                borderRadius: (width * 0.06) / 2
+                            }}
+                            className="items-center justify-center"
                         >
                             <Text
-                                style={{ color: Colors.light.whiteFfffff }}
-                                className="text-lg font-bold"
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.045
+                                }}
+                                className="font-bold"
                             >
                                 ×
                             </Text>
@@ -241,91 +256,120 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                     {modalStep === 'select' && (
                         <View>
                             <Text
-                                className="text-xs mb-4 leading-4"
-                                style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                                style={{
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    fontSize: width * 0.03,
+                                    lineHeight: width * 0.04,
+                                    marginBottom: height * 0.02
+                                }}
                             >
                                 Choose a payment method to add for withdrawals
                             </Text>
 
-                            {/* UPI Option - Smaller */}
+                            {/* UPI Option */}
                             <TouchableOpacity
                                 onPress={() => setModalStep('upi')}
-                                className="rounded-lg p-4 mb-3 flex-row items-center"
                                 style={{
                                     backgroundColor: 'rgba(255, 255, 255, 0.06)',
                                     borderWidth: 1,
-                                    borderColor: 'rgba(255, 255, 255, 0.1)'
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderRadius: 8,
+                                    padding: width * 0.04,
+                                    marginBottom: height * 0.015
                                 }}
+                                className="flex-row items-center"
                             >
                                 <View
-                                    className="rounded-full items-center justify-center mr-3"
                                     style={{
                                         backgroundColor: Colors.light.bgBlueBtn,
-                                        width: 36,
-                                        height: 36
+                                        width: width * 0.09,
+                                        height: width * 0.09,
+                                        borderRadius: (width * 0.09) / 2,
+                                        marginRight: width * 0.03
                                     }}
+                                    className="items-center justify-center"
                                 >
-                                    <Text className="text-lg">💰</Text>
+                                    <Text style={{ fontSize: width * 0.045 }}>💰</Text>
                                 </View>
                                 <View className="flex-1">
                                     <Text
-                                        style={{ color: Colors.light.whiteFfffff }}
-                                        className="text-base font-bold"
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.04
+                                        }}
+                                        className="font-bold"
                                     >
                                         UPI ID
                                     </Text>
                                     <Text
-                                        className="text-xs mt-1"
-                                        style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                                        style={{
+                                            color: 'rgba(255, 255, 255, 0.7)',
+                                            fontSize: width * 0.03,
+                                            marginTop: height * 0.005
+                                        }}
                                     >
                                         Add your UPI ID for quick withdrawals
                                     </Text>
                                 </View>
                                 <Text
-                                    style={{ color: 'rgba(255, 255, 255, 0.6)' }}
-                                    className="text-lg"
+                                    style={{
+                                        color: 'rgba(255, 255, 255, 0.6)',
+                                        fontSize: width * 0.045
+                                    }}
                                 >
                                     ›
                                 </Text>
                             </TouchableOpacity>
 
-                            {/* Bank Option - Smaller */}
+                            {/* Bank Option */}
                             <TouchableOpacity
                                 onPress={() => setModalStep('bank')}
-                                className="rounded-lg p-4 flex-row items-center"
                                 style={{
                                     backgroundColor: 'rgba(255, 255, 255, 0.06)',
                                     borderWidth: 1,
-                                    borderColor: 'rgba(255, 255, 255, 0.1)'
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderRadius: 8,
+                                    padding: width * 0.04
                                 }}
+                                className="flex-row items-center"
                             >
                                 <View
-                                    className="rounded-full items-center justify-center mr-3"
                                     style={{
                                         backgroundColor: '#10B981',
-                                        width: 36,
-                                        height: 36
+                                        width: width * 0.09,
+                                        height: width * 0.09,
+                                        borderRadius: (width * 0.09) / 2,
+                                        marginRight: width * 0.03
                                     }}
+                                    className="items-center justify-center"
                                 >
-                                    <Text className="text-lg">🏦</Text>
+                                    <Text style={{ fontSize: width * 0.045 }}>🏦</Text>
                                 </View>
                                 <View className="flex-1">
                                     <Text
-                                        style={{ color: Colors.light.whiteFfffff }}
-                                        className="text-base font-bold"
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.04
+                                        }}
+                                        className="font-bold"
                                     >
                                         Bank Account
                                     </Text>
                                     <Text
-                                        className="text-xs mt-1"
-                                        style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                                        style={{
+                                            color: 'rgba(255, 255, 255, 0.7)',
+                                            fontSize: width * 0.03,
+                                            marginTop: height * 0.005
+                                        }}
                                     >
                                         Add bank details with PAN verification
                                     </Text>
                                 </View>
                                 <Text
-                                    style={{ color: 'rgba(255, 255, 255, 0.6)' }}
-                                    className="text-lg"
+                                    style={{
+                                        color: 'rgba(255, 255, 255, 0.6)',
+                                        fontSize: width * 0.045
+                                    }}
                                 >
                                     ›
                                 </Text>
@@ -333,21 +377,29 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                         </View>
                     )}
 
-                    {/* UPI Form - Smaller */}
+                    {/* UPI Form */}
                     {modalStep === 'upi' && (
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View>
                                 <Text
-                                    className="text-xs mb-4 leading-4"
-                                    style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                                    style={{
+                                        color: 'rgba(255, 255, 255, 0.7)',
+                                        fontSize: width * 0.03,
+                                        lineHeight: width * 0.04,
+                                        marginBottom: height * 0.02
+                                    }}
                                 >
                                     Enter your UPI ID to enable instant withdrawals
                                 </Text>
 
-                                <View className="mb-4">
+                                <View style={{ marginBottom: height * 0.02 }}>
                                     <Text
-                                        style={{ color: Colors.light.whiteFfffff }}
-                                        className="text-sm font-bold mb-2"
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01
+                                        }}
+                                        className="font-bold"
                                     >
                                         UPI ID *
                                     </Text>
@@ -361,36 +413,56 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             backgroundColor: 'rgba(255, 255, 255, 0.08)',
                                             borderWidth: 1,
                                             borderColor: upiId ? Colors.light.bgBlueBtn : 'rgba(255, 255, 255, 0.1)',
-                                            fontSize: 14
+                                            fontSize: width * 0.035,
+                                            borderRadius: 8,
+                                            padding: width * 0.03
                                         }}
-                                        className="rounded-lg p-3"
                                         keyboardType="email-address"
                                         autoCapitalize="none"
                                     />
                                 </View>
 
                                 <View
-                                    className="rounded-lg p-3 mb-4"
                                     style={{
                                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                                         borderWidth: 1,
-                                        borderColor: 'rgba(59, 130, 246, 0.2)'
+                                        borderColor: 'rgba(59, 130, 246, 0.2)',
+                                        borderRadius: 8,
+                                        padding: width * 0.03,
+                                        marginBottom: height * 0.02
                                     }}
                                 >
-                                    <Text className="text-blue-400 text-xs leading-4">
+                                    <Text
+                                        style={{
+                                            color: '#60A5FA',
+                                            fontSize: width * 0.03,
+                                            lineHeight: width * 0.04
+                                        }}
+                                    >
                                         💡 Make sure your UPI ID is active and verified with your bank
                                     </Text>
                                 </View>
 
-                                <View className="flex-row space-x-2">
+                                <View
+                                    className="flex-row"
+                                    style={{ gap: width * 0.02 }}
+                                >
                                     <TouchableOpacity
                                         onPress={() => setModalStep('select')}
-                                        className="flex-1 rounded-lg py-3"
-                                        style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                                        style={{
+                                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                            flex: 1,
+                                            borderRadius: 8,
+                                            paddingVertical: height * 0.015
+                                        }}
                                     >
                                         <Text
-                                            style={{ color: Colors.light.whiteFfffff }}
-                                            className="text-center font-bold text-sm"
+                                            style={{
+                                                color: Colors.light.whiteFfffff,
+                                                fontSize: width * 0.035,
+                                                textAlign: 'center'
+                                            }}
+                                            className="font-bold"
                                         >
                                             Back
                                         </Text>
@@ -398,15 +470,21 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     <TouchableOpacity
                                         onPress={submitUPIForm}
                                         disabled={formLoading}
-                                        className="flex-1 rounded-lg py-3"
                                         style={{
                                             backgroundColor: Colors.light.bgBlueBtn,
-                                            opacity: formLoading ? 0.5 : 1
+                                            opacity: formLoading ? 0.5 : 1,
+                                            flex: 1,
+                                            borderRadius: 8,
+                                            paddingVertical: height * 0.015
                                         }}
                                     >
                                         <Text
-                                            style={{ color: Colors.light.whiteFfffff }}
-                                            className="text-center font-bold text-sm"
+                                            style={{
+                                                color: Colors.light.whiteFfffff,
+                                                fontSize: width * 0.035,
+                                                textAlign: 'center'
+                                            }}
+                                            className="font-bold"
                                         >
                                             {formLoading ? "Adding..." : "Add UPI ID"}
                                         </Text>
@@ -416,22 +494,31 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                         </ScrollView>
                     )}
 
-                    {/* Bank Form - Smaller */}
+                    {/* Bank Form */}
                     {modalStep === 'bank' && (
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View>
                                 <Text
-                                    className="text-xs mb-4 leading-4"
-                                    style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                                    style={{
+                                        color: 'rgba(255, 255, 255, 0.7)',
+                                        fontSize: width * 0.03,
+                                        lineHeight: width * 0.04,
+                                        marginBottom: height * 0.02
+                                    }}
                                 >
                                     Enter your bank details and PAN for verification
                                 </Text>
 
-                                {/* Account Holder Name - Smaller */}
-                                <View className="mb-3">
+                                {/* Form fields with responsive sizing */}
+                                {/* Account Holder Name */}
+                                <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
-                                        style={{ color: Colors.light.whiteFfffff }}
-                                        className="text-sm font-bold mb-2"
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01
+                                        }}
+                                        className="font-bold"
                                     >
                                         Account Holder Name *
                                     </Text>
@@ -445,18 +532,23 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             backgroundColor: 'rgba(255, 255, 255, 0.08)',
                                             borderWidth: 1,
                                             borderColor: bankDetails.accountHolderName ? Colors.light.bgBlueBtn : 'rgba(255, 255, 255, 0.1)',
-                                            fontSize: 14
+                                            fontSize: width * 0.035,
+                                            borderRadius: 8,
+                                            padding: width * 0.03
                                         }}
-                                        className="rounded-lg p-3"
                                         autoCapitalize="words"
                                     />
                                 </View>
 
-                                {/* Account Number - Smaller */}
-                                <View className="mb-3">
+                                {/* Account Number */}
+                                <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
-                                        style={{ color: Colors.light.whiteFfffff }}
-                                        className="text-sm font-bold mb-2"
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01
+                                        }}
+                                        className="font-bold"
                                     >
                                         Account Number *
                                     </Text>
@@ -470,20 +562,25 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             backgroundColor: 'rgba(255, 255, 255, 0.08)',
                                             borderWidth: 1,
                                             borderColor: bankDetails.accountNumber ? Colors.light.bgBlueBtn : 'rgba(255, 255, 255, 0.1)',
-                                            fontSize: 14
+                                            fontSize: width * 0.035,
+                                            borderRadius: 8,
+                                            padding: width * 0.03
                                         }}
-                                        className="rounded-lg p-3"
                                         keyboardType="numeric"
                                         maxLength={18}
                                         secureTextEntry={true}
                                     />
                                 </View>
 
-                                {/* Confirm Account Number - Smaller */}
-                                <View className="mb-3">
+                                {/* Confirm Account Number */}
+                                <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
-                                        style={{ color: Colors.light.whiteFfffff }}
-                                        className="text-sm font-bold mb-2"
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01
+                                        }}
+                                        className="font-bold"
                                     >
                                         Confirm Account Number *
                                     </Text>
@@ -499,19 +596,24 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             borderColor: bankDetails.confirmAccountNumber ?
                                                 (bankDetails.accountNumber === bankDetails.confirmAccountNumber ? '#10B981' : '#EF4444')
                                                 : 'rgba(255, 255, 255, 0.1)',
-                                            fontSize: 14
+                                            fontSize: width * 0.035,
+                                            borderRadius: 8,
+                                            padding: width * 0.03
                                         }}
-                                        className="rounded-lg p-3"
                                         keyboardType="numeric"
                                         maxLength={18}
                                     />
                                 </View>
 
-                                {/* Bank Name - Smaller */}
-                                <View className="mb-3">
+                                {/* Bank Name */}
+                                <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
-                                        style={{ color: Colors.light.whiteFfffff }}
-                                        className="text-sm font-bold mb-2"
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01
+                                        }}
+                                        className="font-bold"
                                     >
                                         Bank Name *
                                     </Text>
@@ -525,18 +627,23 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             backgroundColor: 'rgba(255, 255, 255, 0.08)',
                                             borderWidth: 1,
                                             borderColor: bankDetails.bankName ? Colors.light.bgBlueBtn : 'rgba(255, 255, 255, 0.1)',
-                                            fontSize: 14
+                                            fontSize: width * 0.035,
+                                            borderRadius: 8,
+                                            padding: width * 0.03
                                         }}
-                                        className="rounded-lg p-3"
                                         autoCapitalize="words"
                                     />
                                 </View>
 
-                                {/* Branch - Smaller */}
-                                <View className="mb-3">
+                                {/* Branch */}
+                                <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
-                                        style={{ color: Colors.light.whiteFfffff }}
-                                        className="text-sm font-bold mb-2"
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01
+                                        }}
+                                        className="font-bold"
                                     >
                                         Branch *
                                     </Text>
@@ -550,18 +657,23 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             backgroundColor: 'rgba(255, 255, 255, 0.08)',
                                             borderWidth: 1,
                                             borderColor: bankDetails.branch ? Colors.light.bgBlueBtn : 'rgba(255, 255, 255, 0.1)',
-                                            fontSize: 14
+                                            fontSize: width * 0.035,
+                                            borderRadius: 8,
+                                            padding: width * 0.03
                                         }}
-                                        className="rounded-lg p-3"
                                         autoCapitalize="words"
                                     />
                                 </View>
 
-                                {/* IFSC Code - Smaller */}
-                                <View className="mb-3">
+                                {/* IFSC Code */}
+                                <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
-                                        style={{ color: Colors.light.whiteFfffff }}
-                                        className="text-sm font-bold mb-2"
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01
+                                        }}
+                                        className="font-bold"
                                     >
                                         IFSC Code *
                                     </Text>
@@ -576,19 +688,24 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             borderWidth: 1,
                                             borderColor: validateIFSC(bankDetails.ifscCode) ? '#10B981' :
                                                 bankDetails.ifscCode ? '#EF4444' : 'rgba(255, 255, 255, 0.1)',
-                                            fontSize: 14
+                                            fontSize: width * 0.035,
+                                            borderRadius: 8,
+                                            padding: width * 0.03
                                         }}
-                                        className="rounded-lg p-3"
                                         autoCapitalize="characters"
                                         maxLength={11}
                                     />
                                 </View>
 
-                                {/* PAN Number - Smaller */}
-                                <View className="mb-4">
+                                {/* PAN Number */}
+                                <View style={{ marginBottom: height * 0.02 }}>
                                     <Text
-                                        style={{ color: Colors.light.whiteFfffff }}
-                                        className="text-sm font-bold mb-2"
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01
+                                        }}
+                                        className="font-bold"
                                     >
                                         PAN Number *
                                     </Text>
@@ -603,36 +720,56 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             borderWidth: 1,
                                             borderColor: validatePAN(bankDetails.panNumber) ? '#10B981' :
                                                 bankDetails.panNumber ? '#EF4444' : 'rgba(255, 255, 255, 0.1)',
-                                            fontSize: 14
+                                            fontSize: width * 0.035,
+                                            borderRadius: 8,
+                                            padding: width * 0.03
                                         }}
-                                        className="rounded-lg p-3"
                                         autoCapitalize="characters"
                                         maxLength={10}
                                     />
                                 </View>
 
                                 <View
-                                    className="rounded-lg p-3 mb-4"
                                     style={{
                                         backgroundColor: 'rgba(251, 191, 36, 0.1)',
                                         borderWidth: 1,
-                                        borderColor: 'rgba(251, 191, 36, 0.2)'
+                                        borderColor: 'rgba(251, 191, 36, 0.2)',
+                                        borderRadius: 8,
+                                        padding: width * 0.03,
+                                        marginBottom: height * 0.02
                                     }}
                                 >
-                                    <Text className="text-yellow-400 text-xs leading-4">
+                                    <Text
+                                        style={{
+                                            color: '#F59E0B',
+                                            fontSize: width * 0.03,
+                                            lineHeight: width * 0.04
+                                        }}
+                                    >
                                         ⚠️ PAN verification may take 24-48 hours. Bank withdrawals will be enabled after verification.
                                     </Text>
                                 </View>
 
-                                <View className="flex-row space-x-2">
+                                <View
+                                    className="flex-row"
+                                    style={{ gap: width * 0.02 }}
+                                >
                                     <TouchableOpacity
                                         onPress={() => setModalStep('select')}
-                                        className="flex-1 rounded-lg py-3"
-                                        style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                                        style={{
+                                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                            flex: 1,
+                                            borderRadius: 8,
+                                            paddingVertical: height * 0.015
+                                        }}
                                     >
                                         <Text
-                                            style={{ color: Colors.light.whiteFfffff }}
-                                            className="text-center font-bold text-sm"
+                                            style={{
+                                                color: Colors.light.whiteFfffff,
+                                                fontSize: width * 0.035,
+                                                textAlign: 'center'
+                                            }}
+                                            className="font-bold"
                                         >
                                             Back
                                         </Text>
@@ -640,15 +777,21 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     <TouchableOpacity
                                         onPress={submitBankForm}
                                         disabled={formLoading}
-                                        className="flex-1 rounded-lg py-3"
                                         style={{
                                             backgroundColor: '#10B981',
-                                            opacity: formLoading ? 0.5 : 1
+                                            opacity: formLoading ? 0.5 : 1,
+                                            flex: 1,
+                                            borderRadius: 8,
+                                            paddingVertical: height * 0.015
                                         }}
                                     >
                                         <Text
-                                            style={{ color: Colors.light.whiteFfffff }}
-                                            className="text-center font-bold text-sm"
+                                            style={{
+                                                color: Colors.light.whiteFfffff,
+                                                fontSize: width * 0.035,
+                                                textAlign: 'center'
+                                            }}
+                                            className="font-bold"
                                         >
                                             {formLoading ? "Adding..." : "Add Bank Details"}
                                         </Text>
