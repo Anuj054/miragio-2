@@ -28,21 +28,32 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Otp'>;
 const { width, height } = Dimensions.get('window');
 
 const Otp = ({ navigation, route }: Props) => {
-    const { login, isLoading: contextLoading } = useUser();
+    // Get FCM token function and other utilities from UserContext
+    const {
+        login,
+        storeFcmToken,
+        isLoading: contextLoading,
+        pendingUserId,
+        clearPendingSignupData
+    } = useUser();
+
     const { currentLanguage } = useTranslation();
     const isHi = currentLanguage === 'hi';
 
     const [otp, setOtp] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [userId, setUserId] = useState<string | null>(route.params?.userId || null);
+    const [userId, setUserId] = useState<string | null>(route.params?.userId || pendingUserId || null);
 
     useEffect(() => {
-        (async () => {
+        const initializeUserId = async () => {
             if (!userId) {
-                const stored = await AsyncStorage.getItem('@pending_user_id');
-                if (stored) setUserId(stored);
-                else {
+                // Try to get from AsyncStorage as fallback
+                const storedUserId = await AsyncStorage.getItem('@pending_user_id');
+
+                if (storedUserId) {
+                    setUserId(storedUserId);
+                } else {
                     setErrorMessage(
                         isHi
                             ? 'सत्र समाप्त हो गया। कृपया पंजीकरण फिर से शुरू करें।'
@@ -51,8 +62,10 @@ const Otp = ({ navigation, route }: Props) => {
                     setTimeout(() => navigation.navigate('SignUp'), 3000);
                 }
             }
-        })();
-    }, [userId, isHi, navigation]);
+        };
+
+        initializeUserId();
+    }, [userId, pendingUserId, isHi, navigation]);
 
     const handleOtpChange = (text: string) => {
         const numeric = text.replace(/[^0-9]/g, '').slice(0, 5);
@@ -62,10 +75,12 @@ const Otp = ({ navigation, route }: Props) => {
 
     const handleVerifyOTP = async () => {
         if (isLoading || contextLoading) return;
+
         if (!otp.trim() || otp.length !== 5) {
             setErrorMessage(isHi ? 'कृपया 5 अंकों का सही ओटीपी दर्ज करें' : 'Please enter a valid 5-digit OTP');
             return;
         }
+
         if (!userId) {
             setErrorMessage(isHi ? 'सत्र समाप्त हो गया।' : 'Session expired.');
             setTimeout(() => navigation.navigate('SignUp'), 2000);
@@ -74,13 +89,54 @@ const Otp = ({ navigation, route }: Props) => {
 
         setIsLoading(true);
         setErrorMessage('');
+
         try {
-            // Simulated API call
+            console.log('🔄 Processing OTP verification (static)...');
+
+            // Simulate API delay for better UX
             await new Promise<void>((resolve) => setTimeout(resolve, 1500));
+
+            // Static OTP verification - accept any 5-digit OTP
+            console.log('✅ OTP accepted (static verification)');
             setErrorMessage(isHi ? 'ओटीपी सफलतापूर्वक सत्यापित!' : 'OTP verified successfully!');
+
+            // Auto-login user if credentials are stored
             await autoLoginUser();
-        } catch {
-            setErrorMessage(isHi ? 'सत्यापन विफल।' : 'Verification failed.');
+
+            // 🔑 CRITICAL: Store FCM token in database after OTP verification
+            console.log('🔄 Storing FCM token for user:', userId);
+            const fcmResult = await storeFcmToken(userId);
+
+            if (fcmResult.success) {
+                console.log('✅ FCM token stored successfully:', fcmResult.message);
+            } else {
+                console.warn('⚠️ FCM token storage failed:', fcmResult.message);
+                // Don't block the user flow if FCM token fails
+            }
+
+            // Clean up and navigate to main app
+            await clearPendingSignupData();
+            await AsyncStorage.removeItem('@new_account_credentials');
+            await AsyncStorage.removeItem('@pending_user_id');
+
+            // Navigate to main screen after short delay
+            setTimeout(() => {
+                // Option 1: Navigate to a specific screen in your stack
+                // navigation.navigate('YourMainScreen' as any);
+
+                // Option 2: Go back to previous screens and let app handle logged-in state
+                navigation.goBack();
+
+                // Option 3: If you have a main tab navigator or specific screen, use:
+                // navigation.reset({
+                //     index: 0,
+                //     routes: [{ name: 'YourActualMainScreenName' }],
+                // });
+            }, 2000);
+
+        } catch (error) {
+            console.error('❌ Error during OTP verification process:', error);
+            setErrorMessage(isHi ? 'सत्यापन विफल। कृपया पुनः प्रयास करें।' : 'Verification failed. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -90,36 +146,58 @@ const Otp = ({ navigation, route }: Props) => {
         try {
             const creds = await AsyncStorage.getItem('@new_account_credentials');
             if (creds) {
-                const c = JSON.parse(creds);
-                const result = await login(c.email, c.password);
+                const credentials = JSON.parse(creds);
+                console.log('🔄 Auto-logging in user...');
+                const result = await login(credentials.email, credentials.password);
                 if (result.success) {
-                    await AsyncStorage.removeItem('@new_account_credentials');
-                    await AsyncStorage.removeItem('@pending_user_id');
+                    console.log('✅ User logged in successfully');
+                } else {
+                    console.warn('⚠️ Auto-login failed:', result.message);
                 }
             }
-        } catch { /* ignore */ }
+        } catch (err) {
+            console.error('❌ Error during auto-login:', err);
+        }
     };
 
     const handleResendOTP = async () => {
         if (isLoading || contextLoading) return;
+
         if (!userId) {
             setErrorMessage(isHi ? 'सत्र समाप्त हो गया।' : 'Session expired.');
             return;
         }
+
         setIsLoading(true);
+        setErrorMessage('');
+
         try {
+            // Simulate resend delay
             await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+
+            console.log('✅ OTP resend simulated');
             setErrorMessage(isHi ? 'ओटीपी पुनः भेजा गया!' : 'OTP sent successfully!');
-        } catch {
+        } catch (error) {
+            console.error('❌ Resend OTP error:', error);
             setErrorMessage(isHi ? 'ओटीपी पुनः नहीं भेजा जा सका।' : 'Failed to resend OTP.');
         } finally {
             setIsLoading(false);
-            setTimeout(() => setErrorMessage(''), 3000);
+            // Clear success message after 3 seconds
+            setTimeout(() => {
+                setErrorMessage(prev => {
+                    if (prev.includes('success') || prev.includes('सफल') || prev.includes('भेजा गया')) {
+                        return '';
+                    }
+                    return prev;
+                });
+            }, 3000);
         }
     };
 
     const handleBackPress = () => {
-        if (!isLoading && !contextLoading) navigation.goBack();
+        if (!isLoading && !contextLoading) {
+            navigation.goBack();
+        }
     };
 
     const isButtonDisabled = isLoading || contextLoading || otp.length !== 5;
@@ -307,12 +385,16 @@ const Otp = ({ navigation, route }: Props) => {
                     {errorMessage ? (
                         <Text
                             style={{
-                                color: errorMessage.includes('success') || errorMessage.includes('सफल')
+                                color: errorMessage.includes('success') ||
+                                    errorMessage.includes('सफल') ||
+                                    errorMessage.includes('सत्यापित') ||
+                                    errorMessage.includes('भेजा गया')
                                     ? '#10B981'
                                     : '#EF4444',
                                 fontSize: width * 0.035,
                                 textAlign: 'center',
-                                fontWeight: '500'
+                                fontWeight: '500',
+                                marginHorizontal: width * 0.05
                             }}
                         >
                             {errorMessage}

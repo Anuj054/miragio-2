@@ -17,7 +17,7 @@ type Props = NativeStackScreenProps<MainStackParamList, 'UserProfile'>;
 
 const UserProfile = ({ navigation, route }: Props) => {
     const { from } = route.params || {};
-    const { currentLanguage } = useTranslation();
+    const { currentLanguage, toggleLanguage } = useTranslation();
     const isHindi = currentLanguage === 'hi';
     const { user, isLoading: userLoading, refreshUserData } = useUser();
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -33,6 +33,12 @@ const UserProfile = ({ navigation, route }: Props) => {
         tasksCompleted: isHindi ? "पूरे किए गए कार्य" : "Tasks Completed",
         walletBalance: isHindi ? "वॉलेट बैलेंस" : "Wallet Balance",
     };
+
+    // Language toggle handler
+    const handleLanguageToggle = () => {
+        toggleLanguage();
+    };
+
     // Fetch completed tasks
     const fetchCompletedTasks = async () => {
         try {
@@ -167,7 +173,7 @@ const UserProfile = ({ navigation, route }: Props) => {
         <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-            {/* =================== FIXED HEADER SECTION MATCHING OTHER PAGES =================== */}
+            {/* =================== FIXED HEADER SECTION WITH LANGUAGE TOGGLE =================== */}
             <View style={{ height: height * 0.14 }}>
                 {/* Background image */}
                 <Image
@@ -220,8 +226,30 @@ const UserProfile = ({ navigation, route }: Props) => {
                             {isHindi ? 'उपयोगकर्ता प्रोफ़ाइल' : 'User Profile'}
                         </Text>
 
-                        {/* Empty space for symmetry */}
-                        <View style={{ width: width * 0.1, height: width * 0.1 }} />
+                        {/* Language Toggle Button */}
+                        <TouchableOpacity
+                            onPress={handleLanguageToggle}
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                backgroundColor: Colors.light.bgBlueBtn,
+                                borderRadius: width * 0.05,
+                                borderWidth: 1,
+                                borderColor: Colors.light.whiteFfffff
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                {currentLanguage === 'hi' ? 'EN' : 'हि'}
+                            </Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
 

@@ -4,37 +4,40 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg2 from "../../assets/images/bg2.png";
 import { icons } from "../../constants/index";
 import profileimg from "../../assets/images/profileimg.png";
-
 import { Colors } from "../../constants/Colors";
 import { useUser } from "../../context/UserContext";
 import type { MainStackParamList } from "../../navigation/types";
+// Translation imports - USING CUSTOM COMPONENTS
+import { TranslatedText } from '../../components/TranslatedText';
+import { useTranslation } from '../../context/TranslationContext';
+import { usePlaceholder } from '../../hooks/useTranslatedText';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<MainStackParamList, 'EditProfile'>;
 
-// Dropdown options (same as KYC)
+// Dropdown options with Hindi translations
 const GENDER_OPTIONS = [
-    { label: "Male", value: "male" },
-    { label: "Female", value: "female" },
-    { label: "Prefer Not to Say", value: "prefer_not_to_say" },
-    { label: "Other", value: "other" }
+    { label: "Male", value: "male", labelHi: "पुरुष" },
+    { label: "Female", value: "female", labelHi: "महिला" },
+    { label: "Prefer Not to Say", value: "prefer_not_to_say", labelHi: "नहीं बताना चाहते" },
+    { label: "Other", value: "other", labelHi: "अन्य" }
 ];
 
 const OCCUPATION_OPTIONS = [
-    { label: "Doctor", value: "doctor" },
-    { label: "Engineer", value: "engineer" },
-    { label: "Lawyer", value: "lawyer" },
-    { label: "Teacher", value: "teacher" },
-    { label: "Business Owner", value: "business_owner" },
-    { label: "Student", value: "student" },
-    { label: "Accountant", value: "accountant" },
-    { label: "Nurse", value: "nurse" },
-    { label: "Developer", value: "developer" },
-    { label: "Designer", value: "designer" },
-    { label: "Web Developer", value: "web_developer" },
-    { label: "Others", value: "others" }
+    { label: "Doctor", value: "doctor", labelHi: "डॉक्टर" },
+    { label: "Engineer", value: "engineer", labelHi: "इंजीनियर" },
+    { label: "Lawyer", value: "lawyer", labelHi: "वकील" },
+    { label: "Teacher", value: "teacher", labelHi: "शिक्षक" },
+    { label: "Business Owner", value: "business_owner", labelHi: "व्यापारी" },
+    { label: "Student", value: "student", labelHi: "छात्र" },
+    { label: "Accountant", value: "accountant", labelHi: "लेखाकार" },
+    { label: "Nurse", value: "nurse", labelHi: "नर्स" },
+    { label: "Developer", value: "developer", labelHi: "डेवलपर" },
+    { label: "Designer", value: "designer", labelHi: "डिज़ाइनर" },
+    { label: "Web Developer", value: "web_developer", labelHi: "वेब डेवलपर" },
+    { label: "Others", value: "others", labelHi: "अन्य" }
 ];
 
 // Define the shape of the edit user form data
@@ -62,8 +65,9 @@ interface FormErrors {
 }
 
 const EditProfile = ({ navigation }: Props) => {
-
+    const { currentLanguage } = useTranslation();
     const { user, isLoading: userLoading, refreshUserData, updateUserData } = useUser();
+
     const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
     const [editUser, setEditUser] = useState<EditUserData | null>(null);
     const [editErrors, setEditErrors] = useState<FormErrors>({});
@@ -73,7 +77,7 @@ const EditProfile = ({ navigation }: Props) => {
     const [originalUserData, setOriginalUserData] = useState<EditUserData | null>(null);
     const [hasChanges, setHasChanges] = useState<boolean>(false);
 
-    // Dropdown states (same as KYC)
+    // Dropdown states
     const [isGenderDropdownOpen, setIsGenderDropdownOpen] = useState<boolean>(false);
     const [genderSearchQuery, setGenderSearchQuery] = useState<string>("");
     const [isOccupationDropdownOpen, setIsOccupationDropdownOpen] = useState<boolean>(false);
@@ -84,14 +88,40 @@ const EditProfile = ({ navigation }: Props) => {
     const successOpacity = useRef(new Animated.Value(0)).current;
     const successTranslateY = useRef(new Animated.Value(50)).current;
 
-    // Filter functions (same as KYC)
-    const filteredGenderOptions = GENDER_OPTIONS.filter(option =>
-        option.label.toLowerCase().includes(genderSearchQuery.toLowerCase())
-    );
+    // Using custom placeholder hooks for all input fields
+    const usernamePlaceholder = usePlaceholder('Enter username', 'उपयोगकर्ता नाम दर्ज करें');
+    const emailPlaceholder = usePlaceholder('Enter email', 'ईमेल दर्ज करें');
+    const phonePlaceholder = usePlaceholder('Enter phone number (10 digits)', 'फोन नंबर दर्ज करें (10 अंक)');
+    const aadharPlaceholder = usePlaceholder('Enter Aadhar number (12 digits)', 'आधार नंबर दर्ज करें (12 अंक)');
+    const instagramPlaceholder = usePlaceholder('Enter Instagram Username', 'इंस्टाग्राम उपयोगकर्ता नाम दर्ज करें');
+    const upiPlaceholder = usePlaceholder('Enter UPI ID ', 'UPI ID दर्ज करें ');
+    const panPlaceholder = usePlaceholder('Enter PAN Number (e.g., ABCDE1234F)', 'PAN नंबर दर्ज करें (जैसे, ABCDE1234F)');
+    const searchGenderPlaceholder = usePlaceholder('Search gender...', 'लिंग खोजें...');
+    const searchOccupationPlaceholder = usePlaceholder('Search occupation...', 'व्यवसाय खोजें...');
 
-    const filteredOccupationOptions = OCCUPATION_OPTIONS.filter(option =>
-        option.label.toLowerCase().includes(occupationSearchQuery.toLowerCase())
-    );
+    // Helper function to get current language label
+    const getGenderLabel = (option: any) => {
+        return currentLanguage === 'hi' ? option.labelHi : option.label;
+    };
+
+    const getOccupationLabel = (option: any) => {
+        return currentLanguage === 'hi' ? option.labelHi : option.label;
+    };
+
+    // Filter functions with multilingual search
+    const filteredGenderOptions = GENDER_OPTIONS.filter(option => {
+        const searchText = genderSearchQuery.toLowerCase();
+        const englishMatch = option.label.toLowerCase().includes(searchText);
+        const hindiMatch = option.labelHi.toLowerCase().includes(searchText);
+        return englishMatch || hindiMatch;
+    });
+
+    const filteredOccupationOptions = OCCUPATION_OPTIONS.filter(option => {
+        const searchText = occupationSearchQuery.toLowerCase();
+        const englishMatch = option.label.toLowerCase().includes(searchText);
+        const hindiMatch = option.labelHi.toLowerCase().includes(searchText);
+        return englishMatch || hindiMatch;
+    });
 
     // Check if data has changed
     const checkForChanges = (newData: EditUserData) => {
@@ -225,9 +255,10 @@ const EditProfile = ({ navigation }: Props) => {
         handleEditChange('aadharnumber', limitedText);
     };
 
-    // Dropdown handlers (same as KYC)
-    const handleGenderSelect = (option: { label: string; value: string }): void => {
-        handleEditChange('gender', option.label);
+    // Dropdown handlers
+    const handleGenderSelect = (option: any): void => {
+        const selectedLabel = getGenderLabel(option);
+        handleEditChange('gender', selectedLabel);
         setIsGenderDropdownOpen(false);
         setGenderSearchQuery("");
     };
@@ -244,8 +275,9 @@ const EditProfile = ({ navigation }: Props) => {
         }
     };
 
-    const handleOccupationSelect = (option: { label: string; value: string }): void => {
-        handleEditChange('occupation', option.label);
+    const handleOccupationSelect = (option: any): void => {
+        const selectedLabel = getOccupationLabel(option);
+        handleEditChange('occupation', selectedLabel);
         setIsOccupationDropdownOpen(false);
         setOccupationSearchQuery("");
     };
@@ -277,39 +309,42 @@ const EditProfile = ({ navigation }: Props) => {
         return upiRegex.test(upi);
     }
 
-    // Validate Edit User Form with simplified error messages
+    // Validate Edit User Form with Hindi error messages
     const validateEditUser = (): FormErrors => {
         if (!editUser) return {};
 
         const errors: FormErrors = {};
 
-        if (!editUser.username.trim()) errors.username = "Please enter your username";
-
-        if (!editUser.email.trim() || !validateEmail(editUser.email))
-            errors.email = "Please enter a valid email";
-
-        // Simplified phone number validation
-        if (!editUser.phone_number.trim()) {
-            errors.phone_number = "Please enter your phone number";
-        } else if (editUser.phone_number.length !== 10 || !/^\d{10}$/.test(editUser.phone_number) ||
-            editUser.phone_number.startsWith('0') || editUser.phone_number.startsWith('1') || editUser.phone_number.startsWith('2')) {
-            errors.phone_number = "Please enter a correct phone number";
+        if (!editUser.username.trim()) {
+            errors.username = currentLanguage === 'hi' ? "कृपया अपना उपयोगकर्ता नाम दर्ज करें" : "Please enter your username";
         }
 
-        // Simplified Aadhar number validation
+        if (!editUser.email.trim() || !validateEmail(editUser.email)) {
+            errors.email = currentLanguage === 'hi' ? "कृपया वैध ईमेल दर्ज करें" : "Please enter a valid email";
+        }
+
+        // Phone number validation with Hindi messages
+        if (!editUser.phone_number.trim()) {
+            errors.phone_number = currentLanguage === 'hi' ? "कृपया अपना फोन नंबर दर्ज करें" : "Please enter your phone number";
+        } else if (editUser.phone_number.length !== 10 || !/^\d{10}$/.test(editUser.phone_number) ||
+            editUser.phone_number.startsWith('0') || editUser.phone_number.startsWith('1') || editUser.phone_number.startsWith('2')) {
+            errors.phone_number = currentLanguage === 'hi' ? "कृपया सही फोन नंबर दर्ज करें" : "Please enter a correct phone number";
+        }
+
+        // Aadhar number validation with Hindi messages
         if (editUser.aadharnumber.trim()) {
             if (editUser.aadharnumber.length !== 12 || !/^\d{12}$/.test(editUser.aadharnumber) ||
                 editUser.aadharnumber.startsWith('0') || editUser.aadharnumber.startsWith('1')) {
-                errors.aadharnumber = "Please enter a correct Aadhar number";
+                errors.aadharnumber = currentLanguage === 'hi' ? "कृपया सही आधार नंबर दर्ज करें" : "Please enter a correct Aadhar number";
             }
         }
 
         if (editUser.pan_number.trim() && !validatePanNumber(editUser.pan_number)) {
-            errors.pan_number = "Please enter a correct PAN number";
+            errors.pan_number = currentLanguage === 'hi' ? "कृपया सही PAN नंबर दर्ज करें" : "Please enter a correct PAN number";
         }
 
         if (editUser.upi.trim() && !validateUpiId(editUser.upi)) {
-            errors.upi = "Please enter a correct UPI ID";
+            errors.upi = currentLanguage === 'hi' ? "कृपया सही UPI ID दर्ज करें" : "Please enter a correct UPI ID";
         }
 
         return errors;
@@ -358,10 +393,16 @@ const EditProfile = ({ navigation }: Props) => {
                     navigation.goBack();
                 }, 1500);
             } else {
-                Alert.alert("Error", result.message || "Update failed");
+                const errorMessage = currentLanguage === 'hi' ?
+                    result.message || "अपडेट विफल" :
+                    result.message || "Update failed";
+                Alert.alert(currentLanguage === 'hi' ? "त्रुटि" : "Error", errorMessage);
             }
         } catch (err) {
-            Alert.alert("Error", "Error updating profile. Please check your internet connection.");
+            const errorMessage = currentLanguage === 'hi' ?
+                "प्रोफाइल अपडेट करने में त्रुटि। कृपया अपना इंटरनेट कनेक्शन जांचें।" :
+                "Error updating profile. Please check your internet connection.";
+            Alert.alert(currentLanguage === 'hi' ? "त्रुटि" : "Error", errorMessage);
             console.error(err);
         }
         setLoading(false);
@@ -389,7 +430,7 @@ const EditProfile = ({ navigation }: Props) => {
                         marginTop: height * 0.02
                     }}
                 >
-                    Loading profile...
+                    {currentLanguage === 'hi' ? 'प्रोफाइल लोड हो रहा है...' : 'Loading profile...'}
                 </Text>
             </View>
         );
@@ -407,7 +448,7 @@ const EditProfile = ({ navigation }: Props) => {
                         fontSize: width * 0.045
                     }}
                 >
-                    No user data available
+                    {currentLanguage === 'hi' ? 'कोई उपयोगकर्ता डेटा उपलब्ध नहीं है' : 'No user data available'}
                 </Text>
                 <TouchableOpacity
                     onPress={handleBackPress}
@@ -419,7 +460,9 @@ const EditProfile = ({ navigation }: Props) => {
                         borderRadius: 8
                     }}
                 >
-                    <Text style={{ color: Colors.light.whiteFfffff }}>Go Back</Text>
+                    <Text style={{ color: Colors.light.whiteFfffff }}>
+                        {currentLanguage === 'hi' ? 'वापस जाएं' : 'Go Back'}
+                    </Text>
                 </TouchableOpacity>
             </View>
         );
@@ -473,8 +516,8 @@ const EditProfile = ({ navigation }: Props) => {
                             />
                         </TouchableOpacity>
 
-                        {/* Centered title */}
-                        <Text
+                        {/* Centered title with translation */}
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.075
@@ -482,7 +525,7 @@ const EditProfile = ({ navigation }: Props) => {
                             className="font-medium"
                         >
                             Edit Profile
-                        </Text>
+                        </TranslatedText>
 
                         {/* Empty space for symmetry */}
                         <View style={{ width: width * 0.1, height: width * 0.1 }} />
@@ -553,7 +596,7 @@ const EditProfile = ({ navigation }: Props) => {
                 <View style={{ paddingHorizontal: width * 0.06 }}>
                     {/* Username Field */}
                     <View style={{ marginBottom: height * 0.02 }}>
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.035,
@@ -562,7 +605,7 @@ const EditProfile = ({ navigation }: Props) => {
                             className="font-medium"
                         >
                             Username
-                        </Text>
+                        </TranslatedText>
                         <View
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
@@ -582,7 +625,7 @@ const EditProfile = ({ navigation }: Props) => {
                                     height: height * 0.058,
                                     fontSize: width * 0.04
                                 }}
-                                placeholder="Enter username"
+                                placeholder={usernamePlaceholder}
                                 placeholderTextColor={Colors.light.placeholderColor}
                             />
                         </View>
@@ -601,7 +644,7 @@ const EditProfile = ({ navigation }: Props) => {
 
                     {/* Email Field */}
                     <View style={{ marginBottom: height * 0.02 }}>
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.035,
@@ -610,7 +653,7 @@ const EditProfile = ({ navigation }: Props) => {
                             className="font-medium"
                         >
                             Email
-                        </Text>
+                        </TranslatedText>
                         <View
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
@@ -630,7 +673,7 @@ const EditProfile = ({ navigation }: Props) => {
                                     height: height * 0.058,
                                     fontSize: width * 0.04
                                 }}
-                                placeholder="Enter email"
+                                placeholder={emailPlaceholder}
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 keyboardType="email-address"
                             />
@@ -650,7 +693,7 @@ const EditProfile = ({ navigation }: Props) => {
 
                     {/* Phone Field */}
                     <View style={{ marginBottom: height * 0.02 }}>
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.035,
@@ -659,7 +702,7 @@ const EditProfile = ({ navigation }: Props) => {
                             className="font-medium"
                         >
                             Phone Number
-                        </Text>
+                        </TranslatedText>
                         <View
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
@@ -679,7 +722,7 @@ const EditProfile = ({ navigation }: Props) => {
                                     height: height * 0.058,
                                     fontSize: width * 0.04
                                 }}
-                                placeholder="Enter phone number (10 digits)"
+                                placeholder={phonePlaceholder}
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 keyboardType="numeric"
                                 maxLength={10}
@@ -700,7 +743,7 @@ const EditProfile = ({ navigation }: Props) => {
 
                     {/* Age Field (Read-only) */}
                     <View style={{ marginBottom: height * 0.02 }}>
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.035,
@@ -709,7 +752,7 @@ const EditProfile = ({ navigation }: Props) => {
                             className="font-medium"
                         >
                             Age
-                        </Text>
+                        </TranslatedText>
                         <View
                             style={{
                                 backgroundColor: '#f3f4f6',
@@ -728,7 +771,7 @@ const EditProfile = ({ navigation }: Props) => {
                                     height: height * 0.058,
                                     fontSize: width * 0.04
                                 }}
-                                placeholder="Age"
+                                placeholder={currentLanguage === 'hi' ? 'उम्र' : 'Age'}
                                 editable={false}
                             />
                         </View>
@@ -739,7 +782,7 @@ const EditProfile = ({ navigation }: Props) => {
                         className="relative"
                         style={{ marginBottom: height * 0.025 }}
                     >
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.035,
@@ -748,7 +791,7 @@ const EditProfile = ({ navigation }: Props) => {
                             className="font-medium"
                         >
                             Gender
-                        </Text>
+                        </TranslatedText>
                         <TouchableOpacity
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
@@ -765,7 +808,7 @@ const EditProfile = ({ navigation }: Props) => {
                                     fontSize: width * 0.04
                                 }}
                             >
-                                {editUser.gender ? editUser.gender : "Select Gender*"}
+                                {editUser.gender ? editUser.gender : (currentLanguage === 'hi' ? "लिंग चुनें*" : "Select Gender*")}
                             </Text>
                             <Image
                                 source={isGenderDropdownOpen ? icons.dropdownicon : icons.upicon}
@@ -808,7 +851,7 @@ const EditProfile = ({ navigation }: Props) => {
                                             paddingHorizontal: width * 0.03,
                                             borderRadius: 8
                                         }}
-                                        placeholder="Search gender..."
+                                        placeholder={searchGenderPlaceholder}
                                         placeholderTextColor={Colors.light.placeholderColor}
                                         value={genderSearchQuery}
                                         onChangeText={setGenderSearchQuery}
@@ -842,7 +885,7 @@ const EditProfile = ({ navigation }: Props) => {
                                                         fontSize: width * 0.04
                                                     }}
                                                 >
-                                                    {option.label}
+                                                    {getGenderLabel(option)}
                                                 </Text>
                                             </TouchableOpacity>
                                         ))
@@ -861,7 +904,7 @@ const EditProfile = ({ navigation }: Props) => {
                                                     fontSize: width * 0.04
                                                 }}
                                             >
-                                                No gender found
+                                                {currentLanguage === 'hi' ? "कोई लिंग नहीं मिला" : "No gender found"}
                                             </Text>
                                         </View>
                                     )}
@@ -875,7 +918,7 @@ const EditProfile = ({ navigation }: Props) => {
                         className="relative"
                         style={{ marginBottom: height * 0.025 }}
                     >
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.035,
@@ -884,7 +927,7 @@ const EditProfile = ({ navigation }: Props) => {
                             className="font-medium"
                         >
                             Occupation
-                        </Text>
+                        </TranslatedText>
                         <TouchableOpacity
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
@@ -901,7 +944,7 @@ const EditProfile = ({ navigation }: Props) => {
                                     fontSize: width * 0.04
                                 }}
                             >
-                                {editUser.occupation ? editUser.occupation : "Select Occupation*"}
+                                {editUser.occupation ? editUser.occupation : (currentLanguage === 'hi' ? "व्यवसाय चुनें*" : "Select Occupation*")}
                             </Text>
                             <Image
                                 source={isOccupationDropdownOpen ? icons.dropdownicon : icons.upicon}
@@ -944,7 +987,7 @@ const EditProfile = ({ navigation }: Props) => {
                                             paddingHorizontal: width * 0.03,
                                             borderRadius: 8
                                         }}
-                                        placeholder="Search occupation..."
+                                        placeholder={searchOccupationPlaceholder}
                                         placeholderTextColor={Colors.light.placeholderColor}
                                         value={occupationSearchQuery}
                                         onChangeText={setOccupationSearchQuery}
@@ -978,7 +1021,7 @@ const EditProfile = ({ navigation }: Props) => {
                                                         fontSize: width * 0.04
                                                     }}
                                                 >
-                                                    {option.label}
+                                                    {getOccupationLabel(option)}
                                                 </Text>
                                             </TouchableOpacity>
                                         ))
@@ -997,7 +1040,7 @@ const EditProfile = ({ navigation }: Props) => {
                                                     fontSize: width * 0.04
                                                 }}
                                             >
-                                                No occupations found
+                                                {currentLanguage === 'hi' ? "कोई व्यवसाय नहीं मिला" : "No occupations found"}
                                             </Text>
                                         </View>
                                     )}
@@ -1008,7 +1051,7 @@ const EditProfile = ({ navigation }: Props) => {
 
                     {/* Aadhar Number Field */}
                     <View style={{ marginBottom: height * 0.02 }}>
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.035,
@@ -1017,7 +1060,7 @@ const EditProfile = ({ navigation }: Props) => {
                             className="font-medium"
                         >
                             Aadhar Number
-                        </Text>
+                        </TranslatedText>
                         <View
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
@@ -1037,7 +1080,7 @@ const EditProfile = ({ navigation }: Props) => {
                                     height: height * 0.058,
                                     fontSize: width * 0.04
                                 }}
-                                placeholder="Enter Aadhar number (12 digits)"
+                                placeholder={aadharPlaceholder}
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 keyboardType="numeric"
                                 maxLength={12}
@@ -1066,7 +1109,7 @@ const EditProfile = ({ navigation }: Props) => {
                             }}
                             className="font-medium"
                         >
-                            Instagram Username <Text style={{ color: Colors.light.placeholderColor }}>(Optional)</Text>
+                            {currentLanguage === 'hi' ? 'इंस्टाग्राम उपयोगकर्ता नाम' : 'Instagram Username'} <Text style={{ color: Colors.light.placeholderColor }}>({currentLanguage === 'hi' ? 'वैकल्पिक' : 'Optional'})</Text>
                         </Text>
                         <View
                             style={{
@@ -1087,7 +1130,7 @@ const EditProfile = ({ navigation }: Props) => {
                                     height: height * 0.058,
                                     fontSize: width * 0.04
                                 }}
-                                placeholder="Enter Instagram Username"
+                                placeholder={instagramPlaceholder}
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 autoCapitalize="none"
                                 autoCorrect={false}
@@ -1105,7 +1148,7 @@ const EditProfile = ({ navigation }: Props) => {
                             }}
                             className="font-medium"
                         >
-                            UPI ID <Text style={{ color: Colors.light.placeholderColor }}>(Optional)</Text>
+                            UPI ID <Text style={{ color: Colors.light.placeholderColor }}>({currentLanguage === 'hi' ? 'वैकल्पिक' : 'Optional'})</Text>
                         </Text>
                         <View
                             style={{
@@ -1126,7 +1169,7 @@ const EditProfile = ({ navigation }: Props) => {
                                     height: height * 0.058,
                                     fontSize: width * 0.04
                                 }}
-                                placeholder="Enter UPI ID (e.g., username@paytm)"
+                                placeholder={upiPlaceholder}
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 autoCapitalize="none"
                                 keyboardType="email-address"
@@ -1156,7 +1199,7 @@ const EditProfile = ({ navigation }: Props) => {
                             }}
                             className="font-medium"
                         >
-                            PAN Number <Text style={{ color: Colors.light.placeholderColor }}>(Optional)</Text>
+                            {currentLanguage === 'hi' ? 'PAN नंबर' : 'PAN Number'} <Text style={{ color: Colors.light.placeholderColor }}>({currentLanguage === 'hi' ? 'वैकल्पिक' : 'Optional'})</Text>
                         </Text>
                         <View
                             style={{
@@ -1177,7 +1220,7 @@ const EditProfile = ({ navigation }: Props) => {
                                     height: height * 0.058,
                                     fontSize: width * 0.04
                                 }}
-                                placeholder="Enter PAN Number (e.g., ABCDE1234F)"
+                                placeholder={panPlaceholder}
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 autoCapitalize="characters"
                                 maxLength={10}
@@ -1226,7 +1269,7 @@ const EditProfile = ({ navigation }: Props) => {
                                             marginLeft: width * 0.02
                                         }}
                                     >
-                                        Saving...
+                                        {currentLanguage === 'hi' ? 'सेव कर रहे हैं...' : 'Saving...'}
                                     </Text>
                                 </View>
                             ) : (
@@ -1237,7 +1280,7 @@ const EditProfile = ({ navigation }: Props) => {
                                         fontWeight: '600'
                                     }}
                                 >
-                                    Save Changes
+                                    {currentLanguage === 'hi' ? 'परिवर्तन सेव करें' : 'Save Changes'}
                                 </Text>
                             )}
                         </TouchableOpacity>
@@ -1262,7 +1305,7 @@ const EditProfile = ({ navigation }: Props) => {
                                     fontWeight: '600'
                                 }}
                             >
-                                Cancel
+                                {currentLanguage === 'hi' ? 'रद्द करें' : 'Cancel'}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -1302,7 +1345,7 @@ const EditProfile = ({ navigation }: Props) => {
                         flex: 1,
                         textAlign: 'center'
                     }}>
-                        Profile updated successfully!
+                        {currentLanguage === 'hi' ? 'प्रोफाइल सफलतापूर्वक अपडेट हो गया!' : 'Profile updated successfully!'}
                     </Text>
                 </Animated.View>
             )}

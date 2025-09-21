@@ -87,6 +87,40 @@ export const APP_TRANSLATIONS = {
   'Enter OTP': 'ओटीपी दर्ज करें',
   'Verify OTP': 'ओटीपी सत्यापित करें',
 
+  // Edit Profile Screen
+  'Edit Profile': 'प्रोफाइल संपादित करें',
+  'Loading profile...': 'प्रोफाइल लोड हो रहा है...',
+  'No user data available': 'कोई उपयोगकर्ता डेटा उपलब्ध नहीं है',
+  'Go Back': 'वापस जाएं',
+  Username: 'उपयोगकर्ता नाम',
+  'Enter username': 'उपयोगकर्ता नाम दर्ज करें',
+  'Enter email': 'ईमेल दर्ज करें',
+  'Enter phone number (10 digits)': 'फोन नंबर दर्ज करें (10 अंक)',
+  Age: 'उम्र',
+  Occupation: 'व्यवसाय',
+  'Aadhar Number': 'आधार नंबर',
+  'Enter Aadhar number (12 digits)': 'आधार नंबर दर्ज करें (12 अंक)',
+  'Instagram Username': 'इंस्टाग्राम उपयोगकर्ता नाम',
+  'Enter Instagram Username': 'इंस्टाग्राम उपयोगकर्ता नाम दर्ज करें',
+  'Enter UPI ID (e.g., username@paytm)':
+    'UPI ID दर्ज करें (जैसे, username@paytm)',
+  'PAN Number': 'PAN नंबर',
+  'Enter PAN Number (e.g., ABCDE1234F)':
+    'PAN नंबर दर्ज करें (जैसे, ABCDE1234F)',
+  'Save Changes': 'परिवर्तन सेव करें',
+  'Profile updated successfully!': 'प्रोफाइल सफलतापूर्वक अपडेट हो गया!',
+
+  // Edit Profile Error Messages
+  'Please enter your username': 'कृपया अपना उपयोगकर्ता नाम दर्ज करें',
+  'Please enter a valid email': 'कृपया वैध ईमेल दर्ज करें',
+  'Please enter your phone number': 'कृपया अपना फोन नंबर दर्ज करें',
+  'Please enter a correct phone number': 'कृपया सही फोन नंबर दर्ज करें',
+  'Please enter a correct Aadhar number': 'कृपया सही आधार नंबर दर्ज करें',
+  'Please enter a correct PAN number': 'कृपया सही PAN नंबर दर्ज करें',
+  'Please enter a correct UPI ID': 'कृपया सही UPI ID दर्ज करें',
+  'Error updating profile. Please check your internet connection.':
+    'प्रोफाइल अपडेट करने में त्रुटि। कृपया अपना इंटरनेट कनेक्शन जांचें।',
+
   // Error Messages
   'Please enter your email': 'कृपया अपना ईमेल दर्ज करें',
   'Please enter a valid email address': 'कृपया वैध ईमेल पता दर्ज करें',

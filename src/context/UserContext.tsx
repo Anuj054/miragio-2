@@ -48,12 +48,6 @@ interface SignupResponse {
     data?: { user_id: string; otp_token?: string };
 }
 
-interface OTPVerificationResponse {
-    status: string;
-    message: string;
-    data?: UserData;
-}
-
 export interface UserContextType {
     user: UserData | null;
     isLoggedIn: boolean;
@@ -66,8 +60,6 @@ export interface UserContextType {
     login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
     logout: () => Promise<void>;
     registerUser: (signupData: SignupData) => Promise<{ success: boolean; message: string; userId?: string }>;
-    verifyOTP: (otp: string, userId: string) => Promise<{ success: boolean; message: string }>;
-    resendOTP: (userId: string) => Promise<{ success: boolean; message: string }>;
 
     refreshUserData: (userId?: string) => Promise<void>;
     updateUserData: (userData: Partial<UserData>) => void;
@@ -80,8 +72,8 @@ export interface UserContextType {
     getUserName: () => string | null;
     getUserWallet: () => string | null;
 
-    // ➕ Helper to send FCM token to backend
-    storeFcmToken: (token: string) => Promise<void>;
+    // ➕ FCM token functionality
+    storeFcmToken: (userId: string) => Promise<{ success: boolean; message: string }>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -93,6 +85,7 @@ const STORAGE_KEYS = {
     IS_LOGGED_IN: '@is_logged_in',
     PENDING_SIGNUP_DATA: '@pending_signup_data',
     PENDING_USER_ID: '@pending_user_id',
+    FCM_TOKEN: '@fcm_token',
 };
 
 const API_BASE_URL = 'https://netinnovatus.tech/miragio_task/api/api.php';
@@ -126,7 +119,21 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     useEffect(() => {
         initializeUser();
+        initializeFCMToken();
     }, []);
+
+    // Initialize FCM token on app start
+    const initializeFCMToken = async () => {
+        try {
+            const token = await messaging().getToken();
+            if (token) {
+                await AsyncStorage.setItem(STORAGE_KEYS.FCM_TOKEN, token);
+                console.log('📱 FCM Token initialized:', token);
+            }
+        } catch (error) {
+            console.error('❌ Error initializing FCM token:', error);
+        }
+    };
 
     const initializeUser = async () => {
         try {
@@ -151,7 +158,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 await refreshUserData(normalizedUserData.id);
             }
         } catch (err) {
-            console.error('Error initializing user:', err);
+            console.error('❌ Error initializing user:', err);
             await clearUserData();
         } finally {
             setIsLoading(false);
@@ -175,11 +182,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setUser(normalizedUserData);
                 setIsLoggedIn(true);
                 await clearPendingSignupData();
+
                 return { success: true, message: data.message || 'Login successful!' };
             }
             return { success: false, message: data.message || 'Login failed. Please try again.' };
         } catch (err) {
-            console.error('Login error:', err);
+            console.error('❌ Login error:', err);
             return { success: false, message: 'Network error. Please check your internet connection.' };
         } finally {
             setIsLoading(false);
@@ -189,13 +197,17 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const registerUser = async (signupData: SignupData) => {
         try {
             setIsLoading(true);
+            console.log('🔄 Registering user...');
+
             const res = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'user_register', ...signupData }),
             });
             const data: SignupResponse = await res.json();
+
             if (data.status === 'success' && data.data?.user_id) {
+                console.log('✅ User registered successfully, User ID:', data.data.user_id);
                 await storePendingSignupData(signupData, data.data.user_id);
                 return {
                     success: true,
@@ -205,70 +217,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             return { success: false, message: data.message || 'Registration failed. Please try again.' };
         } catch (err) {
-            console.error('Registration error:', err);
-            return { success: false, message: 'Network error. Please check your internet connection.' };
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const verifyOTP = async (otp: string, userId: string) => {
-        try {
-            setIsLoading(true);
-            const res = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'verify_otp', otp: otp.trim(), user_id: userId }),
-            });
-            const data: OTPVerificationResponse = await res.json();
-
-            if (data.status === 'success') {
-                // Save user and mark logged in
-                if (data.data) {
-                    const normalizedUserData = normalizeUserData(data.data);
-                    await storeUserData(normalizedUserData);
-                    setUser(normalizedUserData);
-                    setIsLoggedIn(true);
-                } else {
-                    await refreshUserData(userId);
-                    setIsLoggedIn(true);
-                }
-
-                // 🔑 NEW: Fetch FCM token and store it in DB right after signup/verification
-                try {
-                    const token = await messaging().getToken();
-                    await storeFcmToken(token);
-                    console.log('✅ FCM token stored after signup:', token);
-                } catch (fcmErr) {
-                    console.error('❌ Error getting/storing FCM token after signup:', fcmErr);
-                }
-
-                await clearPendingSignupData();
-                return { success: true, message: data.message || 'OTP verified successfully!' };
-            }
-            return { success: false, message: data.message || 'Invalid OTP. Please try again.' };
-        } catch (err) {
-            console.error('OTP verification error:', err);
-            return { success: false, message: 'Network error. Please check your internet connection.' };
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const resendOTP = async (userId: string) => {
-        try {
-            setIsLoading(true);
-            const res = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'resend_otp', user_id: userId }),
-            });
-            const data = await res.json();
-            return data.status === 'success'
-                ? { success: true, message: data.message || 'OTP sent successfully!' }
-                : { success: false, message: data.message || 'Failed to resend OTP.' };
-        } catch (err) {
-            console.error('Resend OTP error:', err);
+            console.error('❌ Registration error:', err);
             return { success: false, message: 'Network error. Please check your internet connection.' };
         } finally {
             setIsLoading(false);
@@ -278,12 +227,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const logout = async () => {
         try {
             setIsLoading(true);
+            console.log('🔄 Logging out user...');
             await clearUserData();
             await clearPendingSignupData();
             setUser(null);
             setIsLoggedIn(false);
+            console.log('✅ User logged out successfully');
         } catch (err) {
-            console.error('Logout error:', err);
+            console.error('❌ Logout error:', err);
         } finally {
             setIsLoading(false);
         }
@@ -294,19 +245,23 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             const id = userId || user?.id;
             if (!id) return;
+
+            console.log('🔄 Refreshing user data for:', id);
             const res = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'get_userdetails', id }),
             });
             const data = await res.json();
+
             if (data.status === 'success' && data.data) {
                 const normalizedUserData = normalizeUserData(data.data);
                 await storeUserData(normalizedUserData);
                 setUser(normalizedUserData);
+                console.log('✅ User data refreshed successfully');
             }
         } catch (err) {
-            console.error('Error refreshing user data:', err);
+            console.error('❌ Error refreshing user data:', err);
         }
     };
 
@@ -315,6 +270,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const updatedUser = normalizeUserData({ ...user, ...userData });
         setUser(updatedUser);
         storeUserData(updatedUser);
+        console.log('✅ User data updated locally');
     };
 
     const storeUserData = async (userData: UserData) => {
@@ -340,6 +296,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             AsyncStorage.setItem(STORAGE_KEYS.PENDING_SIGNUP_DATA, JSON.stringify(signupData)),
             AsyncStorage.setItem(STORAGE_KEYS.PENDING_USER_ID, userId),
         ]);
+        console.log('📝 Pending signup data stored for user:', userId);
     };
 
     const clearPendingSignupData = async () => {
@@ -349,29 +306,68 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             AsyncStorage.removeItem(STORAGE_KEYS.PENDING_SIGNUP_DATA),
             AsyncStorage.removeItem(STORAGE_KEYS.PENDING_USER_ID),
         ]);
+        console.log('🗑️ Pending signup data cleared');
     };
 
-    // ---------- NEW: FCM Token upload ----------
-    const storeFcmToken = async (token: string) => {
+    // ---------- FCM Token Management ----------
+    const storeFcmToken = async (userId: string): Promise<{ success: boolean; message: string }> => {
         try {
-            const userId = user?.id;
             if (!userId) {
-                console.warn('No user logged in. Skipping FCM token upload.');
-                return;
+                console.warn('❌ No user ID provided. Cannot store FCM token.');
+                return { success: false, message: 'No user ID provided.' };
             }
+
+            console.log(`🔄 Getting FCM token for user ID: ${userId}`);
+
+            // Try to get fresh token first
+            let token = await messaging().getToken();
+
+            // Fallback to stored token if fresh token fails
+            if (!token) {
+                console.log('🔄 Fresh token not available, trying stored token...');
+                const storedToken = await AsyncStorage.getItem(STORAGE_KEYS.FCM_TOKEN);
+                token = storedToken || '';
+            }
+
+            if (!token) {
+                console.warn('❌ No FCM token available.');
+                return { success: false, message: 'No FCM token available.' };
+            }
+
+            console.log(`📱 FCM token found: ${token.substring(0, 20)}...`);
+            console.log(`🔄 Storing FCM token in database for user: ${userId}`);
+
             const res = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'add_fcmtoken', user_id: userId, token }),
+                body: JSON.stringify({
+                    action: 'add_fcmtoken',
+                    user_id: userId,
+                    token: token
+                }),
             });
+
             const data = await res.json();
+
             if (data.status === 'success') {
-                console.log('✅ FCM token stored in DB:', data.message);
+                console.log('✅ FCM token stored successfully in database:', data.message);
+                if (data.data) {
+                    console.log('📊 Token data:', {
+                        id: data.data.id,
+                        user_id: data.data.user_id,
+                        created_at: data.data.created_at
+                    });
+                }
+                // Store token locally for future reference
+                await AsyncStorage.setItem(STORAGE_KEYS.FCM_TOKEN, token);
+                return { success: true, message: data.message || 'FCM token stored successfully!' };
             } else {
-                console.warn('⚠️ Failed to store FCM token:', data.message);
+                console.warn('⚠️ Failed to store FCM token in database:', data.message);
+                return { success: false, message: data.message || 'Failed to store FCM token.' };
             }
         } catch (err) {
             console.error('❌ Error storing FCM token:', err);
+            return { success: false, message: 'Error storing FCM token.' };
         }
     };
 
@@ -391,8 +387,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         logout,
         registerUser,
-        verifyOTP,
-        resendOTP,
         refreshUserData,
         updateUserData,
         storePendingSignupData,
