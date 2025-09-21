@@ -9,7 +9,7 @@ import CustomGradientButton from "../../components/CustomGradientButton";
 import { Colors } from "../../constants/Colors";
 import { useUser } from "../../context/UserContext";
 import type { MainStackParamList } from "../../navigation/types";
-
+import { useTranslation } from "../../context/TranslationContext";
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
 
@@ -17,7 +17,8 @@ type Props = NativeStackScreenProps<MainStackParamList, 'UserProfile'>;
 
 const UserProfile = ({ navigation, route }: Props) => {
     const { from } = route.params || {};
-
+    const { currentLanguage } = useTranslation();
+    const isHindi = currentLanguage === 'hi';
     const { user, isLoading: userLoading, refreshUserData } = useUser();
     const [isRefreshing, setIsRefreshing] = useState(false);
     const { getUserId, getUserWallet } = useUser();
@@ -25,7 +26,13 @@ const UserProfile = ({ navigation, route }: Props) => {
     const [loadingTasks, setLoadingTasks] = useState(true);
 
     const walletBalance = getUserWallet();
-
+    const t = {
+        loadingProfile: isHindi ? "प्रोफ़ाइल लोड हो रही है..." : "Loading profile...",
+        noUserData: isHindi ? "कोई उपयोगकर्ता डेटा उपलब्ध नहीं" : "No user data available",
+        goBack: isHindi ? "वापस जाएं" : "Go Back",
+        tasksCompleted: isHindi ? "पूरे किए गए कार्य" : "Tasks Completed",
+        walletBalance: isHindi ? "वॉलेट बैलेंस" : "Wallet Balance",
+    };
     // Fetch completed tasks
     const fetchCompletedTasks = async () => {
         try {
@@ -120,7 +127,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                         marginTop: height * 0.02
                     }}
                 >
-                    Loading profile...
+                    {t.loadingProfile}
                 </Text>
             </View>
         );
@@ -138,7 +145,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                         fontSize: width * 0.045
                     }}
                 >
-                    No user data available
+                    {t.noUserData}
                 </Text>
                 <TouchableOpacity
                     onPress={handleBackPress}
@@ -150,7 +157,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                         borderRadius: 8
                     }}
                 >
-                    <Text style={{ color: Colors.light.whiteFfffff }}>Go Back</Text>
+                    <Text style={{ color: Colors.light.whiteFfffff }}> {t.goBack}</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -210,7 +217,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                             }}
                             className="font-medium"
                         >
-                            User Profile
+                            {isHindi ? 'उपयोगकर्ता प्रोफ़ाइल' : 'User Profile'}
                         </Text>
 
                         {/* Empty space for symmetry */}
@@ -283,10 +290,10 @@ const UserProfile = ({ navigation, route }: Props) => {
                                             style={{
                                                 color: Colors.light.placeholderColorOp70,
                                                 fontSize: width * 0.045,
-                                                marginTop: height * 0.01
+
                                             }}
                                         >
-                                            Level 1
+                                            {isHindi ? 'स्तर 1' : 'Level 1'}
                                         </Text>
                                     </View>
                                     {/* Arrow navigation icon */}
@@ -343,7 +350,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                         fontSize: width * 0.035
                                     }}
                                 >
-                                    Wallet Balance
+                                    {isHindi ? 'वॉलेट बैलेंस' : 'Wallet Balance'}
                                 </Text>
                             </View>
 
@@ -364,7 +371,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                         fontSize: width * 0.035
                                     }}
                                 >
-                                    Tasks Completed
+                                    {isHindi ? 'पूरे किए गए कार्य' : 'Tasks Completed'}
                                 </Text>
                             </View>
                         </View>
@@ -382,7 +389,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                             }}
                             className="font-medium"
                         >
-                            Total Winning
+                            {isHindi ? 'कुल जीत' : 'Total Winning'}
                         </Text>
                     </View>
 
@@ -398,7 +405,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                             }}
                             className="font-medium"
                         >
-                            Total Winnings
+                            {isHindi ? 'कुल जीत' : 'Total Winnings'}
                         </Text>
                         <View className="flex flex-row items-center">
                             <Text
@@ -408,7 +415,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                 }}
                                 className="font-medium"
                             >
-                                Total
+                                {isHindi ? 'कुल' : 'Total'}
                             </Text>
                             <Image
                                 source={icons.maincoin}
@@ -460,7 +467,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                     }}
                                     className="font-bold"
                                 >
-                                    Games Played
+                                    {isHindi ? 'खेले गए खेल' : 'Games Played'}
                                 </Text>
                                 <View className="flex flex-row items-center">
                                     <Image
@@ -510,7 +517,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                             fontSize: width * 0.06
                                         }}
                                     >
-                                        Achievements
+                                        {isHindi ? 'उपलब्धियां' : 'Achievements'}
                                     </Text>
                                 </View>
                                 <View className="flex items-end">
@@ -529,7 +536,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                             fontSize: width * 0.06
                                         }}
                                     >
-                                        Games Played
+                                        {isHindi ? 'खेले गए खेल' : 'Games Played'}
                                     </Text>
                                 </View>
                             </View>
@@ -569,7 +576,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                     }}
                                     className="font-bold"
                                 >
-                                    Achievements
+                                    {isHindi ? 'उपलब्धियां' : 'Achievements'}
                                 </Text>
                                 <View className="flex flex-row items-center">
                                     <Image
@@ -619,7 +626,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                             fontSize: width * 0.06
                                         }}
                                     >
-                                        Games Played
+                                        {isHindi ? 'खेले गए खेल' : 'Games Played'}
                                     </Text>
                                 </View>
                                 <View className="flex items-end">
@@ -638,7 +645,8 @@ const UserProfile = ({ navigation, route }: Props) => {
                                             fontSize: width * 0.06
                                         }}
                                     >
-                                        Played
+                                        {isHindi ? 'खेला गया' : 'Played'}
+
                                     </Text>
                                 </View>
                             </View>
@@ -678,7 +686,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                     }}
                                     className="font-bold"
                                 >
-                                    Achievements
+                                    {isHindi ? 'उपलब्धियां' : 'Achievements'}
                                 </Text>
                                 <View className="flex flex-row items-center">
                                     <Image
@@ -728,7 +736,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                             fontSize: width * 0.06
                                         }}
                                     >
-                                        Games Played
+                                        {isHindi ? 'खेले गए खेल' : 'Games Played'}
                                     </Text>
                                 </View>
                                 <View className="flex items-end">
@@ -747,7 +755,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                             fontSize: width * 0.06
                                         }}
                                     >
-                                        Played
+                                        {isHindi ? 'खेला गया' : 'Played'}
                                     </Text>
                                 </View>
                             </View>
@@ -761,7 +769,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                     >
                         {/* Edit Profile Button */}
                         <CustomGradientButton
-                            text="Edit Profile"
+                            text={isHindi ? 'प्रोफ़ाइल संपादित करें' : 'Edit Profile'}
                             width={width * 0.43}
                             height={height * 0.055}
                             borderRadius={10}
@@ -787,7 +795,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                 }}
                                 className="font-medium"
                             >
-                                Game History
+                                {isHindi ? 'गेम इतिहास' : 'Game History'}
                             </Text>
                         </TouchableOpacity>
                     </View>
