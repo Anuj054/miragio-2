@@ -471,7 +471,7 @@ const UserDetails = ({ navigation }: Props) => {
                 {errorMessage ? (
                     <View
                         style={{
-                            marginTop: height * 0.02,
+                            marginTop: height * 0.005,
                             width: '100%',
                             maxWidth: width * 0.85,
                             paddingHorizontal: width * 0.02

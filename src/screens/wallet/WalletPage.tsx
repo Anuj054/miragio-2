@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     View,
     StatusBar,
+    Dimensions,
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -19,6 +20,9 @@ import profilephoto from '../../assets/images/profilephoto.png';
 import { Colors } from '../../constants/Colors';
 
 import { useUser } from '../../context/UserContext';
+
+// Get screen dimensions
+const { width, height } = Dimensions.get('window');
 
 // Navigation types
 type NavigationProp = any;
@@ -121,7 +125,6 @@ const WalletPage = () => {
         navigation.goBack();
     };
 
-
     const handleProfilePress = () => {
         // Since UserProfile is at root level, navigate directly
         navigation.navigate('UserProfile', { from: 'wallet' });
@@ -135,7 +138,6 @@ const WalletPage = () => {
         navigation.navigate('Withdraw');
     };
 
-    // FIXED: Proper logout function
     // FIXED: Proper logout function
     const handleLogout = async () => {
         if (isLoggingOut) return; // Prevent double-tap
@@ -162,7 +164,6 @@ const WalletPage = () => {
         }
     };
 
-
     return (
         <View
             className="flex-1"
@@ -175,7 +176,7 @@ const WalletPage = () => {
             />
 
             {/* =================== HEADER WITH BACKGROUND IMAGE =================== */}
-            <View className="relative h-32">
+            <View style={{ height: height * 0.14 }}>
                 {/* Background image */}
                 <Image
                     source={bg2}
@@ -184,24 +185,45 @@ const WalletPage = () => {
                 />
 
                 {/* Header overlay content with navigation and profile */}
-                <View className="flex-1 pt-12 pb-4 px-4">
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
                     {/* Header row with proper spacing */}
-                    <View className="flex-row items-center justify-between h-16">
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
                         {/* Back button */}
                         <TouchableOpacity
                             onPress={handleBackPress}
-                            className="w-10 h-10 items-center justify-center"
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
                         >
                             <Image
                                 source={icons.back}
-                                className="w-4 h-6"
+                                style={{
+                                    width: width * 0.04,
+                                    height: width * 0.06
+                                }}
                             />
                         </TouchableOpacity>
 
                         {/* Centered title */}
                         <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium pt-1"
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.075
+                            }}
+                            className="font-medium"
                         >
                             Wallet
                         </Text>
@@ -209,22 +231,33 @@ const WalletPage = () => {
                         {/* Profile photo */}
                         <TouchableOpacity
                             onPress={handleProfilePress}
-                            style={{ backgroundColor: Colors.light.whiteFfffff }}
-                            className="w-11 h-11 rounded-full items-center justify-center"
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                width: width * 0.11,
+                                height: width * 0.11,
+                                borderRadius: (width * 0.11) / 2
+                            }}
+                            className="items-center justify-center"
                         >
                             <Image
                                 source={profilephoto}
-                                className="h-11 w-11 rounded-full"
+                                style={{
+                                    height: width * 0.11,
+                                    width: width * 0.11,
+                                    borderRadius: (width * 0.11) / 2
+                                }}
                             />
                         </TouchableOpacity>
                     </View>
                 </View>
 
-
                 {/* Header border line */}
                 <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                    className="absolute bottom-0 w-full"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        height: 1
+                    }}
                 />
             </View>
 
@@ -232,71 +265,119 @@ const WalletPage = () => {
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: height * 0.12 }}
             >
                 {/* =================== WALLET BALANCE CARD SECTION =================== */}
                 <View className="relative">
                     {/* Wallet background image */}
                     <Image
                         source={wallet2}
-                        className=" w-full h-[300px]"
+                        style={{
+                            width: '100%',
+                            height: height * 0.34
+                        }}
                         resizeMode="cover"
                     />
 
                     {/* Balance overlay content */}
-                    <View className="absolute px-5 py-5">
+                    <View
+                        className="absolute"
+                        style={{
+                            paddingHorizontal: width * 0.05,
+                            paddingVertical: height * 0.025
+                        }}
+                    >
                         {/* Total balance title */}
                         <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="font-semibold text-2xl"
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.06
+                            }}
+                            className="font-semibold"
                         >
                             Total Balance
                         </Text>
 
                         {/* Balance amount with coin icon */}
-                        <View className="flex-row items-center pt-2">
-                            <Image source={icons.maincoin} className="w-10 h-10" />
+                        <View
+                            className="flex-row items-center"
+                            style={{ paddingTop: height * 0.01 }}
+                        >
+                            <Image
+                                source={icons.maincoin}
+                                style={{
+                                    width: width * 0.1,
+                                    height: width * 0.1
+                                }}
+                            />
                             <Text
-                                style={{ color: Colors.light.whiteFfffff }}
-                                className="font-extrabold text-xl ml-2"
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.05,
+                                    marginLeft: width * 0.02
+                                }}
+                                className="font-extrabold"
                             >
                                 {loading ? 'Loading...' : walletBalance}
                             </Text>
                             {/* Refresh button */}
                             <TouchableOpacity
                                 onPress={refreshBalance}
-                                className="ml-3 p-1"
+                                style={{
+                                    marginLeft: width * 0.03,
+                                    padding: width * 0.01
+                                }}
                                 disabled={loading}
                             >
                                 <Image
                                     source={icons.go}
-                                    className="w-5 h-5"
                                     style={{
+                                        width: width * 0.05,
+                                        height: width * 0.05,
                                         opacity: loading ? 0.5 : 1,
-                                        transform: [{ rotate: loading ? '180deg' : '0deg' }],
+                                        transform: [{ rotate: loading ? '180deg' : '0deg' }]
                                     }}
                                 />
                             </TouchableOpacity>
                         </View>
 
                         {/* Account balance and transactions link */}
-                        <View className="flex-row justify-between w-full mt-2">
+                        <View
+                            className="flex-row justify-between w-full"
+                            style={{ marginTop: height * 0.005 }}
+                        >
                             <Text
-                                style={{ color: Colors.light.placeholderColorOp70 }}
-                                className="pt-2"
+                                style={{
+                                    color: Colors.light.placeholderColorOp70,
+                                    fontSize: width * 0.035,
+                                    paddingTop: height * 0.01
+                                }}
                             >
                                 Account Balance
                             </Text>
 
                             {/* My transactions navigation link */}
                             <TouchableOpacity
-                                className="flex-row items-center pt-2"
+                                className="flex-row items-center"
+                                style={{ paddingTop: height * 0.01 }}
                                 onPress={handleTransactionsPress}
                             >
-                                <Text style={{ color: Colors.light.whiteFefefe }}>
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.035
+                                    }}
+                                >
                                     My Transactions
                                 </Text>
-                                <Image source={icons.go} className="h-3.5 w-3.5 ml-3" />
+                                <Image
+                                    source={icons.go}
+                                    style={{
+                                        height: width * 0.035,
+                                        width: width * 0.035,
+                                        marginLeft: width * 0.03
+                                    }}
+                                />
                             </TouchableOpacity>
                         </View>
 
@@ -306,14 +387,23 @@ const WalletPage = () => {
                                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                                 borderColor: 'rgba(255, 255, 255, 0.3)',
                                 borderWidth: 1,
+                                borderRadius: 12,
+                                padding: width * 0.03,
+                                marginTop: height * 0.015,
+                                width: '100%'
                             }}
-                            className="w-full mt-3 rounded-[12px] p-3"
                         >
                             {/* Header with status */}
-                            <View className="flex flex-row justify-between items-center mb-3">
+                            <View
+                                className="flex flex-row justify-between items-center"
+                                style={{ marginBottom: height * 0.015 }}
+                            >
                                 <Text
-                                    style={{ color: Colors.light.whiteFfffff }}
-                                    className="text-sm font-medium"
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.035
+                                    }}
+                                    className="font-medium"
                                 >
                                     Available for Withdrawal
                                 </Text>
@@ -325,18 +415,27 @@ const WalletPage = () => {
                                 <View className="flex flex-row items-center flex-1">
                                     <Image
                                         source={icons.maincoin}
-                                        className="h-[25px] w-[25px] mr-2"
+                                        style={{
+                                            height: width * 0.063,
+                                            width: width * 0.063,
+                                            marginRight: width * 0.02
+                                        }}
                                     />
                                     <View>
                                         <Text
-                                            className="text-lg font-bold"
-                                            style={{ color: Colors.light.whiteFefefe }}
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.045
+                                            }}
+                                            className="font-bold"
                                         >
                                             {loading ? '...' : withdrawableBalance}
                                         </Text>
                                         <Text
-                                            style={{ color: Colors.light.placeholderColorOp70 }}
-                                            className="text-xs"
+                                            style={{
+                                                color: Colors.light.placeholderColorOp70,
+                                                fontSize: width * 0.03
+                                            }}
                                         >
                                             Withdrawable
                                         </Text>
@@ -345,14 +444,16 @@ const WalletPage = () => {
 
                                 {/* Compact withdraw button */}
                                 <TouchableOpacity
-                                    className="items-center justify-center flex flex-row px-5 py-2"
+                                    className="items-center justify-center flex flex-row"
                                     style={{
                                         backgroundColor:
                                             parseFloat(withdrawableBalance) >= 100
                                                 ? Colors.light.bgGreen
                                                 : 'rgba(255, 255, 255, 0.2)',
                                         borderRadius: 12,
-                                        minWidth: 120,
+                                        minWidth: width * 0.3,
+                                        paddingHorizontal: width * 0.05,
+                                        paddingVertical: height * 0.01
                                     }}
                                     onPress={() => {
                                         if (parseFloat(withdrawableBalance) >= 100) {
@@ -363,9 +464,11 @@ const WalletPage = () => {
                                 >
                                     <Image
                                         source={icons.withdraw}
-                                        className="w-[18px] h-[18px] mr-2"
                                         style={{
-                                            opacity: parseFloat(withdrawableBalance) >= 100 ? 1 : 0.5,
+                                            width: width * 0.045,
+                                            height: width * 0.045,
+                                            marginRight: width * 0.02,
+                                            opacity: parseFloat(withdrawableBalance) >= 100 ? 1 : 0.5
                                         }}
                                     />
                                     <Text
@@ -374,8 +477,9 @@ const WalletPage = () => {
                                                 parseFloat(withdrawableBalance) >= 100
                                                     ? Colors.light.whiteFefefe
                                                     : 'rgba(255, 255, 255, 0.5)',
+                                            fontSize: width * 0.04
                                         }}
-                                        className="font-semibold text-base"
+                                        className="font-semibold"
                                     >
                                         WITHDRAW
                                     </Text>
@@ -383,25 +487,32 @@ const WalletPage = () => {
                             </View>
 
                             {/* Compact progress bar and info */}
-                            <View className="mt-3">
+                            <View style={{ marginTop: height * 0.015 }}>
                                 <View
-                                    className="h-0.5 rounded-full mb-1"
-                                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                                    style={{
+                                        height: 2,
+                                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                        borderRadius: 1,
+                                        marginBottom: height * 0.005
+                                    }}
                                 >
                                     <View
-                                        className="h-0.5 rounded-full"
                                         style={{
+                                            height: 2,
                                             backgroundColor: Colors.light.bgGreen,
+                                            borderRadius: 1,
                                             width: `${Math.min(
                                                 (parseFloat(withdrawableBalance) / 100) * 100,
                                                 100,
-                                            )}%`,
+                                            )}%`
                                         }}
                                     />
                                 </View>
                                 <Text
-                                    style={{ color: 'rgba(255, 255, 255, 0.6)' }}
-                                    className="text-xs"
+                                    style={{
+                                        color: 'rgba(255, 255, 255, 0.6)',
+                                        fontSize: width * 0.03
+                                    }}
                                 >
                                     {parseFloat(withdrawableBalance) >= 100
                                         ? 'Ready to withdraw • Min: 100 coins'
@@ -411,50 +522,76 @@ const WalletPage = () => {
                             </View>
                         </View>
 
-                        {/* =================== CONVERSION RATE INFO =================== */}
-                        <View className="mt-3 flex-row items-center justify-center">
-                            <View className="flex-row items-center">
-                                <Image source={icons.maincoin} className="w-4 h-4 mr-1" />
-                                <Text
-                                    style={{ color: 'rgba(255, 255, 255, 0.8)' }}
-                                    className="text-sm font-medium"
-                                >
-                                    10 = ₹1
-                                </Text>
-                            </View>
-                        </View>
+
                     </View>
                 </View>
 
                 {/* =================== MAIN CONTENT SECTION =================== */}
                 <View
-                    style={{ backgroundColor: Colors.light.blackPrimary }}
-                    className="min-h-screen"
+                    style={{
+                        backgroundColor: Colors.light.blackPrimary,
+                        minHeight: height
+                    }}
                 >
-                    <View className="px-5 pt-8 items-center">
+                    <View
+                        className="items-center"
+                        style={{
+                            paddingHorizontal: width * 0.05,
+                            paddingTop: height * 0.04
+                        }}
+                    >
                         {/* =================== QUICK ACCESS GRID ROW 1 =================== */}
-                        <View className="flex-row items-center justify-between my-3">
+                        <View
+                            className="flex-row items-center justify-between"
+                            style={{ marginVertical: height * 0.015 }}
+                        >
                             {/* FAQs card */}
                             <View
-                                style={{ backgroundColor: Colors.light.backlight2 }}
-                                className="h-[70px] w-[180px] rounded-xl flex-row items-center mx-3"
+                                style={{
+                                    backgroundColor: Colors.light.backlight2,
+                                    height: height * 0.077,
+                                    width: width * 0.43,
+                                    borderRadius: 12,
+                                    marginHorizontal: width * 0.015
+                                }}
+                                className="flex-row items-center"
                             >
                                 <View
-                                    style={{ backgroundColor: Colors.light.whiteFfffff }}
-                                    className="w-10 h-10 ml-3 rounded-md items-center justify-center"
+                                    style={{
+                                        backgroundColor: Colors.light.whiteFfffff,
+                                        width: width * 0.1,
+                                        height: width * 0.1,
+                                        marginLeft: width * 0.03,
+                                        borderRadius: 8
+                                    }}
+                                    className="items-center justify-center"
                                 >
-                                    <Image source={icons.faq} className="w-[27px] h-[27px]" />
+                                    <Image
+                                        source={icons.faq}
+                                        style={{
+                                            width: width * 0.068,
+                                            height: width * 0.068
+                                        }}
+                                    />
                                 </View>
-                                <View className="mx-3 flex-1">
+                                <View
+                                    className="flex-1"
+                                    style={{ marginHorizontal: width * 0.03 }}
+                                >
                                     <Text
-                                        style={{ color: Colors.light.secondaryText }}
+                                        style={{
+                                            color: Colors.light.secondaryText,
+                                            fontSize: width * 0.04
+                                        }}
                                         className="font-medium"
                                     >
                                         FAQs
                                     </Text>
                                     <Text
-                                        style={{ color: Colors.light.placeholderColorOp70 }}
-                                        className="text-sm "
+                                        style={{
+                                            color: Colors.light.placeholderColorOp70,
+                                            fontSize: width * 0.035
+                                        }}
                                     >
                                         Contact for all queries
                                     </Text>
@@ -463,25 +600,51 @@ const WalletPage = () => {
 
                             {/* Offers card */}
                             <View
-                                style={{ backgroundColor: Colors.light.backlight2 }}
-                                className="h-[70px] w-[180px] rounded-xl flex-row items-center mx-3"
+                                style={{
+                                    backgroundColor: Colors.light.backlight2,
+                                    height: height * 0.077,
+                                    width: width * 0.43,
+                                    borderRadius: 12,
+                                    marginHorizontal: width * 0.015
+                                }}
+                                className="flex-row items-center"
                             >
                                 <View
-                                    style={{ backgroundColor: Colors.light.whiteFfffff }}
-                                    className="w-10 h-10 ml-3 rounded-md items-center justify-center"
+                                    style={{
+                                        backgroundColor: Colors.light.whiteFfffff,
+                                        width: width * 0.1,
+                                        height: width * 0.1,
+                                        marginLeft: width * 0.03,
+                                        borderRadius: 8
+                                    }}
+                                    className="items-center justify-center"
                                 >
-                                    <Image source={icons.offers} className="w-7 h-7" />
+                                    <Image
+                                        source={icons.offers}
+                                        style={{
+                                            width: width * 0.07,
+                                            height: width * 0.07
+                                        }}
+                                    />
                                 </View>
-                                <View className="mx-3 flex-1">
+                                <View
+                                    className="flex-1"
+                                    style={{ marginHorizontal: width * 0.03 }}
+                                >
                                     <Text
-                                        style={{ color: Colors.light.secondaryText }}
+                                        style={{
+                                            color: Colors.light.secondaryText,
+                                            fontSize: width * 0.04
+                                        }}
                                         className="font-medium"
                                     >
                                         Offers
                                     </Text>
                                     <Text
-                                        style={{ color: Colors.light.placeholderColorOp70 }}
-                                        className="text-sm"
+                                        style={{
+                                            color: Colors.light.placeholderColorOp70,
+                                            fontSize: width * 0.035
+                                        }}
                                     >
                                         Contact for all queries
                                     </Text>
@@ -492,51 +655,86 @@ const WalletPage = () => {
 
                     {/* =================== OTHERS SECTION =================== */}
                     <Text
-                        className="text-xl m-5 font-medium"
-                        style={{ color: Colors.light.whiteFefefe }}
+                        style={{
+                            color: Colors.light.whiteFefefe,
+                            fontSize: width * 0.05,
+                            margin: width * 0.05
+                        }}
+                        className="font-medium"
                     >
                         Others
                     </Text>
 
-                    <View className="mx-3">
+                    <View style={{ marginHorizontal: width * 0.03 }}>
                         {/* =================== ALL-IN-CLUB CARD =================== */}
                         <View
                             style={{
                                 backgroundColor: Colors.light.backlight2,
                                 borderLeftColor: Colors.light.bgBlueBtn,
+                                borderLeftWidth: 4,
+                                borderRadius: 12,
+                                padding: width * 0.03,
+                                marginVertical: height * 0.015,
+                                width: '100%'
                             }}
-                            className="w-full rounded-xl p-3 border-l-2 my-3"
                         >
                             <View className="flex-row items-center">
                                 {/* Card icon */}
                                 <View
-                                    className="mr-2 w-10 h-10 rounded-md items-center justify-center"
-                                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                                    style={{
+                                        backgroundColor: Colors.light.whiteFfffff,
+                                        marginRight: width * 0.02,
+                                        width: width * 0.1,
+                                        height: width * 0.1,
+                                        borderRadius: 8
+                                    }}
+                                    className="items-center justify-center"
                                 >
                                     <Image
                                         source={icons.duedateicon}
-                                        className="h-7 w-7"
+                                        style={{
+                                            height: width * 0.07,
+                                            width: width * 0.07
+                                        }}
                                         resizeMode="contain"
                                     />
                                 </View>
 
                                 {/* Card content */}
                                 <View className="flex-1 flex-row justify-between items-center">
-                                    <View className="flex-1 pl-3">
+                                    <View
+                                        className="flex-1"
+                                        style={{ paddingLeft: width * 0.03 }}
+                                    >
                                         <Text
-                                            style={{ color: Colors.light.whiteFefefe }}
-                                            className="text-lg font-medium mb-1"
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.045,
+                                                marginBottom: height * 0.005
+                                            }}
+                                            className="font-medium"
                                         >
                                             All-in-Club
                                         </Text>
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }}>
+                                        <Text
+                                            style={{
+                                                color: Colors.light.placeholderColorOp70,
+                                                fontSize: width * 0.035
+                                            }}
+                                        >
                                             Feel the Privilege
                                         </Text>
                                     </View>
 
                                     {/* Navigation arrow */}
                                     <TouchableOpacity>
-                                        <Image source={icons.go} className="w-3 h-3" />
+                                        <Image
+                                            source={icons.go}
+                                            style={{
+                                                width: width * 0.03,
+                                                height: width * 0.03
+                                            }}
+                                        />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -547,39 +745,70 @@ const WalletPage = () => {
                             style={{
                                 backgroundColor: Colors.light.backlight2,
                                 borderLeftColor: Colors.light.bgBlueBtn,
+                                borderLeftWidth: 4,
+                                borderRadius: 12,
+                                padding: width * 0.03,
+                                marginVertical: height * 0.015,
+                                width: '100%'
                             }}
-                            className="w-full rounded-xl p-3 border-l-2 my-3"
                         >
                             <View className="flex-row items-center">
                                 {/* Card icon */}
                                 <View
-                                    className="mr-2 w-10 h-10 rounded-md items-center justify-center"
-                                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                                    style={{
+                                        backgroundColor: Colors.light.whiteFfffff,
+                                        marginRight: width * 0.02,
+                                        width: width * 0.1,
+                                        height: width * 0.1,
+                                        borderRadius: 8
+                                    }}
+                                    className="items-center justify-center"
                                 >
                                     <Image
                                         source={icons.duedateicon}
-                                        className="h-7 w-7"
+                                        style={{
+                                            height: width * 0.07,
+                                            width: width * 0.07
+                                        }}
                                         resizeMode="contain"
                                     />
                                 </View>
 
                                 {/* Card content */}
                                 <View className="flex-1 flex-row justify-between items-center">
-                                    <View className="flex-1 pl-3">
+                                    <View
+                                        className="flex-1"
+                                        style={{ paddingLeft: width * 0.03 }}
+                                    >
                                         <Text
-                                            style={{ color: Colors.light.whiteFefefe }}
-                                            className="text-lg font-medium mb-1"
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.045,
+                                                marginBottom: height * 0.005
+                                            }}
+                                            className="font-medium"
                                         >
                                             Coins Enquiry
                                         </Text>
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }}>
+                                        <Text
+                                            style={{
+                                                color: Colors.light.placeholderColorOp70,
+                                                fontSize: width * 0.035
+                                            }}
+                                        >
                                             Keep track of your coins
                                         </Text>
                                     </View>
 
                                     {/* Navigation arrow */}
                                     <TouchableOpacity>
-                                        <Image source={icons.go} className="w-3 h-3" />
+                                        <Image
+                                            source={icons.go}
+                                            style={{
+                                                width: width * 0.03,
+                                                height: width * 0.03
+                                            }}
+                                        />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -590,39 +819,70 @@ const WalletPage = () => {
                             style={{
                                 backgroundColor: Colors.light.backlight2,
                                 borderLeftColor: Colors.light.bgBlueBtn,
+                                borderLeftWidth: 4,
+                                borderRadius: 12,
+                                padding: width * 0.03,
+                                marginVertical: height * 0.015,
+                                width: '100%'
                             }}
-                            className="w-full rounded-xl p-3 border-l-2 my-3"
                         >
                             <View className="flex-row items-center">
                                 {/* Card icon */}
                                 <View
-                                    className="mr-2 w-10 h-10 rounded-md items-center justify-center"
-                                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                                    style={{
+                                        backgroundColor: Colors.light.whiteFfffff,
+                                        marginRight: width * 0.02,
+                                        width: width * 0.1,
+                                        height: width * 0.1,
+                                        borderRadius: 8
+                                    }}
+                                    className="items-center justify-center"
                                 >
                                     <Image
                                         source={icons.duedateicon}
-                                        className="h-7 w-7"
+                                        style={{
+                                            height: width * 0.07,
+                                            width: width * 0.07
+                                        }}
                                         resizeMode="contain"
                                     />
                                 </View>
 
                                 {/* Card content */}
                                 <View className="flex-1 flex-row justify-between items-center">
-                                    <View className="flex-1 pl-3">
+                                    <View
+                                        className="flex-1"
+                                        style={{ paddingLeft: width * 0.03 }}
+                                    >
                                         <Text
-                                            style={{ color: Colors.light.whiteFefefe }}
-                                            className="text-lg font-medium mb-1"
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.045,
+                                                marginBottom: height * 0.005
+                                            }}
+                                            className="font-medium"
                                         >
                                             Responsible Gaming
                                         </Text>
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }}>
+                                        <Text
+                                            style={{
+                                                color: Colors.light.placeholderColorOp70,
+                                                fontSize: width * 0.035
+                                            }}
+                                        >
                                             Deposit limits & game restrictions
                                         </Text>
                                     </View>
 
                                     {/* Navigation arrow */}
                                     <TouchableOpacity>
-                                        <Image source={icons.go} className="w-3 h-3" />
+                                        <Image
+                                            source={icons.go}
+                                            style={{
+                                                width: width * 0.03,
+                                                height: width * 0.03
+                                            }}
+                                        />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -633,39 +893,70 @@ const WalletPage = () => {
                             style={{
                                 backgroundColor: Colors.light.backlight2,
                                 borderLeftColor: Colors.light.bgBlueBtn,
+                                borderLeftWidth: 4,
+                                borderRadius: 12,
+                                padding: width * 0.03,
+                                marginVertical: height * 0.015,
+                                width: '100%'
                             }}
-                            className="w-full rounded-xl p-3 border-l-2 my-3"
                         >
                             <View className="flex-row items-center">
                                 {/* Card icon */}
                                 <View
-                                    className="mr-2 w-10 h-10 rounded-md items-center justify-center"
-                                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                                    style={{
+                                        backgroundColor: Colors.light.whiteFfffff,
+                                        marginRight: width * 0.02,
+                                        width: width * 0.1,
+                                        height: width * 0.1,
+                                        borderRadius: 8
+                                    }}
+                                    className="items-center justify-center"
                                 >
                                     <Image
                                         source={icons.duedateicon}
-                                        className="h-7 w-7"
+                                        style={{
+                                            height: width * 0.07,
+                                            width: width * 0.07
+                                        }}
                                         resizeMode="contain"
                                     />
                                 </View>
 
                                 {/* Card content */}
                                 <View className="flex-1 flex-row justify-between items-center">
-                                    <View className="flex-1 pl-3">
+                                    <View
+                                        className="flex-1"
+                                        style={{ paddingLeft: width * 0.03 }}
+                                    >
                                         <Text
-                                            style={{ color: Colors.light.whiteFefefe }}
-                                            className="text-lg font-medium mb-1"
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.045,
+                                                marginBottom: height * 0.005
+                                            }}
+                                            className="font-medium"
                                         >
                                             TDS Certificate Download
                                         </Text>
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }}>
+                                        <Text
+                                            style={{
+                                                color: Colors.light.placeholderColorOp70,
+                                                fontSize: width * 0.035
+                                            }}
+                                        >
                                             You can download your TDS certificate
                                         </Text>
                                     </View>
 
                                     {/* Navigation arrow */}
                                     <TouchableOpacity>
-                                        <Image source={icons.go} className="w-3 h-3" />
+                                        <Image
+                                            source={icons.go}
+                                            style={{
+                                                width: width * 0.03,
+                                                height: width * 0.03
+                                            }}
+                                        />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -676,39 +967,70 @@ const WalletPage = () => {
                             style={{
                                 backgroundColor: Colors.light.backlight2,
                                 borderLeftColor: Colors.light.bgBlueBtn,
+                                borderLeftWidth: 4,
+                                borderRadius: 12,
+                                padding: width * 0.03,
+                                marginVertical: height * 0.015,
+                                width: '100%'
                             }}
-                            className="w-full rounded-xl p-3 border-l-2 my-3"
                         >
                             <View className="flex-row items-center">
                                 {/* Card icon */}
                                 <View
-                                    className="mr-2 w-10 h-10 rounded-md items-center justify-center"
-                                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                                    style={{
+                                        backgroundColor: Colors.light.whiteFfffff,
+                                        marginRight: width * 0.02,
+                                        width: width * 0.1,
+                                        height: width * 0.1,
+                                        borderRadius: 8
+                                    }}
+                                    className="items-center justify-center"
                                 >
                                     <Image
                                         source={icons.duedateicon}
-                                        className="h-7 w-7"
+                                        style={{
+                                            height: width * 0.07,
+                                            width: width * 0.07
+                                        }}
                                         resizeMode="contain"
                                     />
                                 </View>
 
                                 {/* Card content */}
                                 <View className="flex-1 flex-row justify-between items-center">
-                                    <View className="flex-1 pl-3">
+                                    <View
+                                        className="flex-1"
+                                        style={{ paddingLeft: width * 0.03 }}
+                                    >
                                         <Text
-                                            style={{ color: Colors.light.whiteFefefe }}
-                                            className="text-lg font-medium mb-1"
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.045,
+                                                marginBottom: height * 0.005
+                                            }}
+                                            className="font-medium"
                                         >
                                             Redeem Gift Card
                                         </Text>
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }}>
+                                        <Text
+                                            style={{
+                                                color: Colors.light.placeholderColorOp70,
+                                                fontSize: width * 0.035
+                                            }}
+                                        >
                                             Enter gift card or coupon code
                                         </Text>
                                     </View>
 
                                     {/* Navigation arrow */}
                                     <TouchableOpacity>
-                                        <Image source={icons.go} className="w-3 h-3" />
+                                        <Image
+                                            source={icons.go}
+                                            style={{
+                                                width: width * 0.03,
+                                                height: width * 0.03
+                                            }}
+                                        />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -719,19 +1041,30 @@ const WalletPage = () => {
                             style={{
                                 backgroundColor: Colors.light.bgBlueBtn,
                                 opacity: isLoggingOut ? 0.6 : 1,
+                                height: height * 0.055,
+                                marginVertical: height * 0.025,
+                                borderRadius: 12
                             }}
-                            className="flex items-center justify-center h-[52px] my-5 rounded-xl flex-row"
+                            className="flex items-center justify-center flex-row"
                             onPress={handleLogout}
                             disabled={isLoggingOut}
                         >
                             <Image
                                 source={icons.logout}
-                                className="h-5 w-5 mx-2"
-                                style={{ opacity: isLoggingOut ? 0.7 : 1 }}
+                                style={{
+                                    height: width * 0.05,
+                                    width: width * 0.05,
+                                    marginHorizontal: width * 0.02,
+                                    opacity: isLoggingOut ? 0.7 : 1
+                                }}
                             />
                             <Text
-                                style={{ color: Colors.light.whiteFefefe }}
-                                className="text-xl font-bold px-2"
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05,
+                                    paddingHorizontal: width * 0.02
+                                }}
+                                className="font-bold"
                             >
                                 {isLoggingOut ? 'Logging out...' : 'Logout'}
                             </Text>

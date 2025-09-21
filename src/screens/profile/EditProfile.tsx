@@ -1,4 +1,4 @@
-import { Image, ScrollView, Text, TouchableOpacity, View, ActivityIndicator, TextInput, Alert, Animated, StatusBar } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View, ActivityIndicator, TextInput, Alert, Animated, StatusBar, Dimensions } from "react-native";
 import { useEffect, useState, useRef } from "react";
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg2 from "../../assets/images/bg2.png";
@@ -8,6 +8,9 @@ import profileimg from "../../assets/images/profileimg.png";
 import { Colors } from "../../constants/Colors";
 import { useUser } from "../../context/UserContext";
 import type { MainStackParamList } from "../../navigation/types";
+
+// Get screen dimensions
+const { width, height } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<MainStackParamList, 'EditProfile'>;
 
@@ -374,9 +377,18 @@ const EditProfile = ({ navigation }: Props) => {
 
     if (userLoading || isRefreshing) {
         return (
-            <View className="flex-1 justify-center items-center" style={{ backgroundColor: Colors.light.blackPrimary }}>
+            <View
+                className="flex-1 justify-center items-center"
+                style={{ backgroundColor: Colors.light.blackPrimary }}
+            >
                 <ActivityIndicator size="large" color={Colors.light.whiteFfffff} />
-                <Text style={{ color: Colors.light.whiteFfffff }} className="mt-4 text-lg">
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.045,
+                        marginTop: height * 0.02
+                    }}
+                >
                     Loading profile...
                 </Text>
             </View>
@@ -385,14 +397,27 @@ const EditProfile = ({ navigation }: Props) => {
 
     if (!user || !editUser) {
         return (
-            <View className="flex-1 justify-center items-center" style={{ backgroundColor: Colors.light.blackPrimary }}>
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-lg">
+            <View
+                className="flex-1 justify-center items-center"
+                style={{ backgroundColor: Colors.light.blackPrimary }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.045
+                    }}
+                >
                     No user data available
                 </Text>
                 <TouchableOpacity
                     onPress={handleBackPress}
-                    className="mt-4 px-6 py-3 rounded-lg"
-                    style={{ backgroundColor: Colors.light.bgBlueBtn }}
+                    style={{
+                        backgroundColor: Colors.light.bgBlueBtn,
+                        marginTop: height * 0.02,
+                        paddingHorizontal: width * 0.06,
+                        paddingVertical: height * 0.015,
+                        borderRadius: 8
+                    }}
                 >
                     <Text style={{ color: Colors.light.whiteFfffff }}>Go Back</Text>
                 </TouchableOpacity>
@@ -406,8 +431,8 @@ const EditProfile = ({ navigation }: Props) => {
         <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-            {/* =================== FIXED HEADER SECTION MATCHING MOREPAGE =================== */}
-            <View className="relative h-32">
+            {/* =================== FIXED HEADER SECTION =================== */}
+            <View style={{ height: height * 0.14 }}>
                 {/* Background image */}
                 <Image
                     source={bg2}
@@ -416,134 +441,244 @@ const EditProfile = ({ navigation }: Props) => {
                 />
 
                 {/* Header Content with proper flexbox layout */}
-                <View className="flex-1 pt-12 pb-4 px-4">
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
                     {/* Header row with proper spacing */}
-                    <View className="flex-row items-center justify-between h-16">
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
                         {/* Back button */}
                         <TouchableOpacity
                             onPress={handleBackPress}
-                            className="w-10 h-10 items-center justify-center"
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
                         >
                             <Image
                                 source={icons.back}
-                                className="w-4 h-6"
+                                style={{
+                                    width: width * 0.04,
+                                    height: width * 0.06
+                                }}
                             />
                         </TouchableOpacity>
 
                         {/* Centered title */}
                         <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium pt-1"
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.075
+                            }}
+                            className="font-medium"
                         >
                             Edit Profile
                         </Text>
 
-                        {/* Empty space for symmetry (same as MorePage) */}
-                        <View className="w-10 h-10" />
+                        {/* Empty space for symmetry */}
+                        <View style={{ width: width * 0.1, height: width * 0.1 }} />
                     </View>
                 </View>
 
                 {/* Bottom border */}
                 <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                    className="absolute bottom-0 w-full"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        height: 1
+                    }}
                 />
             </View>
 
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 50 }}
+                contentContainerStyle={{
+                    paddingBottom: height * 0.06
+                }}
             >
                 {/* Profile Image Section */}
-                <View className="items-center mt-8 mb-6">
+                <View
+                    className="items-center"
+                    style={{
+                        marginTop: height * 0.04,
+                        marginBottom: height * 0.03
+                    }}
+                >
                     <View className="relative">
                         <Image
                             source={profileimg}
-                            className="w-24 h-24 rounded-full"
-                            style={{ borderWidth: 3, borderColor: Colors.light.whiteFfffff }}
+                            style={{
+                                width: width * 0.24,
+                                height: width * 0.24,
+                                borderRadius: (width * 0.24) / 2,
+                                borderWidth: 3,
+                                borderColor: Colors.light.whiteFfffff
+                            }}
                         />
                         <TouchableOpacity
-                            className="absolute bottom-0 right-0 w-8 h-8 rounded-full items-center justify-center"
-                            style={{ backgroundColor: Colors.light.bgBlueBtn }}
+                            style={{
+                                backgroundColor: Colors.light.bgBlueBtn,
+                                position: 'absolute',
+                                bottom: 0,
+                                right: 0,
+                                width: width * 0.08,
+                                height: width * 0.08,
+                                borderRadius: (width * 0.08) / 2
+                            }}
+                            className="items-center justify-center"
                         >
-                            <Text style={{ color: Colors.light.whiteFfffff, fontSize: 16 }}>+</Text>
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.04
+                                }}
+                            >
+                                +
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 {/* Form Fields */}
-                <View className="px-6 space-y-4">
-                    {/* Username Field - NO RED BORDER */}
-                    <View className="mb-4">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium mb-2">
+                <View style={{ paddingHorizontal: width * 0.06 }}>
+                    {/* Username Field */}
+                    <View style={{ marginBottom: height * 0.02 }}>
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-medium"
+                        >
                             Username
                         </Text>
                         <View
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
                                 borderRadius: 8,
+                                height: height * 0.06
                             }}
-                            className="flex flex-row items-center h-[56px]"
+                            className="flex flex-row items-center"
                         >
                             <TextInput
                                 value={editUser.username}
                                 onChangeText={(value) => handleEditChange('username', value)}
-                                className="ml-5 w-[280px] h-[56px] text-base"
-                                style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    color: Colors.light.blackPrimary,
+                                    marginLeft: width * 0.05,
+                                    width: width * 0.7,
+                                    height: height * 0.058,
+                                    fontSize: width * 0.04
+                                }}
                                 placeholder="Enter username"
                                 placeholderTextColor={Colors.light.placeholderColor}
                             />
                         </View>
                         {editErrors.username && (
-                            <Text className="text-red-400 text-sm mt-1">{editErrors.username}</Text>
+                            <Text
+                                style={{
+                                    color: '#ff4444',
+                                    fontSize: width * 0.035,
+                                    marginTop: height * 0.005
+                                }}
+                            >
+                                {editErrors.username}
+                            </Text>
                         )}
                     </View>
 
-                    {/* Email Field - NO RED BORDER */}
-                    <View className="mb-4">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium mb-2">
+                    {/* Email Field */}
+                    <View style={{ marginBottom: height * 0.02 }}>
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-medium"
+                        >
                             Email
                         </Text>
                         <View
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
                                 borderRadius: 8,
+                                height: height * 0.06
                             }}
-                            className="flex flex-row items-center h-[56px]"
+                            className="flex flex-row items-center"
                         >
                             <TextInput
                                 value={editUser.email}
                                 onChangeText={(value) => handleEditChange('email', value)}
-                                className="ml-5 w-[280px] h-[56px] text-base"
-                                style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    color: Colors.light.blackPrimary,
+                                    marginLeft: width * 0.05,
+                                    width: width * 0.7,
+                                    height: height * 0.058,
+                                    fontSize: width * 0.04
+                                }}
                                 placeholder="Enter email"
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 keyboardType="email-address"
                             />
                         </View>
                         {editErrors.email && (
-                            <Text className="text-red-400 text-sm mt-1">{editErrors.email}</Text>
+                            <Text
+                                style={{
+                                    color: '#ff4444',
+                                    fontSize: width * 0.035,
+                                    marginTop: height * 0.005
+                                }}
+                            >
+                                {editErrors.email}
+                            </Text>
                         )}
                     </View>
 
-                    {/* Phone Field - NO RED BORDER */}
-                    <View className="mb-4">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium mb-2">
+                    {/* Phone Field */}
+                    <View style={{ marginBottom: height * 0.02 }}>
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-medium"
+                        >
                             Phone Number
                         </Text>
                         <View
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
                                 borderRadius: 8,
+                                height: height * 0.06
                             }}
-                            className="flex flex-row items-center h-[56px]"
+                            className="flex flex-row items-center"
                         >
                             <TextInput
                                 value={editUser.phone_number}
                                 onChangeText={handlePhoneChange}
-                                className="ml-5 w-[280px] h-[56px] text-base"
-                                style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    color: Colors.light.blackPrimary,
+                                    marginLeft: width * 0.05,
+                                    width: width * 0.7,
+                                    height: height * 0.058,
+                                    fontSize: width * 0.04
+                                }}
                                 placeholder="Enter phone number (10 digits)"
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 keyboardType="numeric"
@@ -551,20 +686,48 @@ const EditProfile = ({ navigation }: Props) => {
                             />
                         </View>
                         {editErrors.phone_number && (
-                            <Text className="text-red-400 text-sm mt-1">{editErrors.phone_number}</Text>
+                            <Text
+                                style={{
+                                    color: '#ff4444',
+                                    fontSize: width * 0.035,
+                                    marginTop: height * 0.005
+                                }}
+                            >
+                                {editErrors.phone_number}
+                            </Text>
                         )}
                     </View>
 
                     {/* Age Field (Read-only) */}
-                    <View className="mb-4">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium mb-2">
+                    <View style={{ marginBottom: height * 0.02 }}>
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-medium"
+                        >
                             Age
                         </Text>
-                        <View style={{ backgroundColor: '#f3f4f6', borderRadius: 8 }} className="flex flex-row items-center h-[56px]">
+                        <View
+                            style={{
+                                backgroundColor: '#f3f4f6',
+                                borderRadius: 8,
+                                height: height * 0.06
+                            }}
+                            className="flex flex-row items-center"
+                        >
                             <TextInput
                                 value={editUser.age}
-                                className="ml-5 w-[280px] h-[56px] text-base"
-                                style={{ backgroundColor: '#f3f4f6', color: '#6b7280' }}
+                                style={{
+                                    backgroundColor: '#f3f4f6',
+                                    color: '#6b7280',
+                                    marginLeft: width * 0.05,
+                                    width: width * 0.7,
+                                    height: height * 0.058,
+                                    fontSize: width * 0.04
+                                }}
                                 placeholder="Age"
                                 editable={false}
                             />
@@ -572,21 +735,44 @@ const EditProfile = ({ navigation }: Props) => {
                     </View>
 
                     {/* Gender Field - KYC STYLE DROPDOWN */}
-                    <View className="mb-5 relative">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium mb-2">
+                    <View
+                        className="relative"
+                        style={{ marginBottom: height * 0.025 }}
+                    >
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-medium"
+                        >
                             Gender
                         </Text>
                         <TouchableOpacity
-                            style={{ backgroundColor: Colors.light.whiteFfffff, borderRadius: 8 }}
-                            className="flex flex-row items-center justify-between w-full h-[56px] px-5"
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                borderRadius: 8,
+                                height: height * 0.06,
+                                paddingHorizontal: width * 0.05
+                            }}
+                            className="flex flex-row items-center justify-between w-full"
                             onPress={handleGenderDropdownToggle}
                         >
-                            <Text style={{ color: editUser.gender ? Colors.light.blackPrimary : Colors.light.placeholderColor }} className="text-base">
+                            <Text
+                                style={{
+                                    color: editUser.gender ? Colors.light.blackPrimary : Colors.light.placeholderColor,
+                                    fontSize: width * 0.04
+                                }}
+                            >
                                 {editUser.gender ? editUser.gender : "Select Gender*"}
                             </Text>
                             <Image
                                 source={isGenderDropdownOpen ? icons.dropdownicon : icons.upicon}
-                                className="w-3 h-3"
+                                style={{
+                                    width: width * 0.03,
+                                    height: width * 0.03
+                                }}
                             />
                         </TouchableOpacity>
 
@@ -597,19 +783,31 @@ const EditProfile = ({ navigation }: Props) => {
                                     backgroundColor: Colors.light.whiteFfffff,
                                     borderColor: Colors.light.secondaryText,
                                     position: 'absolute',
-                                    top: 80,
+                                    top: height * 0.1,
                                     width: '100%',
                                     zIndex: 1000,
-                                    maxHeight: 150,
+                                    maxHeight: height * 0.19,
                                     borderRadius: 8,
+                                    borderWidth: 1
                                 }}
-                                className="border"
                             >
                                 {/* Search input for filtering gender */}
-                                <View style={{ borderColor: Colors.light.secondaryText }} className="px-4 py-1 border-b">
+                                <View
+                                    style={{
+                                        borderColor: Colors.light.secondaryText,
+                                        paddingHorizontal: width * 0.04,
+                                        paddingVertical: height * 0.005,
+                                        borderBottomWidth: 1
+                                    }}
+                                >
                                     <TextInput
-                                        style={{ backgroundColor: Colors.light.whiteFefefe, color: Colors.light.blackPrimary }}
-                                        className="h-[40px] px-3 rounded-lg"
+                                        style={{
+                                            backgroundColor: Colors.light.whiteFefefe,
+                                            color: Colors.light.blackPrimary,
+                                            height: height * 0.05,
+                                            paddingHorizontal: width * 0.03,
+                                            borderRadius: 8
+                                        }}
                                         placeholder="Search gender..."
                                         placeholderTextColor={Colors.light.placeholderColor}
                                         value={genderSearchQuery}
@@ -620,7 +818,7 @@ const EditProfile = ({ navigation }: Props) => {
 
                                 {/* Scrollable gender options list */}
                                 <ScrollView
-                                    style={{ maxHeight: 100 }}
+                                    style={{ maxHeight: height * 0.125 }}
                                     nestedScrollEnabled={true}
                                     showsVerticalScrollIndicator={true}
                                 >
@@ -628,18 +826,41 @@ const EditProfile = ({ navigation }: Props) => {
                                         filteredGenderOptions.map((option, index) => (
                                             <TouchableOpacity
                                                 key={index}
-                                                style={{ borderColor: Colors.light.secondaryText }}
-                                                className="px-5 py-4 h-[56px] justify-center border-b last:border-b-0"
+                                                style={{
+                                                    borderColor: Colors.light.secondaryText,
+                                                    paddingHorizontal: width * 0.05,
+                                                    paddingVertical: height * 0.02,
+                                                    height: height * 0.07,
+                                                    justifyContent: 'center',
+                                                    borderBottomWidth: index < filteredGenderOptions.length - 1 ? 1 : 0
+                                                }}
                                                 onPress={() => handleGenderSelect(option)}
                                             >
-                                                <Text style={{ color: Colors.light.blackPrimary }} className="text-base">
+                                                <Text
+                                                    style={{
+                                                        color: Colors.light.blackPrimary,
+                                                        fontSize: width * 0.04
+                                                    }}
+                                                >
                                                     {option.label}
                                                 </Text>
                                             </TouchableOpacity>
                                         ))
                                     ) : (
-                                        <View className="px-5 py-4 h-[56px] justify-center">
-                                            <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-base">
+                                        <View
+                                            style={{
+                                                paddingHorizontal: width * 0.05,
+                                                paddingVertical: height * 0.02,
+                                                height: height * 0.07,
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: Colors.light.placeholderColorOp70,
+                                                    fontSize: width * 0.04
+                                                }}
+                                            >
                                                 No gender found
                                             </Text>
                                         </View>
@@ -650,21 +871,44 @@ const EditProfile = ({ navigation }: Props) => {
                     </View>
 
                     {/* Occupation Field - KYC STYLE DROPDOWN */}
-                    <View className="mb-5 relative">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium mb-2">
+                    <View
+                        className="relative"
+                        style={{ marginBottom: height * 0.025 }}
+                    >
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-medium"
+                        >
                             Occupation
                         </Text>
                         <TouchableOpacity
-                            style={{ backgroundColor: Colors.light.whiteFfffff, borderRadius: 8 }}
-                            className="flex flex-row items-center justify-between w-full h-[56px] px-5"
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                borderRadius: 8,
+                                height: height * 0.06,
+                                paddingHorizontal: width * 0.05
+                            }}
+                            className="flex flex-row items-center justify-between w-full"
                             onPress={handleOccupationDropdownToggle}
                         >
-                            <Text style={{ color: editUser.occupation ? Colors.light.blackPrimary : Colors.light.placeholderColor }} className="text-base">
+                            <Text
+                                style={{
+                                    color: editUser.occupation ? Colors.light.blackPrimary : Colors.light.placeholderColor,
+                                    fontSize: width * 0.04
+                                }}
+                            >
                                 {editUser.occupation ? editUser.occupation : "Select Occupation*"}
                             </Text>
                             <Image
                                 source={isOccupationDropdownOpen ? icons.dropdownicon : icons.upicon}
-                                className="w-3 h-3"
+                                style={{
+                                    width: width * 0.03,
+                                    height: width * 0.03
+                                }}
                             />
                         </TouchableOpacity>
 
@@ -675,19 +919,31 @@ const EditProfile = ({ navigation }: Props) => {
                                     backgroundColor: Colors.light.whiteFfffff,
                                     borderColor: Colors.light.secondaryText,
                                     position: 'absolute',
-                                    top: 80,
+                                    top: height * 0.1,
                                     width: '100%',
                                     zIndex: 1000,
-                                    maxHeight: 150,
+                                    maxHeight: height * 0.19,
                                     borderRadius: 8,
+                                    borderWidth: 1
                                 }}
-                                className="border"
                             >
                                 {/* Search input */}
-                                <View style={{ borderColor: Colors.light.secondaryText }} className="px-4 py-1 border-b">
+                                <View
+                                    style={{
+                                        borderColor: Colors.light.secondaryText,
+                                        paddingHorizontal: width * 0.04,
+                                        paddingVertical: height * 0.005,
+                                        borderBottomWidth: 1
+                                    }}
+                                >
                                     <TextInput
-                                        style={{ backgroundColor: Colors.light.whiteFefefe, color: Colors.light.blackPrimary }}
-                                        className="h-[40px] px-3 rounded-lg"
+                                        style={{
+                                            backgroundColor: Colors.light.whiteFefefe,
+                                            color: Colors.light.blackPrimary,
+                                            height: height * 0.05,
+                                            paddingHorizontal: width * 0.03,
+                                            borderRadius: 8
+                                        }}
                                         placeholder="Search occupation..."
                                         placeholderTextColor={Colors.light.placeholderColor}
                                         value={occupationSearchQuery}
@@ -698,7 +954,7 @@ const EditProfile = ({ navigation }: Props) => {
 
                                 {/* Scrollable occupation list */}
                                 <ScrollView
-                                    style={{ maxHeight: 100 }}
+                                    style={{ maxHeight: height * 0.125 }}
                                     nestedScrollEnabled={true}
                                     showsVerticalScrollIndicator={true}
                                 >
@@ -706,18 +962,41 @@ const EditProfile = ({ navigation }: Props) => {
                                         filteredOccupationOptions.map((option, index) => (
                                             <TouchableOpacity
                                                 key={index}
-                                                style={{ borderColor: Colors.light.secondaryText }}
-                                                className="px-5 py-4 h-[56px] justify-center border-b last:border-b-0"
+                                                style={{
+                                                    borderColor: Colors.light.secondaryText,
+                                                    paddingHorizontal: width * 0.05,
+                                                    paddingVertical: height * 0.02,
+                                                    height: height * 0.07,
+                                                    justifyContent: 'center',
+                                                    borderBottomWidth: index < filteredOccupationOptions.length - 1 ? 1 : 0
+                                                }}
                                                 onPress={() => handleOccupationSelect(option)}
                                             >
-                                                <Text style={{ color: Colors.light.blackPrimary }} className="text-base">
+                                                <Text
+                                                    style={{
+                                                        color: Colors.light.blackPrimary,
+                                                        fontSize: width * 0.04
+                                                    }}
+                                                >
                                                     {option.label}
                                                 </Text>
                                             </TouchableOpacity>
                                         ))
                                     ) : (
-                                        <View className="px-5 py-4 h-[56px] justify-center">
-                                            <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-base">
+                                        <View
+                                            style={{
+                                                paddingHorizontal: width * 0.05,
+                                                paddingVertical: height * 0.02,
+                                                height: height * 0.07,
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: Colors.light.placeholderColorOp70,
+                                                    fontSize: width * 0.04
+                                                }}
+                                            >
                                                 No occupations found
                                             </Text>
                                         </View>
@@ -727,23 +1006,37 @@ const EditProfile = ({ navigation }: Props) => {
                         )}
                     </View>
 
-                    {/* Aadhar Number Field - NO RED BORDER */}
-                    <View className="mb-4">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium mb-2">
+                    {/* Aadhar Number Field */}
+                    <View style={{ marginBottom: height * 0.02 }}>
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-medium"
+                        >
                             Aadhar Number
                         </Text>
                         <View
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
                                 borderRadius: 8,
+                                height: height * 0.06
                             }}
-                            className="flex flex-row items-center h-[56px]"
+                            className="flex flex-row items-center"
                         >
                             <TextInput
                                 value={editUser.aadharnumber}
                                 onChangeText={handleAadharChange}
-                                className="ml-5 w-[280px] h-[56px] text-base"
-                                style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    color: Colors.light.blackPrimary,
+                                    marginLeft: width * 0.05,
+                                    width: width * 0.7,
+                                    height: height * 0.058,
+                                    fontSize: width * 0.04
+                                }}
                                 placeholder="Enter Aadhar number (12 digits)"
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 keyboardType="numeric"
@@ -751,21 +1044,49 @@ const EditProfile = ({ navigation }: Props) => {
                             />
                         </View>
                         {editErrors.aadharnumber && (
-                            <Text className="text-red-400 text-sm mt-1">{editErrors.aadharnumber}</Text>
+                            <Text
+                                style={{
+                                    color: '#ff4444',
+                                    fontSize: width * 0.035,
+                                    marginTop: height * 0.005
+                                }}
+                            >
+                                {editErrors.aadharnumber}
+                            </Text>
                         )}
                     </View>
 
                     {/* Instagram Username Field */}
-                    <View className="mb-4">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium mb-2">
+                    <View style={{ marginBottom: height * 0.02 }}>
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-medium"
+                        >
                             Instagram Username <Text style={{ color: Colors.light.placeholderColor }}>(Optional)</Text>
                         </Text>
-                        <View style={{ backgroundColor: Colors.light.whiteFfffff, borderRadius: 8 }} className="flex flex-row items-center h-[56px]">
+                        <View
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                borderRadius: 8,
+                                height: height * 0.06
+                            }}
+                            className="flex flex-row items-center"
+                        >
                             <TextInput
                                 value={editUser.instagram_username}
                                 onChangeText={(value) => handleEditChange('instagram_username', value)}
-                                className="ml-5 w-[280px] h-[56px] text-base"
-                                style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    color: Colors.light.blackPrimary,
+                                    marginLeft: width * 0.05,
+                                    width: width * 0.7,
+                                    height: height * 0.058,
+                                    fontSize: width * 0.04
+                                }}
                                 placeholder="Enter Instagram Username"
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 autoCapitalize="none"
@@ -774,23 +1095,37 @@ const EditProfile = ({ navigation }: Props) => {
                         </View>
                     </View>
 
-                    {/* UPI ID Field - NO RED BORDER */}
-                    <View className="mb-4">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium mb-2">
+                    {/* UPI ID Field */}
+                    <View style={{ marginBottom: height * 0.02 }}>
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-medium"
+                        >
                             UPI ID <Text style={{ color: Colors.light.placeholderColor }}>(Optional)</Text>
                         </Text>
                         <View
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
                                 borderRadius: 8,
+                                height: height * 0.06
                             }}
-                            className="flex flex-row items-center h-[56px]"
+                            className="flex flex-row items-center"
                         >
                             <TextInput
                                 value={editUser.upi}
                                 onChangeText={(value) => handleEditChange('upi', value)}
-                                className="ml-5 w-[280px] h-[56px] text-base"
-                                style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    color: Colors.light.blackPrimary,
+                                    marginLeft: width * 0.05,
+                                    width: width * 0.7,
+                                    height: height * 0.058,
+                                    fontSize: width * 0.04
+                                }}
                                 placeholder="Enter UPI ID (e.g., username@paytm)"
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 autoCapitalize="none"
@@ -799,27 +1134,49 @@ const EditProfile = ({ navigation }: Props) => {
                             />
                         </View>
                         {editErrors.upi && (
-                            <Text className="text-red-400 text-sm mt-1">{editErrors.upi}</Text>
+                            <Text
+                                style={{
+                                    color: '#ff4444',
+                                    fontSize: width * 0.035,
+                                    marginTop: height * 0.005
+                                }}
+                            >
+                                {editErrors.upi}
+                            </Text>
                         )}
                     </View>
 
-                    {/* PAN Number Field - NO RED BORDER */}
-                    <View className="mb-8">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium mb-2">
+                    {/* PAN Number Field */}
+                    <View style={{ marginBottom: height * 0.04 }}>
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-medium"
+                        >
                             PAN Number <Text style={{ color: Colors.light.placeholderColor }}>(Optional)</Text>
                         </Text>
                         <View
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
                                 borderRadius: 8,
+                                height: height * 0.06
                             }}
-                            className="flex flex-row items-center h-[56px]"
+                            className="flex flex-row items-center"
                         >
                             <TextInput
                                 value={editUser.pan_number}
                                 onChangeText={(value) => handleEditChange('pan_number', value)}
-                                className="ml-5 w-[280px] h-[56px] text-base"
-                                style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    color: Colors.light.blackPrimary,
+                                    marginLeft: width * 0.05,
+                                    width: width * 0.7,
+                                    height: height * 0.058,
+                                    fontSize: width * 0.04
+                                }}
                                 placeholder="Enter PAN Number (e.g., ABCDE1234F)"
                                 placeholderTextColor={Colors.light.placeholderColor}
                                 autoCapitalize="characters"
@@ -828,61 +1185,83 @@ const EditProfile = ({ navigation }: Props) => {
                             />
                         </View>
                         {editErrors.pan_number && (
-                            <Text className="text-red-400 text-sm mt-1">{editErrors.pan_number}</Text>
+                            <Text
+                                style={{
+                                    color: '#ff4444',
+                                    fontSize: width * 0.035,
+                                    marginTop: height * 0.005
+                                }}
+                            >
+                                {editErrors.pan_number}
+                            </Text>
                         )}
                     </View>
 
                     {/* Action Buttons */}
-                    <View className="flex-row justify-between items-center mt-6">
+                    <View
+                        className="flex-row justify-between items-center"
+                        style={{ marginTop: height * 0.03 }}
+                    >
                         <TouchableOpacity
                             onPress={updateUser}
                             disabled={isButtonDisabled}
-                            style={{ opacity: isButtonDisabled ? 0.5 : 1 }}
+                            style={{
+                                opacity: isButtonDisabled ? 0.5 : 1,
+                                width: width * 0.43,
+                                height: height * 0.055,
+                                borderRadius: 10,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                backgroundColor: hasChanges ? Colors.light.bgBlueBtn : '#6b7280'
+                            }}
                         >
                             {loading ? (
-                                <View
-                                    className="flex-row justify-center items-center px-6 py-3 rounded-lg"
-                                    style={{ backgroundColor: '#6b7280', width: 180, height: 50 }}
-                                >
+                                <View className="flex-row justify-center items-center">
                                     <ActivityIndicator size="small" color={Colors.light.whiteFfffff} />
-                                    <Text style={{ color: Colors.light.whiteFfffff, fontSize: 18, fontWeight: '600' }} className="ml-2">
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.045,
+                                            fontWeight: '600',
+                                            marginLeft: width * 0.02
+                                        }}
+                                    >
                                         Saving...
                                     </Text>
                                 </View>
                             ) : (
-                                <View
-                                    className="flex-row justify-center items-center px-6 py-3 rounded-lg"
+                                <Text
                                     style={{
-                                        backgroundColor: hasChanges ? Colors.light.bgBlueBtn : '#6b7280',
-                                        width: 180,
-                                        height: 50
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.045,
+                                        fontWeight: '600'
                                     }}
                                 >
-                                    <Text style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: 18,
-                                        fontWeight: '600'
-                                    }}>
-                                        Save Changes
-                                    </Text>
-                                </View>
+                                    Save Changes
+                                </Text>
                             )}
                         </TouchableOpacity>
 
                         <TouchableOpacity
                             onPress={handleCancel}
                             disabled={loading}
-                            className="py-3 px-6 rounded-lg"
                             style={{
                                 backgroundColor: Colors.light.backlight2,
                                 opacity: loading ? 0.5 : 1,
-                                width: 180,
-                                height: 50,
+                                width: width * 0.43,
+                                height: height * 0.055,
+                                borderRadius: 10,
                                 justifyContent: 'center',
                                 alignItems: 'center'
                             }}
                         >
-                            <Text style={{ color: Colors.light.whiteFfffff, fontSize: 18, fontWeight: '600' }}>
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.045,
+                                    fontWeight: '600'
+                                }}
+                            >
                                 Cancel
                             </Text>
                         </TouchableOpacity>
@@ -895,12 +1274,12 @@ const EditProfile = ({ navigation }: Props) => {
                 <Animated.View
                     style={{
                         position: 'absolute',
-                        bottom: 60,
-                        left: 20,
-                        right: 20,
+                        bottom: height * 0.075,
+                        left: width * 0.05,
+                        right: width * 0.05,
                         backgroundColor: Colors.light.bgGreen,
                         borderRadius: 10,
-                        padding: 16,
+                        padding: width * 0.04,
                         flexDirection: 'row',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -918,7 +1297,7 @@ const EditProfile = ({ navigation }: Props) => {
                 >
                     <Text style={{
                         color: 'white',
-                        fontSize: 16,
+                        fontSize: width * 0.04,
                         fontWeight: '600',
                         flex: 1,
                         textAlign: 'center'

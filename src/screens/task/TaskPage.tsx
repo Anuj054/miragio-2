@@ -8,7 +8,8 @@ import {
     ImageBackground,
     Alert,
     RefreshControl,
-    StatusBar
+    StatusBar,
+    Dimensions
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -34,6 +35,8 @@ import { useUser } from "../../context/UserContext";
 import type { TaskStackParamList } from "../../navigation/types";
 
 type Props = NativeStackScreenProps<TaskStackParamList, 'TaskPage'>;
+
+const { width, height } = Dimensions.get('window');
 
 // Type definitions
 interface AssignedUser {
@@ -85,7 +88,7 @@ interface GroupedTasks {
 
 type FilterOption = 'All' | 'Upcoming' | 'Completed' | 'Pending' | 'Rejected';
 
-const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
+const TaskPage = ({ navigation }: Props) => {
     const [activeFilter, setActiveFilter] = useState<FilterOption>("All");
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -258,15 +261,13 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
         }
     };
 
-    // FIXED: Navigation handlers
+    // Navigation handlers
     const handleTaskNavigation = (task: Task) => {
-        // Only completed tasks should go to TaskSuccessful
         if (task.status === 'completed') {
             (navigation as any).navigate('TaskSuccessful');
             return;
         }
 
-        // Rejected tasks show alert only
         if (task.status === 'rejected') {
             Alert.alert(
                 "Task Rejected",
@@ -276,7 +277,6 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
             return;
         }
 
-        // For upcoming and pending tasks, navigate to TaskDetails
         if (task.status === 'upcoming' || task.status === 'pending') {
             navigation.navigate('TaskDetails', { taskId: String(task.id) });
             return;
@@ -284,7 +284,6 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
     };
 
     const handleProfilePress = () => {
-
         navigation.getParent()?.navigate('UserProfile', { from: 'taskpage' });
     };
 
@@ -295,19 +294,23 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
             onPress={() => {
                 setActiveFilter(option);
             }}
-            className={`px-4 py-2 rounded-full ${index < filterOptions.length - 1 ? 'mr-3' : ''
-                } ${activeFilter === option ? 'border-0' : 'border'}`}
             style={{
                 backgroundColor: activeFilter === option ? Colors.light.bgBlueBtn : 'transparent',
                 borderColor: activeFilter === option ? 'transparent' : Colors.light.secondaryText,
-                minWidth: 80,
+                borderWidth: activeFilter === option ? 0 : 1,
+                borderRadius: 20,
+                paddingHorizontal: width * 0.04,
+                paddingVertical: height * 0.009,
+                marginRight: index < filterOptions.length - 1 ? width * 0.03 : 0,
+                minWidth: width * 0.18,
             }}
         >
             <Text
-                className={`text-center text-sm ${activeFilter === option ? 'font-bold' : 'font-normal'
-                    }`}
                 style={{
                     color: Colors.light.whiteFefefe,
+                    fontSize: width * 0.035,
+                    fontWeight: activeFilter === option ? 'bold' : 'normal',
+                    textAlign: 'center'
                 }}
             >
                 {option}
@@ -316,10 +319,16 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
     );
 
     const renderLoadingState = () => (
-        <View className="items-center justify-center py-10">
+        <View
+            className="items-center justify-center"
+            style={{ paddingVertical: height * 0.1 }}
+        >
             <Text
-                className="text-xl font-medium"
-                style={{ color: Colors.light.placeholderColorOp70 }}
+                style={{
+                    color: Colors.light.placeholderColorOp70,
+                    fontSize: width * 0.05
+                }}
+                className="font-medium"
             >
                 Loading tasks...
             </Text>
@@ -327,21 +336,38 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
     );
 
     const renderErrorState = () => (
-        <View className="items-center justify-center py-10 px-4">
+        <View
+            className="items-center justify-center"
+            style={{
+                paddingVertical: height * 0.1,
+                paddingHorizontal: width * 0.04
+            }}
+        >
             <Text
-                className="text-xl font-medium text-center mb-4"
-                style={{ color: Colors.light.placeholderColorOp70 }}
+                style={{
+                    color: Colors.light.placeholderColorOp70,
+                    fontSize: width * 0.05,
+                    marginBottom: height * 0.02
+                }}
+                className="font-medium text-center"
             >
                 {error}
             </Text>
             <TouchableOpacity
                 onPress={refreshTasks}
-                className="px-6 py-3 rounded-lg"
-                style={{ backgroundColor: Colors.light.bgBlueBtn }}
+                style={{
+                    backgroundColor: Colors.light.bgBlueBtn,
+                    paddingHorizontal: width * 0.06,
+                    paddingVertical: height * 0.015,
+                    borderRadius: 8
+                }}
             >
                 <Text
-                    className="text-base font-semibold"
-                    style={{ color: Colors.light.whiteFefefe }}
+                    style={{
+                        color: Colors.light.whiteFefefe,
+                        fontSize: width * 0.04
+                    }}
+                    className="font-semibold"
                 >
                     Retry
                 </Text>
@@ -356,38 +382,54 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
             resizeMode="stretch"
             style={{
                 borderLeftColor: getBorderColor(task.status),
-                marginHorizontal: 16,
-                marginBottom: 16
+                borderLeftWidth: 4,
+                borderRadius: 12,
+                marginHorizontal: width * 0.04,
+                marginBottom: height * 0.02,
+                padding: width * 0.04
             }}
-            className="w-auto rounded-xl p-4 border-l-4 "
         >
             {/* Header section with icon, title and arrow */}
-            <View className="flex-row items-center mb-3">
+            <View
+                className="flex-row items-center"
+                style={{ marginBottom: height * 0.015 }}
+            >
                 {/* Task Icon */}
-                <View className="mr-4">
+                <View style={{ marginRight: width * 0.04 }}>
                     <Image
                         source={task.icon}
-                        className="h-12 w-12"
+                        style={{
+                            height: width * 0.12,
+                            width: width * 0.12,
+                            opacity: task.status === 'rejected' ? 0.5 : 1
+                        }}
                         resizeMode="contain"
-                        style={{ opacity: task.status === 'rejected' ? 0.5 : 1 }}
                     />
                 </View>
 
                 {/* Title and Description Container */}
-                <View className="flex-1 mr-3">
+                <View
+                    className="flex-1"
+                    style={{ marginRight: width * 0.03 }}
+                >
                     <Text
                         style={{
                             color: task.status === 'rejected'
                                 ? Colors.light.placeholderColorOp70
-                                : Colors.light.whiteFefefe
+                                : Colors.light.whiteFefefe,
+                            fontSize: width * 0.045,
+                            marginBottom: height * 0.005
                         }}
-                        className="text-lg mb-1 font-normal"
+                        className="font-normal"
                     >
                         {task.title}
                     </Text>
                     <Text
-                        style={{ color: Colors.light.placeholderColorOp70 }}
-                        className="text-sm leading-5"
+                        style={{
+                            color: Colors.light.placeholderColorOp70,
+                            fontSize: width * 0.035,
+                            lineHeight: width * 0.05
+                        }}
                     >
                         {task.description}
                     </Text>
@@ -397,8 +439,9 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                 <TouchableOpacity onPress={() => handleTaskNavigation(task)}>
                     <Image
                         source={icons.go}
-                        className="w-[12px] h-[12px] mt-1"
                         style={{
+                            width: width * 0.03,
+                            height: width * 0.03,
                             opacity: task.status === 'rejected' ? 0.5 : 1
                         }}
                     />
@@ -408,15 +451,18 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
             {/* Button and Coin Section */}
             <View className="flex-row items-center justify-between">
                 {/* Status Button Container */}
-                <View className="flex-1 mr-4">
+                <View
+                    className="flex-1"
+                    style={{ marginRight: width * 0.04 }}
+                >
                     {task.status === 'rejected' && (
                         <CustomRedGradientButton
                             text="Rejected"
-                            width={260}
-                            height={35}
+                            width={width * 0.63}
+                            height={height * 0.038}
                             fontWeight={600}
                             borderRadius={10}
-                            fontSize={16}
+                            fontSize={width * 0.04}
                             textColor="white"
                             onPress={() => handleTaskNavigation(task)}
                             disabled={true}
@@ -426,11 +472,11 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                     {task.status === 'pending' && (
                         <CustomOrangeGradientButton
                             text="Pending Review"
-                            width={260}
-                            height={35}
+                            width={width * 0.63}
+                            height={height * 0.038}
                             fontWeight={600}
                             borderRadius={10}
-                            fontSize={16}
+                            fontSize={width * 0.04}
                             textColor="white"
                             onPress={() => handleTaskNavigation(task)}
                             disabled={true}
@@ -440,11 +486,11 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                     {task.status === 'completed' && (
                         <CustomGreenGradientButton
                             text="Completed"
-                            width={260}
-                            height={35}
+                            width={width * 0.63}
+                            height={height * 0.038}
                             fontWeight={600}
                             borderRadius={10}
-                            fontSize={16}
+                            fontSize={width * 0.04}
                             textColor="white"
                             onPress={() => handleTaskNavigation(task)}
                         />
@@ -453,11 +499,11 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                     {task.status === 'upcoming' && (
                         <CustomGradientButton
                             text="Do It Now"
-                            width={260}
-                            height={35}
+                            width={width * 0.63}
+                            height={height * 0.038}
                             fontWeight={600}
                             borderRadius={10}
-                            fontSize={16}
+                            fontSize={width * 0.04}
                             textColor="white"
                             onPress={() => handleTaskNavigation(task)}
                         />
@@ -465,19 +511,27 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                 </View>
 
                 {/* Coin and Reward Display */}
-                <View className=" flex flex-row items-center ml-3">
+                <View
+                    className="flex flex-row items-center"
+                    style={{ marginLeft: width * 0.03 }}
+                >
                     <Image
                         source={icons.maincoin}
-                        className="w-[25px] h-[25px] "
-                        style={{ opacity: task.status === 'rejected' ? 0.5 : 1 }}
+                        style={{
+                            width: width * 0.06,
+                            height: width * 0.06,
+                            opacity: task.status === 'rejected' ? 0.5 : 1
+                        }}
                     />
                     <Text
                         style={{
                             color: task.status === 'rejected'
                                 ? Colors.light.placeholderColorOp70
-                                : Colors.light.whiteFefefe
+                                : Colors.light.whiteFefefe,
+                            fontSize: width * 0.04,
+                            paddingLeft: width * 0.01
                         }}
-                        className="text-base font-semibold pl-1"
+                        className="font-semibold"
                     >
                         {task.reward}
                     </Text>
@@ -490,8 +544,8 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
         <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-            {/* =================== FIXED HEADER SECTION =================== */}
-            <View className="relative h-32">
+            {/* Fixed Header Section - Responsive */}
+            <View style={{ height: height * 0.14 }}>
                 {/* Background image */}
                 <Image
                     source={bg2}
@@ -499,22 +553,30 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                     className="w-full h-full absolute"
                 />
 
-                {/* Header Content with proper flexbox layout */}
-                <View className="flex-1 pt-12 pb-4 px-4">
-                    {/* Header row with proper spacing */}
-                    <View className="flex-row items-center justify-between h-16">
-                        {/* Back button */}
-                        <TouchableOpacity
-
-                            className="w-10 h-10 items-center justify-center"
-                        >
-
-                        </TouchableOpacity>
+                {/* Header Content */}
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
+                    {/* Header row */}
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
+                        {/* Back button (empty space for balance) */}
+                        <View style={{ width: width * 0.1, height: width * 0.1 }} />
 
                         {/* Centered title */}
                         <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium pt-1"
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.075
+                            }}
+                            className="font-medium"
                         >
                             Tasks
                         </Text>
@@ -522,12 +584,21 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                         {/* Profile photo */}
                         <TouchableOpacity
                             onPress={handleProfilePress}
-                            style={{ backgroundColor: Colors.light.whiteFfffff }}
-                            className="w-11 h-11 rounded-full items-center justify-center"
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                width: width * 0.11,
+                                height: width * 0.11,
+                                borderRadius: (width * 0.11) / 2
+                            }}
+                            className="items-center justify-center"
                         >
                             <Image
                                 source={profilephoto}
-                                className="h-11 w-11 rounded-full"
+                                style={{
+                                    height: width * 0.11,
+                                    width: width * 0.11,
+                                    borderRadius: (width * 0.11) / 2
+                                }}
                             />
                         </TouchableOpacity>
                     </View>
@@ -535,16 +606,19 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
 
                 {/* Bottom border */}
                 <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                    className="absolute bottom-0 w-full"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        height: 1
+                    }}
                 />
             </View>
 
-            {/* =================== SCROLLABLE CONTENT SECTION =================== */}
+            {/* Scrollable Content Section */}
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: height * 0.12 }}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -559,9 +633,9 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{
-                        paddingHorizontal: 16,
-                        paddingVertical: 16,
-                        paddingTop: 20,
+                        paddingHorizontal: width * 0.04,
+                        paddingVertical: height * 0.02,
+                        paddingTop: height * 0.025,
                     }}
                     className="flex-grow-0"
                 >
@@ -578,17 +652,30 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                 ) : hasTasks ? (
                     <View>
                         {sortedMonthKeys.map((monthYear) => (
-                            <View key={monthYear} className="mb-6">
-                                <View className="px-4 pb-4">
+                            <View
+                                key={monthYear}
+                                style={{ marginBottom: height * 0.03 }}
+                            >
+                                <View
+                                    style={{
+                                        paddingHorizontal: width * 0.04,
+                                        paddingBottom: height * 0.02
+                                    }}
+                                >
                                     <Text
-                                        className="text-xl font-semibold"
-                                        style={{ color: Colors.light.whiteFfffff }}
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.05
+                                        }}
+                                        className="font-semibold"
                                     >
                                         {monthYear}
                                     </Text>
                                     <View
-                                        className="mt-2 h-[1px] w-full"
                                         style={{
+                                            marginTop: height * 0.01,
+                                            height: 1,
+                                            width: '100%',
                                             backgroundColor: Colors.light.placeholderColorOp70,
                                             opacity: 0.3
                                         }}
@@ -599,16 +686,26 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                         ))}
                     </View>
                 ) : (
-                    <View className="items-center justify-center py-10">
+                    <View
+                        className="items-center justify-center"
+                        style={{ paddingVertical: height * 0.1 }}
+                    >
                         <Text
-                            className="text-2xl font-medium text-center"
-                            style={{ color: Colors.light.placeholderColorOp70 }}
+                            style={{
+                                color: Colors.light.placeholderColorOp70,
+                                fontSize: width * 0.055
+                            }}
+                            className="font-medium text-center"
                         >
                             No Tasks Available
                         </Text>
                         <Text
-                            className="text-base mt-2 text-center"
-                            style={{ color: Colors.light.placeholderColorOp70 }}
+                            style={{
+                                color: Colors.light.placeholderColorOp70,
+                                fontSize: width * 0.04,
+                                marginTop: height * 0.01
+                            }}
+                            className="text-center"
                         >
                             {activeFilter === 'All'
                                 ? 'Check back later for new tasks!'

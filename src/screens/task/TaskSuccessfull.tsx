@@ -20,10 +20,11 @@ import taskcompletedots from "../../assets/images/taskcompletedots.png";
 import CustomGradientButton from "../../components/CustomGradientButton";
 import { Colors } from "../../constants/Colors";
 
+// Get screen dimensions
+const { width, height } = Dimensions.get('window');
+
 // Navigation types
 type NavigationProp = any;
-
-const { width: screenWidth } = Dimensions.get('window');
 
 const TaskSuccessful = () => {
     // Get navigation
@@ -47,30 +48,51 @@ const TaskSuccessful = () => {
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
             {/* =================== HEADER WITH BACKGROUND IMAGE =================== */}
-            <ImageBackground
-                source={bg2}
-                resizeMode="cover"
-                className="h-32"
-                style={{ position: 'relative' }}
-            >
-                <View className="flex-1 pt-12 pb-4 px-4">
+            <View style={{ height: height * 0.14 }}>
+                <ImageBackground
+                    source={bg2}
+                    resizeMode="cover"
+                    className="w-full h-full absolute"
+                />
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
                     {/* Header row with proper spacing */}
-                    <View className="flex-row items-center justify-between h-16">
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
                         {/* Back button */}
                         <TouchableOpacity
                             onPress={handleBackPress}
-                            className="w-10 h-10 items-center justify-center"
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
                         >
                             <Image
                                 source={icons.back}
-                                className="w-6 h-8"
+                                style={{
+                                    width: width * 0.06,
+                                    height: width * 0.08
+                                }}
                             />
                         </TouchableOpacity>
 
                         {/* Centered title */}
                         <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium pt-1"
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.075
+                            }}
+                            className="font-medium"
                         >
                             Task Complete
                         </Text>
@@ -78,12 +100,21 @@ const TaskSuccessful = () => {
                         {/* Profile photo */}
                         <TouchableOpacity
                             onPress={handleProfilePress}
-                            style={{ backgroundColor: Colors.light.whiteFfffff }}
-                            className="w-11 h-11 rounded-full items-center justify-center"
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                width: width * 0.11,
+                                height: width * 0.11,
+                                borderRadius: (width * 0.11) / 2
+                            }}
+                            className="items-center justify-center"
                         >
                             <Image
                                 source={profilephoto}
-                                className="h-11 w-11 rounded-full"
+                                style={{
+                                    height: width * 0.11,
+                                    width: width * 0.11,
+                                    borderRadius: (width * 0.11) / 2
+                                }}
                             />
                         </TouchableOpacity>
                     </View>
@@ -91,30 +122,42 @@ const TaskSuccessful = () => {
 
                 {/* Header border line */}
                 <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                    className="absolute bottom-0 w-full"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        height: 1
+                    }}
                 />
-            </ImageBackground>
+            </View>
 
             {/* =================== MAIN CONTENT CONTAINER =================== */}
-            <View className="flex-1" style={{ paddingBottom: 90 }}>
+            <View
+                className="flex-1"
+                style={{ paddingBottom: height * 0.11 }}
+            >
                 {/* =================== SCROLLABLE CONTENT SECTION =================== */}
                 <ScrollView
                     className="flex-1"
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{
-                        paddingHorizontal: 20,
-                        paddingTop: 50,
-                        paddingBottom: 20
+                        paddingHorizontal: width * 0.05,
+                        paddingTop: height * 0.06,
+                        paddingBottom: height * 0.025
                     }}
                 >
                     {/* Success message container */}
                     <View className="flex items-center justify-center w-full">
                         {/* Success image positioned above the card */}
-                        <View className="items-center mb-[-60px] z-10">
+                        <View
+                            className="items-center z-10"
+                            style={{ marginBottom: -(height * 0.075) }}
+                        >
                             <Image
                                 source={tasksuccess}
-                                className="h-[200px] w-[200px]"
+                                style={{
+                                    height: height * 0.22,
+                                    width: height * 0.22
+                                }}
                                 resizeMode="contain"
                             />
                         </View>
@@ -130,28 +173,50 @@ const TaskSuccessful = () => {
                                 shadowOpacity: 0.3,
                                 shadowRadius: 8,
                                 elevation: 6,
+                                borderRadius: 12,
+                                padding: width * 0.06,
+                                minHeight: height * 0.39,
+                                width: '100%'
                             }}
-                            className="w-full rounded-xl p-6 min-h-[360px] items-center justify-center"
+                            className="items-center justify-center"
                         >
                             {/* Success message content */}
-                            <View className="mt-14 items-center">
+                            <View
+                                className="items-center"
+                                style={{ marginTop: height * 0.05 }}
+                            >
                                 <Text
-                                    style={{ color: Colors.light.whiteFefefe }}
-                                    className="text-2xl font-bold mb-4"
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.06,
+                                        marginBottom: height * 0.02
+                                    }}
+                                    className="font-bold"
                                 >
                                     Great!
                                 </Text>
 
                                 <Text
-                                    style={{ color: Colors.light.whiteFefefe }}
-                                    className="text-center text-lg leading-6 mb-6 px-3"
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.045,
+                                        lineHeight: width * 0.06,
+                                        textAlign: 'center',
+                                        marginBottom: height * 0.03,
+                                        paddingHorizontal: width * 0.03
+                                    }}
                                 >
                                     You done all your task very good now we will give you another task as soon as possible
                                 </Text>
 
                                 <Text
-                                    style={{ color: Colors.light.whiteFefefe }}
-                                    className="text-xl font-extrabold text-center mb-4"
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.05,
+                                        textAlign: 'center',
+                                        marginBottom: height * 0.02
+                                    }}
+                                    className="font-extrabold"
                                 >
                                     Task Successfully completed
                                 </Text>
@@ -159,7 +224,10 @@ const TaskSuccessful = () => {
                                 {/* Completion dots indicator */}
                                 <Image
                                     source={taskcompletedots}
-                                    className="h-[10px] w-[38px]"
+                                    style={{
+                                        height: height * 0.012,
+                                        width: width * 0.095
+                                    }}
                                     resizeMode="contain"
                                 />
                             </View>
@@ -170,19 +238,23 @@ const TaskSuccessful = () => {
 
             {/* =================== FIXED BOTTOM BUTTON =================== */}
             <View
-                className="absolute bottom-28 left-0 right-0 px-5 pb-8"
                 style={{
+                    position: 'absolute',
+                    bottom: height * 0.14,
+                    left: 0,
+                    right: 0,
                     backgroundColor: Colors.light.blackPrimary,
-                    paddingTop: 16,
+                    paddingHorizontal: width * 0.05,
+                    paddingVertical: height * 0.02
                 }}
             >
                 {/* Back to home button */}
                 <CustomGradientButton
                     text="Back to home"
-                    width={screenWidth - 40}
-                    height={56}
+                    width={width * 0.9}
+                    height={height * 0.057}
                     borderRadius={15}
-                    fontSize={22}
+                    fontSize={width * 0.055}
                     fontWeight="500"
                     textColor={Colors.light.whiteFfffff}
                     onPress={handleBackToHome}

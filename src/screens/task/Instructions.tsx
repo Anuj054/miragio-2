@@ -1,13 +1,12 @@
-
 import {
     Image,
     ScrollView,
     Text,
-
     TouchableOpacity,
     View,
     StatusBar,
-    ImageBackground
+    ImageBackground,
+    Dimensions
 } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
@@ -17,9 +16,11 @@ import bg2 from "../../assets/images/bg2.png";
 import { icons } from "../../constants/index";
 import { Colors } from "../../constants/Colors";
 
+// Get screen dimensions
+const { width, height } = Dimensions.get('window');
+
 // Navigation types
 type NavigationProp = any;
-
 
 // Type definitions for task instructions
 interface TaskInstructions {
@@ -31,10 +32,6 @@ interface TaskInstructions {
 const Instructions = () => {
     // Get navigation and route
     const navigation = useNavigation<NavigationProp>();
-
-
-    // Get taskId from route params
-
 
     // Navigation handlers
     const handleBackPress = () => {
@@ -91,70 +88,106 @@ const Instructions = () => {
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
             {/* =================== HEADER WITH BACKGROUND IMAGE =================== */}
-            <ImageBackground
-                source={bg2}
-                resizeMode="cover"
-                className="h-32"
-                style={{ position: 'relative' }}
-            >
-                <View className="flex-1 pt-12 pb-4 px-4">
+            <View style={{ height: height * 0.14 }}>
+                <ImageBackground
+                    source={bg2}
+                    resizeMode="cover"
+                    className="w-full h-full absolute"
+                />
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
                     {/* Header row with proper spacing */}
-                    <View className="flex-row items-center justify-between h-16">
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
                         {/* Back button */}
                         <TouchableOpacity
                             onPress={handleBackPress}
-                            className="w-10 h-10 items-center justify-center"
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
                         >
                             <Image
                                 source={icons.back}
-                                className="w-6 h-8"
+                                style={{
+                                    width: width * 0.06,
+                                    height: width * 0.08
+                                }}
                             />
                         </TouchableOpacity>
 
                         {/* Centered title */}
                         <View className="flex-1 items-center">
                             <Text
-                                style={{ color: Colors.light.whiteFfffff }}
-                                className="text-2xl font-medium pt-1"
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.06
+                                }}
+                                className="font-medium"
                             >
                                 Instructions
                             </Text>
                         </View>
 
                         {/* Right spacer to balance layout */}
-                        <View className="w-10 h-10" />
+                        <View style={{ width: width * 0.1, height: width * 0.1 }} />
                     </View>
                 </View>
 
                 {/* Header border line */}
                 <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                    className="absolute bottom-0 w-full"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        height: 1
+                    }}
                 />
-            </ImageBackground>
+            </View>
 
             {/* =================== SCROLLABLE CONTENT SECTION =================== */}
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 20 }}
+                contentContainerStyle={{
+                    paddingBottom: height * 0.12,
+                    paddingHorizontal: width * 0.04
+                }}
             >
                 {/* =================== TASK TITLE SECTION =================== */}
-                <View className="py-6">
-                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-2xl font-semibold text-center">
+                <View style={{ paddingVertical: height * 0.03 }}>
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFefefe,
+                            fontSize: width * 0.055,
+                            textAlign: 'center'
+                        }}
+                        className="font-semibold"
+                    >
                         {dummyInstructions.title}
                     </Text>
                 </View>
 
                 {/* =================== VIDEO SECTION =================== */}
                 {embedUrl && (
-                    <View className="mb-6">
+                    <View style={{ marginBottom: height * 0.03 }}>
                         <View
-                            className="w-full rounded-lg overflow-hidden"
                             style={{
-                                height: 220,
-                                backgroundColor: Colors.light.backlight2
+                                width: '100%',
+                                height: height * 0.23,
+                                backgroundColor: Colors.light.backlight2,
+                                borderRadius: 12
                             }}
+                            className="overflow-hidden"
                         >
                             <WebView
                                 source={{ uri: embedUrl }}
@@ -165,8 +198,16 @@ const Instructions = () => {
                                 domStorageEnabled={true}
                                 startInLoadingState={true}
                                 renderLoading={() => (
-                                    <View className="flex-1 items-center justify-center" style={{ backgroundColor: Colors.light.backlight2 }}>
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }}>
+                                    <View
+                                        className="flex-1 items-center justify-center"
+                                        style={{ backgroundColor: Colors.light.backlight2 }}
+                                    >
+                                        <Text
+                                            style={{
+                                                color: Colors.light.placeholderColorOp70,
+                                                fontSize: width * 0.04
+                                            }}
+                                        >
                                             Loading video...
                                         </Text>
                                     </View>
@@ -181,28 +222,59 @@ const Instructions = () => {
                 )}
 
                 {/* =================== INSTRUCTIONS STEPS SECTION =================== */}
-                <View className="mb-6">
-                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-semibold mb-4">
+                <View style={{ marginBottom: height * 0.03 }}>
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFefefe,
+                            fontSize: width * 0.05,
+                            marginBottom: height * 0.02
+                        }}
+                        className="font-semibold"
+                    >
                         Steps to Complete:
                     </Text>
 
                     {dummyInstructions.steps.map((step, index) => (
                         <View
                             key={index}
-                            style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }}
-                            className="w-full rounded-lg border-l-4 mb-3 p-4"
+                            style={{
+                                backgroundColor: Colors.light.backlight2,
+                                borderLeftColor: Colors.light.bgBlueBtn,
+                                borderLeftWidth: 4,
+                                borderRadius: 12,
+                                marginBottom: height * 0.012,
+                                padding: width * 0.04
+                            }}
                         >
                             <View className="flex-row items-start">
                                 <View
-                                    className="w-8 h-8 rounded-full mr-3 items-center justify-center"
-                                    style={{ backgroundColor: Colors.light.bgBlueBtn }}
+                                    style={{
+                                        backgroundColor: Colors.light.bgBlueBtn,
+                                        width: width * 0.08,
+                                        height: width * 0.08,
+                                        borderRadius: (width * 0.08) / 2,
+                                        marginRight: width * 0.03
+                                    }}
+                                    className="items-center justify-center"
                                 >
-                                    <Text style={{ color: Colors.light.whiteFefefe }} className="font-bold">
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFefefe,
+                                            fontSize: width * 0.035
+                                        }}
+                                        className="font-bold"
+                                    >
                                         {index + 1}
                                     </Text>
                                 </View>
                                 <View className="flex-1">
-                                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-base leading-6">
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFefefe,
+                                            fontSize: width * 0.04,
+                                            lineHeight: width * 0.06
+                                        }}
+                                    >
                                         {step}
                                     </Text>
                                 </View>
@@ -212,37 +284,84 @@ const Instructions = () => {
                 </View>
 
                 {/* =================== SUBMISSION REQUIREMENTS =================== */}
-                <View className="mb-6">
+                <View style={{ marginBottom: height * 0.03 }}>
                     <View
-                        style={{ backgroundColor: Colors.light.backlight2 }}
-                        className="w-full rounded-lg p-4"
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            borderRadius: 12,
+                            padding: width * 0.04
+                        }}
                     >
-                        <Text style={{ color: Colors.light.bgBlueBtn }} className="text-lg font-semibold mb-2">
+                        <Text
+                            style={{
+                                color: Colors.light.bgBlueBtn,
+                                fontSize: width * 0.04,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-semibold"
+                        >
                             📤 Submission Requirements:
                         </Text>
-                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-base leading-6 mb-1">
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.035,
+                                lineHeight: width * 0.06,
+                                marginBottom: height * 0.005
+                            }}
+                        >
                             • PDF report with all components
                         </Text>
-                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-base leading-6 mb-1">
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.035,
+                                lineHeight: width * 0.06,
+                                marginBottom: height * 0.005
+                            }}
+                        >
                             • Screenshots of scheduled posts
                         </Text>
-                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-base leading-6 mb-1">
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.035,
+                                lineHeight: width * 0.06,
+                                marginBottom: height * 0.005
+                            }}
+                        >
                             • Content calendar (Excel/Google Sheets)
                         </Text>
-                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-base leading-6">
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.035,
+                                lineHeight: width * 0.06
+                            }}
+                        >
                             • Reflection document (100-200 words)
                         </Text>
                     </View>
                 </View>
 
                 {/* =================== ACTION BUTTON =================== */}
-                <View className="mb-4">
+                <View style={{ marginBottom: height * 0.02 }}>
                     <TouchableOpacity
-                        style={{ backgroundColor: Colors.light.bgBlueBtn }}
-                        className="w-full h-14 items-center justify-center rounded-lg"
+                        style={{
+                            backgroundColor: Colors.light.bgBlueBtn,
+                            height: height * 0.055,
+                            borderRadius: 12
+                        }}
+                        className="items-center justify-center"
                         onPress={handleBackPress}
                     >
-                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-semibold">
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.05
+                            }}
+                            className="font-semibold"
+                        >
                             Got It, Let's Start!
                         </Text>
                     </TouchableOpacity>

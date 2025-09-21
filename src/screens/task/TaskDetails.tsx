@@ -10,7 +10,8 @@ import {
     Modal,
     Linking,
     StatusBar,
-    ImageBackground
+    ImageBackground,
+    Dimensions
 } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
@@ -25,6 +26,9 @@ import howtodoit from "../../assets/images/howtodoiticon.gif";
 import VerificationModal from '../../components/VerficationModal';
 import { Colors } from '../../constants/Colors';
 import { useUser } from "../../context/UserContext";
+
+// Get screen dimensions
+const { width, height } = Dimensions.get('window');
 
 // Navigation types
 type NavigationProp = any;
@@ -174,7 +178,7 @@ const TaskDetails = () => {
         }
     };
 
-    // FIXED: Updated function to check if downloadable content is available
+    // Updated function to check if downloadable content is available
     const hasDownloadableContent = useMemo(() => {
         if (!taskDetail) return false;
 
@@ -201,7 +205,7 @@ const TaskDetails = () => {
         return false;
     }, [taskDetail]);
 
-    // FIXED: Updated download function to handle both full URLs and relative paths
+    // Updated download function to handle both full URLs and relative paths
     const downloadTaskFile = async () => {
         try {
             setIsDownloading(true);
@@ -268,7 +272,7 @@ const TaskDetails = () => {
         }
     };
 
-    // FIXED: Updated function to get download file type for display
+    // Updated function to get download file type for display
     const getDownloadFileType = () => {
         if (!taskDetail || !taskDetail.documents) return 'Document';
 
@@ -560,7 +564,12 @@ const TaskDetails = () => {
             <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
                 <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
                 <View className="flex-1 items-center justify-center">
-                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl">
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFefefe,
+                            fontSize: width * 0.05
+                        }}
+                    >
                         Loading task details...
                     </Text>
                 </View>
@@ -573,16 +582,36 @@ const TaskDetails = () => {
         return (
             <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
                 <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-                <View className="flex-1 items-center justify-center px-4">
-                    <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-xl text-center mb-4">
+                <View
+                    className="flex-1 items-center justify-center"
+                    style={{ paddingHorizontal: width * 0.04 }}
+                >
+                    <Text
+                        style={{
+                            color: Colors.light.placeholderColorOp70,
+                            fontSize: width * 0.05,
+                            marginBottom: height * 0.02
+                        }}
+                        className="text-center"
+                    >
                         {error || 'Task not found'}
                     </Text>
                     <TouchableOpacity
                         onPress={handleBackPress}
-                        className="px-6 py-3 rounded-lg"
-                        style={{ backgroundColor: Colors.light.bgBlueBtn }}
+                        style={{
+                            backgroundColor: Colors.light.bgBlueBtn,
+                            paddingHorizontal: width * 0.06,
+                            paddingVertical: height * 0.015,
+                            borderRadius: 8
+                        }}
                     >
-                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-base font-semibold">
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.04
+                            }}
+                            className="font-semibold"
+                        >
                             Go Back
                         </Text>
                     </TouchableOpacity>
@@ -596,27 +625,51 @@ const TaskDetails = () => {
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
             {/* =================== HEADER WITH BACKGROUND IMAGE =================== */}
-            <ImageBackground
-                source={bg2}
-                resizeMode="cover"
-                className="h-32"
-                style={{ position: 'relative' }}
-            >
-                <View className="flex-1 pt-12 pb-4 px-4">
-                    <View className="flex-row items-center justify-between h-16">
+            <View style={{ height: height * 0.14 }}>
+                <ImageBackground
+                    source={bg2}
+                    resizeMode="cover"
+                    className="w-full h-full absolute"
+                />
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
                         {/* Back button */}
                         <TouchableOpacity
                             onPress={handleBackPress}
-                            className="w-10 h-10 items-center justify-center"
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
                         >
-                            <Image source={icons.back} className="w-4 h-6" />
+                            <Image
+                                source={icons.back}
+                                style={{
+                                    width: width * 0.04,
+                                    height: width * 0.06
+                                }}
+                            />
                         </TouchableOpacity>
 
                         {/* Centered title */}
                         <View className="flex-1 items-center">
                             <Text
-                                style={{ color: Colors.light.whiteFfffff }}
-                                className="text-3xl font-medium pt-1"
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.075
+                                }}
+                                className="font-medium"
                             >
                                 Task Details
                             </Text>
@@ -625,12 +678,21 @@ const TaskDetails = () => {
                         {/* Profile photo */}
                         <TouchableOpacity
                             onPress={handleProfilePress}
-                            style={{ backgroundColor: Colors.light.whiteFfffff }}
-                            className="w-10 h-10 rounded-full items-center justify-center"
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                borderRadius: (width * 0.1) / 2
+                            }}
+                            className="items-center justify-center"
                         >
                             <Image
                                 source={profilephoto}
-                                className="h-10 w-10 rounded-full"
+                                style={{
+                                    height: width * 0.1,
+                                    width: width * 0.1,
+                                    borderRadius: (width * 0.1) / 2
+                                }}
                             />
                         </TouchableOpacity>
                     </View>
@@ -638,99 +700,218 @@ const TaskDetails = () => {
 
                 {/* Header border line */}
                 <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                    className="absolute bottom-0 w-full"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        height: 1
+                    }}
                 />
-            </ImageBackground>
+            </View>
 
             {/* =================== SCROLLABLE CONTENT SECTION =================== */}
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 20 }}
+                contentContainerStyle={{
+                    paddingBottom: height * 0.12,
+                    paddingHorizontal: width * 0.04
+                }}
             >
                 {/* =================== TASK TITLE SECTION =================== */}
-                <View className="py-5 flex-row items-center">
-                    <Image source={taskicon} className="w-[40px] h-[40px]" />
-                    <Text style={{ color: Colors.light.whiteFefefe }} className="font-semibold text-2xl pl-4">
+                <View
+                    className="flex-row items-center"
+                    style={{ paddingVertical: height * 0.025 }}
+                >
+                    <Image
+                        source={taskicon}
+                        style={{
+                            width: width * 0.1,
+                            height: width * 0.1
+                        }}
+                    />
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFefefe,
+                            fontSize: width * 0.055,
+                            paddingLeft: width * 0.04
+                        }}
+                        className="font-semibold flex-1"
+                    >
                         {taskDetail.task_name}
                     </Text>
                 </View>
 
                 {/* =================== TASK DESCRIPTION SECTION =================== */}
-                <View className="mb-4">
-                    <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-base leading-6">
+                <View style={{ marginBottom: height * 0.02 }}>
+                    <Text
+                        style={{
+                            color: Colors.light.placeholderColorOp70,
+                            fontSize: width * 0.04,
+                            lineHeight: width * 0.06
+                        }}
+                    >
                         {taskDetail.task_description}
                     </Text>
                 </View>
 
                 {/* =================== HASHTAGS SECTION =================== */}
-                <View className="py-4">
-                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-lg font-semibold mb-3">
+                <View style={{ paddingVertical: height * 0.02 }}>
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFefefe,
+                            fontSize: width * 0.045,
+                            marginBottom: height * 0.015
+                        }}
+                        className="font-semibold"
+                    >
                         Hashtags to Use
                     </Text>
                     <View className="flex-row flex-wrap">
                         {['#MiragioCoin', '#TaskCompleted', '#EarnCoins', '#CryptoRewards', '#DigitalTasks', '#OnlineEarning'].map((hashtag, index) => (
                             <View
                                 key={index}
-                                style={{ backgroundColor: Colors.light.backlight2, borderColor: Colors.light.bgBlueBtn }}
-                                className="border rounded-full px-3 py-1 mr-2 mb-2"
+                                style={{
+                                    backgroundColor: Colors.light.backlight2,
+                                    borderColor: Colors.light.bgBlueBtn,
+                                    borderWidth: 1,
+                                    borderRadius: 15,
+                                    paddingHorizontal: width * 0.03,
+                                    paddingVertical: height * 0.005,
+                                    marginRight: width * 0.02,
+                                    marginBottom: height * 0.01
+                                }}
                             >
-                                <Text style={{ color: Colors.light.bgBlueBtn }} className="text-sm font-medium">
+                                <Text
+                                    style={{
+                                        color: Colors.light.bgBlueBtn,
+                                        fontSize: width * 0.035
+                                    }}
+                                    className="font-medium"
+                                >
                                     {hashtag}
                                 </Text>
                             </View>
                         ))}
                     </View>
-                    <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm mt-2">
+                    <Text
+                        style={{
+                            color: Colors.light.placeholderColorOp70,
+                            fontSize: width * 0.035,
+                            marginTop: height * 0.01
+                        }}
+                    >
                         Copy and use these hashtags when posting about this task
                     </Text>
                 </View>
 
                 {/* =================== TASK DETAILS CARDS SECTION =================== */}
-                <View className="py-5">
+                <View style={{ paddingVertical: height * 0.025 }}>
                     {/* =================== DUE DATE CARD =================== */}
-                    <View style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }} className="w-full rounded-lg border-l-2 mb-3">
-                        <View className="flex-row p-3">
-                            <View className="mr-2 items-center justify-center">
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            borderLeftColor: Colors.light.bgBlueBtn,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015
+                        }}
+                    >
+                        <View
+                            className="flex-row"
+                            style={{ padding: width * 0.03 }}
+                        >
+                            <View
+                                className="items-center justify-center"
+                                style={{ marginRight: width * 0.03 }}
+                            >
                                 <Image
                                     source={icons.duedateicon}
-                                    className="h-[32px] w-[32px]"
+                                    style={{
+                                        height: width * 0.08,
+                                        width: width * 0.08
+                                    }}
                                     resizeMode="contain"
                                 />
                             </View>
 
                             <View className="flex-1">
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-1 font-bold">
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005
+                                    }}
+                                    className="font-bold"
+                                >
                                     Due Date
                                 </Text>
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035
+                                    }}
+                                >
                                     {formatDate(taskDetail.task_endtime)}
                                 </Text>
                             </View>
 
                             <View className="items-center justify-center">
-                                <Image source={icons.duecheckicon} className="h-[36px] w-[36px]" />
+                                <Image
+                                    source={icons.duecheckicon}
+                                    style={{
+                                        height: width * 0.09,
+                                        width: width * 0.09
+                                    }}
+                                />
                             </View>
                         </View>
                     </View>
 
                     {/* =================== TASK STATUS CARD =================== */}
-                    <View style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }} className="w-full rounded-lg border-l-2 mb-3">
-                        <View className="flex-row p-3">
-                            <View className="mr-2 items-center justify-center">
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            borderLeftColor: Colors.light.bgBlueBtn,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015
+                        }}
+                    >
+                        <View
+                            className="flex-row"
+                            style={{ padding: width * 0.03 }}
+                        >
+                            <View
+                                className="items-center justify-center"
+                                style={{ marginRight: width * 0.03 }}
+                            >
                                 <Image
                                     source={icons.assignicon}
-                                    className="h-[32px] w-[32px]"
+                                    style={{
+                                        height: width * 0.08,
+                                        width: width * 0.08
+                                    }}
                                     resizeMode="contain"
                                 />
                             </View>
 
                             <View className="flex-1">
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-1 font-bold">
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005
+                                    }}
+                                    className="font-bold"
+                                >
                                     Task Status
                                 </Text>
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035
+                                    }}
+                                >
                                     {getDisplayStatus()}
                                 </Text>
                             </View>
@@ -738,55 +919,103 @@ const TaskDetails = () => {
                     </View>
 
                     {/* =================== REWARD CARD =================== */}
-                    <View style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }} className="w-full rounded-lg border-l-2 mb-3">
-                        <View className="flex-row p-3">
-                            <View className="mr-2 items-center justify-center">
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            borderLeftColor: Colors.light.bgBlueBtn,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015
+                        }}
+                    >
+                        <View
+                            className="flex-row"
+                            style={{ padding: width * 0.03 }}
+                        >
+                            <View
+                                className="items-center justify-center"
+                                style={{ marginRight: width * 0.03 }}
+                            >
                                 <Image
                                     source={icons.maincoin}
-                                    className="h-[32px] w-[32px]"
+                                    style={{
+                                        height: width * 0.08,
+                                        width: width * 0.08
+                                    }}
                                     resizeMode="contain"
                                 />
                             </View>
-
                             <View className="flex-1">
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-1 font-bold">
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005
+                                    }}
+                                    className="font-bold"
+                                >
                                     Reward
                                 </Text>
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035
+                                    }}
+                                >
                                     {taskDetail.task_reward} coins
                                 </Text>
                             </View>
                         </View>
                     </View>
 
-                    {/* =================== FIXED DOWNLOAD MATERIALS CARD =================== */}
+                    {/* =================== DOWNLOAD MATERIALS CARD =================== */}
                     <TouchableOpacity
                         style={{
                             backgroundColor: Colors.light.backlight2,
                             borderLeftColor: hasDownloadableContent ? Colors.light.bgGreen : Colors.light.placeholderColorOp70,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015,
                             opacity: isDownloading ? 0.7 : (hasDownloadableContent ? 1 : 0.6)
                         }}
-                        className="w-full rounded-lg border-l-2 mb-3"
                         onPress={hasDownloadableContent ? downloadTaskFile : undefined}
                         disabled={isDownloading || !hasDownloadableContent}
                     >
-                        <View className="flex-row p-3">
-                            <View className="mr-2 items-center justify-center">
+                        <View
+                            className="flex-row"
+                            style={{ padding: width * 0.03 }}
+                        >
+                            <View
+                                className="items-center justify-center"
+                                style={{ marginRight: width * 0.03 }}
+                            >
                                 <Image
                                     source={hasDownloadableContent ? (icons.download || icons.go) : (icons.download || icons.go)}
-                                    className="h-[32px] w-[32px]"
+                                    style={{
+                                        height: width * 0.08,
+                                        width: width * 0.08
+                                    }}
                                     resizeMode="contain"
-
                                 />
                             </View>
 
                             <View className="flex-1">
-                                <Text style={{
-                                    color: hasDownloadableContent ? Colors.light.whiteFefefe : Colors.light.placeholderColorOp70
-                                }} className="text-base mb-1 font-bold">
+                                <Text
+                                    style={{
+                                        color: hasDownloadableContent ? Colors.light.whiteFefefe : Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005
+                                    }}
+                                    className="font-bold"
+                                >
                                     {isDownloading ? 'Downloading...' : (hasDownloadableContent ? 'Download Materials' : 'No Materials Available')}
                                 </Text>
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035
+                                    }}
+                                >
                                     {isDownloading
                                         ? 'Please wait...'
                                         : hasDownloadableContent
@@ -800,8 +1029,9 @@ const TaskDetails = () => {
                                 <View className="items-center justify-center">
                                     <Image
                                         source={icons.go}
-                                        className="w-3 h-3"
                                         style={{
+                                            width: width * 0.03,
+                                            height: width * 0.03,
                                             opacity: isDownloading ? 0.5 : 1,
                                             tintColor: Colors.light.bgGreen
                                         }}
@@ -813,19 +1043,50 @@ const TaskDetails = () => {
 
                     {/* =================== UPLOAD SECTION =================== */}
                     {canSubmitTask && (
-                        <View className="mb-4">
+                        <View >
                             {/* Image Preview Section */}
                             {taskImage && (
-                                <View style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }} className="w-full rounded-lg border-l-2 mb-3 p-3">
-                                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-2 font-bold">
+                                <View
+                                    style={{
+                                        backgroundColor: Colors.light.backlight2,
+                                        borderLeftColor: Colors.light.bgBlueBtn,
+                                        borderLeftWidth: 4,
+                                        borderRadius: 12,
+                                        marginBottom: height * 0.015,
+                                        padding: width * 0.03
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFefefe,
+                                            fontSize: width * 0.04,
+                                            marginBottom: height * 0.01
+                                        }}
+                                        className="font-bold"
+                                    >
                                         Selected Image
                                     </Text>
 
-                                    <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm mb-2">
+                                    <Text
+                                        style={{
+                                            color: Colors.light.placeholderColorOp70,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01
+                                        }}
+                                    >
                                         {selectedImageName}
                                     </Text>
 
-                                    <View className="w-full h-48 rounded-lg overflow-hidden mb-2" style={{ backgroundColor: '#333' }}>
+                                    <View
+                                        style={{
+                                            width: '100%',
+                                            height: height * 0.25,
+                                            borderRadius: 8,
+                                            backgroundColor: '#333',
+                                            marginBottom: height * 0.01
+                                        }}
+                                        className="overflow-hidden"
+                                    >
                                         <Image
                                             source={{ uri: taskImage }}
                                             style={{
@@ -841,10 +1102,20 @@ const TaskDetails = () => {
                                             setTaskImage('');
                                             setSelectedImageName('');
                                         }}
-                                        className="px-4 py-2 rounded-lg self-end"
-                                        style={{ backgroundColor: Colors.light.placeholderColorOp70 }}
+                                        style={{
+                                            backgroundColor: Colors.light.placeholderColorOp70,
+                                            paddingHorizontal: width * 0.04,
+                                            paddingVertical: height * 0.01,
+                                            borderRadius: 8,
+                                            alignSelf: 'flex-end'
+                                        }}
                                     >
-                                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-sm">
+                                        <Text
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.035
+                                            }}
+                                        >
                                             Remove Image
                                         </Text>
                                     </TouchableOpacity>
@@ -853,19 +1124,51 @@ const TaskDetails = () => {
 
                             {/* URL Preview Section */}
                             {taskUrl && (
-                                <View style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }} className="w-full rounded-lg border-l-2 mb-3 p-3">
-                                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-2 font-bold">
+                                <View
+                                    style={{
+                                        backgroundColor: Colors.light.backlight2,
+                                        borderLeftColor: Colors.light.bgBlueBtn,
+                                        borderLeftWidth: 4,
+                                        borderRadius: 12,
+                                        marginBottom: height * 0.015,
+                                        padding: width * 0.03
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFefefe,
+                                            fontSize: width * 0.04,
+                                            marginBottom: height * 0.01
+                                        }}
+                                        className="font-bold"
+                                    >
                                         Added URL
                                     </Text>
-                                    <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm mb-2">
+                                    <Text
+                                        style={{
+                                            color: Colors.light.placeholderColorOp70,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01
+                                        }}
+                                    >
                                         {taskUrl}
                                     </Text>
                                     <TouchableOpacity
                                         onPress={() => setTaskUrl('')}
-                                        className="px-4 py-2 rounded-lg self-end"
-                                        style={{ backgroundColor: Colors.light.placeholderColorOp70 }}
+                                        style={{
+                                            backgroundColor: Colors.light.placeholderColorOp70,
+                                            paddingHorizontal: width * 0.04,
+                                            paddingVertical: height * 0.01,
+                                            borderRadius: 8,
+                                            alignSelf: 'flex-end'
+                                        }}
                                     >
-                                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-sm">
+                                        <Text
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.035
+                                            }}
+                                        >
                                             Remove URL
                                         </Text>
                                     </TouchableOpacity>
@@ -873,28 +1176,57 @@ const TaskDetails = () => {
                             )}
 
                             {/* Upload Controls */}
-                            <View className="flex-row justify-between">
+                            <View
+                                className="flex-row justify-between"
+                                style={{ marginBottom: height * 0.02 }}
+                            >
                                 {/* Upload photo card */}
                                 <TouchableOpacity
-                                    style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }}
-                                    className="w-[48%] rounded-lg border-l-2"
+                                    style={{
+                                        backgroundColor: Colors.light.backlight2,
+                                        borderLeftColor: Colors.light.bgBlueBtn,
+                                        borderLeftWidth: 4,
+                                        borderRadius: 12,
+                                        width: '48%'
+                                    }}
                                     onPress={showImagePickerOptions}
                                     disabled={isSubmitting}
                                 >
-                                    <View className="flex-row p-3">
-                                        <View className="mr-2 items-center justify-center">
+                                    <View
+                                        className="flex-row"
+                                        style={{ padding: width * 0.03 }}
+                                    >
+                                        <View
+                                            className="items-center justify-center"
+                                            style={{ marginRight: width * 0.02 }}
+                                        >
                                             <Image
                                                 source={icons.uploadphoto}
-                                                className="h-[30px] w-[30px]"
+                                                style={{
+                                                    height: width * 0.075,
+                                                    width: width * 0.075
+                                                }}
                                                 resizeMode="contain"
                                             />
                                         </View>
 
                                         <View className="flex-1">
-                                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-sm mb-1 font-bold">
+                                            <Text
+                                                style={{
+                                                    color: Colors.light.whiteFefefe,
+                                                    fontSize: width * 0.035,
+                                                    marginBottom: height * 0.005
+                                                }}
+                                                className="font-bold"
+                                            >
                                                 Upload Photo
                                             </Text>
-                                            <Text style={{ color: taskImage ? Colors.light.bgGreen : Colors.light.placeholderColorOp70 }} className="text-xs">
+                                            <Text
+                                                style={{
+                                                    color: taskImage ? Colors.light.bgGreen : Colors.light.placeholderColorOp70,
+                                                    fontSize: width * 0.03
+                                                }}
+                                            >
                                                 {taskImage ? 'Photo selected' : 'add screenshot'}
                                             </Text>
                                         </View>
@@ -903,25 +1235,51 @@ const TaskDetails = () => {
 
                                 {/* Add URL card */}
                                 <TouchableOpacity
-                                    style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }}
-                                    className="w-[48%] rounded-lg border-l-2"
+                                    style={{
+                                        backgroundColor: Colors.light.backlight2,
+                                        borderLeftColor: Colors.light.bgBlueBtn,
+                                        borderLeftWidth: 4,
+                                        borderRadius: 12,
+                                        width: '48%'
+                                    }}
                                     onPress={() => setShowUrlModal(true)}
                                     disabled={isSubmitting}
                                 >
-                                    <View className="flex-row p-3">
-                                        <View className="mr-2 items-center justify-center">
+                                    <View
+                                        className="flex-row"
+                                        style={{ padding: width * 0.03 }}
+                                    >
+                                        <View
+                                            className="items-center justify-center"
+                                            style={{ marginRight: width * 0.02 }}
+                                        >
                                             <Image
                                                 source={icons.addurl}
-                                                className="h-[30px] w-[30px]"
+                                                style={{
+                                                    height: width * 0.075,
+                                                    width: width * 0.075
+                                                }}
                                                 resizeMode="contain"
                                             />
                                         </View>
 
                                         <View className="flex-1">
-                                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-sm mb-1 font-bold">
+                                            <Text
+                                                style={{
+                                                    color: Colors.light.whiteFefefe,
+                                                    fontSize: width * 0.035,
+                                                    marginBottom: height * 0.005
+                                                }}
+                                                className="font-bold"
+                                            >
                                                 Add Url
                                             </Text>
-                                            <Text style={{ color: taskUrl ? Colors.light.bgGreen : Colors.light.placeholderColorOp70 }} className="text-xs">
+                                            <Text
+                                                style={{
+                                                    color: taskUrl ? Colors.light.bgGreen : Colors.light.placeholderColorOp70,
+                                                    fontSize: width * 0.03
+                                                }}
+                                            >
                                                 {taskUrl ? 'URL added' : 'Add url link'}
                                             </Text>
                                         </View>
@@ -933,30 +1291,62 @@ const TaskDetails = () => {
 
                     {/* =================== HOW TO DO IT CARD =================== */}
                     <TouchableOpacity
-                        style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }}
-                        className="w-full rounded-lg border-l-2 mb-3"
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            borderLeftColor: Colors.light.bgBlueBtn,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015
+                        }}
                         onPress={handleInstructionsPress}
                     >
-                        <View className="flex-row p-3">
-                            <View className="mr-2 items-center justify-center">
+                        <View
+                            className="flex-row"
+                            style={{ padding: width * 0.03 }}
+                        >
+                            <View
+                                className="items-center justify-center"
+                                style={{ marginRight: width * 0.03 }}
+                            >
                                 <Image
                                     source={howtodoit}
-                                    className="h-[32px] w-[32px]"
+                                    style={{
+                                        height: width * 0.08,
+                                        width: width * 0.08
+                                    }}
                                     resizeMode="contain"
                                 />
                             </View>
 
                             <View className="flex-1">
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-1 font-bold">
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005
+                                    }}
+                                    className="font-bold"
+                                >
                                     How to do it
                                 </Text>
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035
+                                    }}
+                                >
                                     Read the instructions to complete tasks
                                 </Text>
                             </View>
 
                             <View className="items-center justify-center">
-                                <Image source={icons.go} className="w-3 h-3" />
+                                <Image
+                                    source={icons.go}
+                                    style={{
+                                        width: width * 0.03,
+                                        height: width * 0.03
+                                    }}
+                                />
                             </View>
                         </View>
                     </TouchableOpacity>
@@ -966,13 +1356,22 @@ const TaskDetails = () => {
                         <TouchableOpacity
                             style={{
                                 backgroundColor: Colors.light.bgGreen,
-                                opacity: isSubmitting ? 0.7 : 1
+                                opacity: isSubmitting ? 0.7 : 1,
+                                height: height * 0.055,
+                                borderRadius: 12,
+                                marginBottom: height * 0.015
                             }}
-                            className="w-full h-14 items-center justify-center rounded-lg mb-3"
+                            className="items-center justify-center"
                             onPress={handleMarkComplete}
                             disabled={isSubmitting}
                         >
-                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-semibold">
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05
+                                }}
+                                className="font-semibold"
+                            >
                                 {isSubmitting ? 'Submitting...' : 'Mark As Complete'}
                             </Text>
                         </TouchableOpacity>
@@ -981,10 +1380,22 @@ const TaskDetails = () => {
                     {/* =================== STATUS BUTTONS =================== */}
                     {getUserTaskStatus?.toLowerCase() === 'pending' && (
                         <View
-                            style={{ backgroundColor: "#FFA500" }}
-                            className="w-full h-14 items-center justify-center rounded-lg mb-3 opacity-80"
+                            style={{
+                                backgroundColor: "#FFA500",
+                                height: height * 0.07,
+                                borderRadius: 12,
+                                marginBottom: height * 0.015,
+                                opacity: 0.8
+                            }}
+                            className="items-center justify-center"
                         >
-                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-semibold">
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05
+                                }}
+                                className="font-semibold"
+                            >
                                 ⏳ Pending Review
                             </Text>
                         </View>
@@ -992,10 +1403,22 @@ const TaskDetails = () => {
 
                     {getUserTaskStatus?.toLowerCase() === 'approved' && (
                         <View
-                            style={{ backgroundColor: Colors.light.bgGreen }}
-                            className="w-full h-14 items-center justify-center rounded-lg mb-3 opacity-80"
+                            style={{
+                                backgroundColor: Colors.light.bgGreen,
+                                height: height * 0.07,
+                                borderRadius: 12,
+                                marginBottom: height * 0.015,
+                                opacity: 0.8
+                            }}
+                            className="items-center justify-center"
                         >
-                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-semibold">
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05
+                                }}
+                                className="font-semibold"
+                            >
                                 Task Completed
                             </Text>
                         </View>
@@ -1003,10 +1426,22 @@ const TaskDetails = () => {
 
                     {getUserTaskStatus?.toLowerCase() === 'rejected' && (
                         <View
-                            style={{ backgroundColor: '#ff4444' }}
-                            className="w-full h-14 items-center justify-center rounded-lg mb-3 opacity-80"
+                            style={{
+                                backgroundColor: '#ff4444',
+                                height: height * 0.07,
+                                borderRadius: 12,
+                                marginBottom: height * 0.015,
+                                opacity: 0.8
+                            }}
+                            className="items-center justify-center"
                         >
-                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-semibold">
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05
+                                }}
+                                className="font-semibold"
+                            >
                                 Task Rejected
                             </Text>
                         </View>
@@ -1014,8 +1449,23 @@ const TaskDetails = () => {
 
                     {/* =================== ERROR MESSAGE =================== */}
                     {submitError && (
-                        <View className="w-full mb-3 p-3 rounded-lg" style={{ backgroundColor: 'rgba(255, 0, 0, 0.1)', borderColor: '#ff4444', borderWidth: 1 }}>
-                            <Text style={{ color: '#ff4444' }} className="text-center text-sm">
+                        <View
+                            style={{
+                                backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                                borderColor: '#ff4444',
+                                borderWidth: 1,
+                                borderRadius: 8,
+                                padding: width * 0.03,
+                                marginBottom: height * 0.015
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: '#ff4444',
+                                    fontSize: width * 0.035,
+                                    textAlign: 'center'
+                                }}
+                            >
                                 {submitError}
                             </Text>
                         </View>
@@ -1030,12 +1480,26 @@ const TaskDetails = () => {
                 animationType="slide"
                 onRequestClose={() => setShowUrlModal(false)}
             >
-                <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                <View
+                    className="flex-1 justify-center items-center"
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+                >
                     <View
-                        style={{ backgroundColor: Colors.light.backlight2 }}
-                        className="w-4/5 p-6 rounded-lg"
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            width: width * 0.8,
+                            borderRadius: 12,
+                            padding: width * 0.06
+                        }}
                     >
-                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-bold mb-4">
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.05,
+                                marginBottom: height * 0.02
+                            }}
+                            className="font-bold"
+                        >
                             Add Task URL
                         </Text>
 
@@ -1043,9 +1507,13 @@ const TaskDetails = () => {
                             style={{
                                 backgroundColor: Colors.light.blackPrimary,
                                 color: Colors.light.whiteFefefe,
-                                borderColor: Colors.light.bgBlueBtn
+                                borderColor: Colors.light.bgBlueBtn,
+                                borderWidth: 2,
+                                borderRadius: 8,
+                                padding: width * 0.03,
+                                marginBottom: height * 0.02,
+                                fontSize: width * 0.04
                             }}
-                            className="border-2 rounded-lg p-3 mb-4"
                             placeholder="Enter URL here..."
                             placeholderTextColor={Colors.light.placeholderColorOp70}
                             value={taskUrl}
@@ -1058,19 +1526,38 @@ const TaskDetails = () => {
                         <View className="flex-row justify-end">
                             <TouchableOpacity
                                 onPress={() => setShowUrlModal(false)}
-                                className="px-4 py-2 mr-3"
+                                style={{
+                                    paddingHorizontal: width * 0.04,
+                                    paddingVertical: height * 0.01,
+                                    marginRight: width * 0.03
+                                }}
                             >
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }}>
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.04
+                                    }}
+                                >
                                     Cancel
                                 </Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                style={{ backgroundColor: Colors.light.bgBlueBtn }}
-                                className="px-6 py-2 rounded-lg"
+                                style={{
+                                    backgroundColor: Colors.light.bgBlueBtn,
+                                    paddingHorizontal: width * 0.06,
+                                    paddingVertical: height * 0.01,
+                                    borderRadius: 8
+                                }}
                                 onPress={() => setShowUrlModal(false)}
                             >
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="font-semibold">
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04
+                                    }}
+                                    className="font-semibold"
+                                >
                                     Save
                                 </Text>
                             </TouchableOpacity>

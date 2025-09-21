@@ -1,4 +1,4 @@
-import { Image, ScrollView, Text, TouchableOpacity, View, ActivityIndicator, StatusBar } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View, ActivityIndicator, StatusBar, Dimensions } from "react-native";
 import { useEffect, useState } from "react";
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg2 from "../../assets/images/bg2.png";
@@ -9,6 +9,9 @@ import CustomGradientButton from "../../components/CustomGradientButton";
 import { Colors } from "../../constants/Colors";
 import { useUser } from "../../context/UserContext";
 import type { MainStackParamList } from "../../navigation/types";
+
+// Get screen dimensions
+const { width, height } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<MainStackParamList, 'UserProfile'>;
 
@@ -105,9 +108,18 @@ const UserProfile = ({ navigation, route }: Props) => {
 
     if (userLoading || isRefreshing) {
         return (
-            <View className="flex-1 justify-center items-center" style={{ backgroundColor: Colors.light.blackPrimary }}>
+            <View
+                className="flex-1 justify-center items-center"
+                style={{ backgroundColor: Colors.light.blackPrimary }}
+            >
                 <ActivityIndicator size="large" color={Colors.light.whiteFfffff} />
-                <Text style={{ color: Colors.light.whiteFfffff }} className="mt-4 text-lg">
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.045,
+                        marginTop: height * 0.02
+                    }}
+                >
                     Loading profile...
                 </Text>
             </View>
@@ -116,14 +128,27 @@ const UserProfile = ({ navigation, route }: Props) => {
 
     if (!user) {
         return (
-            <View className="flex-1 justify-center items-center" style={{ backgroundColor: Colors.light.blackPrimary }}>
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-lg">
+            <View
+                className="flex-1 justify-center items-center"
+                style={{ backgroundColor: Colors.light.blackPrimary }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.045
+                    }}
+                >
                     No user data available
                 </Text>
                 <TouchableOpacity
                     onPress={handleBackPress}
-                    className="mt-4 px-6 py-3 rounded-lg"
-                    style={{ backgroundColor: Colors.light.bgBlueBtn }}
+                    style={{
+                        backgroundColor: Colors.light.bgBlueBtn,
+                        marginTop: height * 0.02,
+                        paddingHorizontal: width * 0.06,
+                        paddingVertical: height * 0.015,
+                        borderRadius: 8
+                    }}
                 >
                     <Text style={{ color: Colors.light.whiteFfffff }}>Go Back</Text>
                 </TouchableOpacity>
@@ -136,7 +161,7 @@ const UserProfile = ({ navigation, route }: Props) => {
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
             {/* =================== FIXED HEADER SECTION MATCHING OTHER PAGES =================== */}
-            <View className="relative h-32">
+            <View style={{ height: height * 0.14 }}>
                 {/* Background image */}
                 <Image
                     source={bg2}
@@ -145,37 +170,61 @@ const UserProfile = ({ navigation, route }: Props) => {
                 />
 
                 {/* Header Content with proper flexbox layout */}
-                <View className="flex-1 pt-12 pb-4 px-4">
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
                     {/* Header row with proper spacing */}
-                    <View className="flex-row items-center justify-between h-16">
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
                         {/* Back button */}
                         <TouchableOpacity
                             onPress={handleBackPress}
-                            className="w-10 h-10 items-center justify-center"
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
                         >
                             <Image
                                 source={icons.back}
-                                className="w-4 h-6"
+                                style={{
+                                    width: width * 0.04,
+                                    height: width * 0.06
+                                }}
                             />
                         </TouchableOpacity>
 
                         {/* Centered title */}
                         <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium pt-1"
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.075
+                            }}
+                            className="font-medium"
                         >
                             User Profile
                         </Text>
 
                         {/* Empty space for symmetry */}
-                        <View className="w-10 h-10" />
+                        <View style={{ width: width * 0.1, height: width * 0.1 }} />
                     </View>
                 </View>
 
                 {/* Bottom border */}
                 <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                    className="absolute bottom-0 w-full"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        height: 1
+                    }}
                 />
             </View>
 
@@ -183,17 +232,31 @@ const UserProfile = ({ navigation, route }: Props) => {
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 50 }}
+                contentContainerStyle={{
+                    paddingBottom: height * 0.06
+                }}
             >
-                <View className="px-5 pt-5">
+                <View style={{ paddingHorizontal: width * 0.05, paddingTop: height * 0.025 }}>
                     {/* =================== USER PROFILE CARD =================== */}
-                    <View style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }} className="rounded-[10px] p-2 border-l-4 mt-5">
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            borderLeftColor: Colors.light.bgBlueBtn,
+                            borderLeftWidth: 4,
+                            borderRadius: 10,
+                            padding: width * 0.02,
+                            marginTop: height * 0.025
+                        }}
+                    >
                         <View className="flex flex-row">
                             {/* Profile image */}
-                            <View className="mr-2">
+                            <View style={{ marginRight: width * 0.02 }}>
                                 <Image
                                     source={profileimg}
-                                    className="h-[90px] w-[90px]"
+                                    style={{
+                                        height: width * 0.23,
+                                        width: width * 0.23
+                                    }}
                                     resizeMode="contain"
                                 />
                             </View>
@@ -202,17 +265,45 @@ const UserProfile = ({ navigation, route }: Props) => {
                             <View className="flex-1">
                                 {/* Username and level display */}
                                 <View className="flex flex-row justify-between">
-                                    <View className="ml-5 flex-1">
-                                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-3xl font-bold mt-4">
+                                    <View
+                                        className="flex-1"
+                                        style={{ marginLeft: width * 0.05 }}
+                                    >
+                                        <Text
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.075,
+                                                marginTop: height * 0.02
+                                            }}
+                                            className="font-bold"
+                                        >
                                             {user.username || 'Username'}
                                         </Text>
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }} className="w-full mt-2 text-lg">
+                                        <Text
+                                            style={{
+                                                color: Colors.light.placeholderColorOp70,
+                                                fontSize: width * 0.045,
+                                                marginTop: height * 0.01
+                                            }}
+                                        >
                                             Level 1
                                         </Text>
                                     </View>
                                     {/* Arrow navigation icon */}
-                                    <TouchableOpacity className="w-[40px] h-[90px] flex items-center justify-center">
-                                        <Image source={icons.go} className="w-[12px] h-[12px]" />
+                                    <TouchableOpacity
+                                        style={{
+                                            width: width * 0.1,
+                                            height: width * 0.23
+                                        }}
+                                        className="flex items-center justify-center"
+                                    >
+                                        <Image
+                                            source={icons.go}
+                                            style={{
+                                                width: width * 0.03,
+                                                height: width * 0.03
+                                            }}
+                                        />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -220,19 +311,37 @@ const UserProfile = ({ navigation, route }: Props) => {
                     </View>
 
                     {/* Wallet and task count */}
-                    <View style={{ backgroundColor: Colors.light.backlight2 }} className="p-4 mt-4 rounded-lg">
-                        <View className="flex-row justify-between px-3 my-3">
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            padding: width * 0.04,
+                            marginTop: height * 0.02,
+                            borderRadius: 12
+                        }}
+                    >
+                        <View
+                            className="flex-row justify-between"
+                            style={{
+                                paddingHorizontal: width * 0.03,
+                                marginVertical: height * 0.015
+                            }}
+                        >
                             {/* Wallet Balance */}
                             <View className="items-center flex-1">
                                 <Text
-                                    className="text-lg font-semibold"
-                                    style={{ color: Colors.light.whiteFefefe }}
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.045
+                                    }}
+                                    className="font-semibold"
                                 >
                                     {walletBalance || "0"}
                                 </Text>
                                 <Text
-                                    className="text-sm"
-                                    style={{ color: Colors.light.placeholderColorOp70 }}
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035
+                                    }}
                                 >
                                     Wallet Balance
                                 </Text>
@@ -241,14 +350,19 @@ const UserProfile = ({ navigation, route }: Props) => {
                             {/* Completed Tasks */}
                             <View className="items-center flex-1">
                                 <Text
-                                    className="text-lg font-semibold"
-                                    style={{ color: Colors.light.whiteFefefe }}
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.045
+                                    }}
+                                    className="font-semibold"
                                 >
                                     {loadingTasks ? "..." : completedTasks}
                                 </Text>
                                 <Text
-                                    className="text-sm"
-                                    style={{ color: Colors.light.placeholderColorOp70 }}
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035
+                                    }}
                                 >
                                     Tasks Completed
                                 </Text>
@@ -257,125 +371,424 @@ const UserProfile = ({ navigation, route }: Props) => {
                     </View>
 
                     {/* =================== TOTAL WINNING TITLE SECTION =================== */}
-                    <View className="flex justify-center items-center py-8">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-medium">Total Winning</Text>
+                    <View
+                        className="flex justify-center items-center"
+                        style={{ paddingVertical: height * 0.04 }}
+                    >
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.075
+                            }}
+                            className="font-medium"
+                        >
+                            Total Winning
+                        </Text>
                     </View>
 
                     {/* Total winnings summary row */}
-                    <View className="flex justify-between flex-row pb-2">
-                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-medium">
+                    <View
+                        className="flex justify-between flex-row"
+                        style={{ paddingBottom: height * 0.01 }}
+                    >
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.05
+                            }}
+                            className="font-medium"
+                        >
                             Total Winnings
                         </Text>
                         <View className="flex flex-row items-center">
-                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-medium">Total </Text>
-                            <Image source={icons.maincoin} className="w-[16px] h-[16px] mx-1" />
-                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-medium">500</Text>
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05
+                                }}
+                                className="font-medium"
+                            >
+                                Total
+                            </Text>
+                            <Image
+                                source={icons.maincoin}
+                                style={{
+                                    width: width * 0.04,
+                                    height: width * 0.04,
+                                    marginHorizontal: width * 0.01
+                                }}
+                            />
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05
+                                }}
+                                className="font-medium"
+                            >
+                                500
+                            </Text>
                         </View>
                     </View>
 
                     {/* =================== FIRST STATISTICS BLOCK =================== */}
                     <View className="flex">
                         {/* Stats header with icon and title */}
-                        <View style={{ backgroundColor: Colors.light.backlight2 }} className="flex flex-row rounded-t-[10px] p-3 items-center">
-                            <Image source={profileimg} className="w-[30px] h-[30px]" />
-                            <View className="flex flex-row items-center justify-between flex-1 ml-3">
-                                <Text style={{ color: Colors.light.whiteFfffff }} className="font-bold text-xl">Games Played</Text>
+                        <View
+                            style={{
+                                backgroundColor: Colors.light.backlight2,
+                                borderTopLeftRadius: 10,
+                                borderTopRightRadius: 10,
+                                padding: width * 0.03
+                            }}
+                            className="flex flex-row items-center"
+                        >
+                            <Image
+                                source={profileimg}
+                                style={{
+                                    width: width * 0.075,
+                                    height: width * 0.075
+                                }}
+                            />
+                            <View
+                                className="flex flex-row items-center justify-between flex-1"
+                                style={{ marginLeft: width * 0.03 }}
+                            >
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.05
+                                    }}
+                                    className="font-bold"
+                                >
+                                    Games Played
+                                </Text>
                                 <View className="flex flex-row items-center">
-                                    <Image source={icons.maincoin} className="h-[25px] w-[25px]" />
-                                    <Text style={{ color: Colors.light.whiteFfffff }} className="font-bold text-xl ml-2">5,009</Text>
+                                    <Image
+                                        source={icons.maincoin}
+                                        style={{
+                                            height: width * 0.063,
+                                            width: width * 0.063
+                                        }}
+                                    />
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.05,
+                                            marginLeft: width * 0.02
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        5,009
+                                    </Text>
                                 </View>
                             </View>
                         </View>
                         {/* Stats content with achievements and games data */}
-                        <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="px-5 py-2 rounded-b-[10px]">
+                        <View
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                paddingHorizontal: width * 0.05,
+                                paddingVertical: height * 0.01,
+                                borderBottomLeftRadius: 10,
+                                borderBottomRightRadius: 10
+                            }}
+                        >
                             <View className="flex flex-row justify-between">
                                 <View>
-                                    <Text style={{ color: Colors.light.backlight2 }} className="font-bold text-2xl">745</Text>
-                                    <Text style={{ color: Colors.light.backlight2 }} className="text-2xl">Achievements</Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        745
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                    >
+                                        Achievements
+                                    </Text>
                                 </View>
                                 <View className="flex items-end">
-                                    <Text style={{ color: Colors.light.backlight2 }} className="font-bold text-2xl">750</Text>
-                                    <Text style={{ color: Colors.light.backlight2 }} className="text-2xl">Games Played</Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        750
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                    >
+                                        Games Played
+                                    </Text>
                                 </View>
                             </View>
                         </View>
                     </View>
 
                     {/* =================== SECOND STATISTICS BLOCK =================== */}
-                    <View className="flex pt-8">
+                    <View
+                        className="flex"
+                        style={{ paddingTop: height * 0.04 }}
+                    >
                         {/* Stats header with icon and title */}
-                        <View style={{ backgroundColor: Colors.light.backlight2 }} className="flex flex-row rounded-t-[10px] p-3 items-center">
-                            <Image source={profileimg} className="w-[30px] h-[30px]" />
-                            <View className="flex flex-row items-center justify-between flex-1 ml-3">
-                                <Text style={{ color: Colors.light.whiteFfffff }} className="font-bold text-xl">Achievements</Text>
+                        <View
+                            style={{
+                                backgroundColor: Colors.light.backlight2,
+                                borderTopLeftRadius: 10,
+                                borderTopRightRadius: 10,
+                                padding: width * 0.03
+                            }}
+                            className="flex flex-row items-center"
+                        >
+                            <Image
+                                source={profileimg}
+                                style={{
+                                    width: width * 0.075,
+                                    height: width * 0.075
+                                }}
+                            />
+                            <View
+                                className="flex flex-row items-center justify-between flex-1"
+                                style={{ marginLeft: width * 0.03 }}
+                            >
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.05
+                                    }}
+                                    className="font-bold"
+                                >
+                                    Achievements
+                                </Text>
                                 <View className="flex flex-row items-center">
-                                    <Image source={icons.maincoin} className="h-[25px] w-[25px]" />
-                                    <Text style={{ color: Colors.light.whiteFfffff }} className="font-bold text-xl ml-2">5,009</Text>
+                                    <Image
+                                        source={icons.maincoin}
+                                        style={{
+                                            height: width * 0.063,
+                                            width: width * 0.063
+                                        }}
+                                    />
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.05,
+                                            marginLeft: width * 0.02
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        5,009
+                                    </Text>
                                 </View>
                             </View>
                         </View>
                         {/* Stats content with games played data */}
-                        <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="px-5 py-2 rounded-b-[10px]">
+                        <View
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                paddingHorizontal: width * 0.05,
+                                paddingVertical: height * 0.01,
+                                borderBottomLeftRadius: 10,
+                                borderBottomRightRadius: 10
+                            }}
+                        >
                             <View className="flex flex-row justify-between">
                                 <View>
-                                    <Text style={{ color: Colors.light.backlight2 }} className="font-bold text-2xl">120</Text>
-                                    <Text style={{ color: Colors.light.backlight2 }} className="text-2xl">Games Played</Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        120
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                    >
+                                        Games Played
+                                    </Text>
                                 </View>
                                 <View className="flex items-end">
-                                    <Text style={{ color: Colors.light.backlight2 }} className="font-bold text-2xl">1234</Text>
-                                    <Text style={{ color: Colors.light.backlight2 }} className="text-2xl">Played</Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        1234
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                    >
+                                        Played
+                                    </Text>
                                 </View>
                             </View>
                         </View>
                     </View>
 
                     {/* =================== THIRD STATISTICS BLOCK =================== */}
-                    <View className="flex pt-8">
+                    <View
+                        className="flex"
+                        style={{ paddingTop: height * 0.04 }}
+                    >
                         {/* Stats header with icon and title */}
-                        <View style={{ backgroundColor: Colors.light.backlight2 }} className="flex flex-row rounded-t-[10px] p-3 items-center">
-                            <Image source={profileimg} className="w-[30px] h-[30px]" />
-                            <View className="flex flex-row items-center justify-between flex-1 ml-3">
-                                <Text style={{ color: Colors.light.whiteFfffff }} className="font-bold text-xl">Achievements</Text>
+                        <View
+                            style={{
+                                backgroundColor: Colors.light.backlight2,
+                                borderTopLeftRadius: 10,
+                                borderTopRightRadius: 10,
+                                padding: width * 0.03
+                            }}
+                            className="flex flex-row items-center"
+                        >
+                            <Image
+                                source={profileimg}
+                                style={{
+                                    width: width * 0.075,
+                                    height: width * 0.075
+                                }}
+                            />
+                            <View
+                                className="flex flex-row items-center justify-between flex-1"
+                                style={{ marginLeft: width * 0.03 }}
+                            >
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.05
+                                    }}
+                                    className="font-bold"
+                                >
+                                    Achievements
+                                </Text>
                                 <View className="flex flex-row items-center">
-                                    <Image source={icons.maincoin} className="h-[25px] w-[25px]" />
-                                    <Text style={{ color: Colors.light.whiteFfffff }} className="font-bold text-xl ml-2">5,009</Text>
+                                    <Image
+                                        source={icons.maincoin}
+                                        style={{
+                                            height: width * 0.063,
+                                            width: width * 0.063
+                                        }}
+                                    />
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.05,
+                                            marginLeft: width * 0.02
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        5,009
+                                    </Text>
                                 </View>
                             </View>
                         </View>
                         {/* Stats content with games played data */}
-                        <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="px-5 py-2 rounded-b-[10px]">
+                        <View
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                paddingHorizontal: width * 0.05,
+                                paddingVertical: height * 0.01,
+                                borderBottomLeftRadius: 10,
+                                borderBottomRightRadius: 10
+                            }}
+                        >
                             <View className="flex flex-row justify-between">
                                 <View>
-                                    <Text style={{ color: Colors.light.backlight2 }} className="font-bold text-2xl">120</Text>
-                                    <Text style={{ color: Colors.light.backlight2 }} className="text-2xl">Games Played</Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        120
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                    >
+                                        Games Played
+                                    </Text>
                                 </View>
                                 <View className="flex items-end">
-                                    <Text style={{ color: Colors.light.backlight2 }} className="font-bold text-2xl">1234</Text>
-                                    <Text style={{ color: Colors.light.backlight2 }} className="text-2xl">Played</Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        1234
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.backlight2,
+                                            fontSize: width * 0.06
+                                        }}
+                                    >
+                                        Played
+                                    </Text>
                                 </View>
                             </View>
                         </View>
                     </View>
 
                     {/* =================== BOTTOM ACTION BUTTONS =================== */}
-                    <View className="flex flex-row mt-14 justify-between">
+                    <View
+                        className="flex flex-row justify-between"
+                        style={{ marginTop: height * 0.07 }}
+                    >
                         {/* Edit Profile Button */}
                         <CustomGradientButton
                             text="Edit Profile"
-                            width={180}
-                            height={50}
+                            width={width * 0.43}
+                            height={height * 0.055}
                             borderRadius={10}
-                            fontSize={18}
+                            fontSize={width * 0.045}
                             fontWeight="600"
                             textColor={Colors.light.whiteFfffff}
                             onPress={handleEditProfilePress}
                         />
                         {/* Game History Button */}
                         <TouchableOpacity
-                            style={{ backgroundColor: Colors.light.backlight2 }}
-                            className="rounded-[10px] w-[180px] h-[50px] flex items-center justify-center"
+                            style={{
+                                backgroundColor: Colors.light.backlight2,
+                                borderRadius: 10,
+                                width: width * 0.43,
+                                height: height * 0.055
+                            }}
+                            className="flex items-center justify-center"
                         >
-                            <Text style={{ color: Colors.light.whiteFfffff }} className="font-medium text-xl">Game History</Text>
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.05
+                                }}
+                                className="font-medium"
+                            >
+                                Game History
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
