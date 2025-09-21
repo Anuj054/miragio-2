@@ -2,6 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Modal, Image, Dimensions } from 'react-native';
 import { Colors } from "../constants/Colors";
 import { icons } from "../constants/index";
+// Translation imports - USING CUSTOM COMPONENTS
+import { TranslatedText } from './TranslatedText';
+import { useTranslation } from '../context/TranslationContext';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -23,7 +26,26 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
     onClose,
     transactionData
 }) => {
+    const { currentLanguage } = useTranslation();
+
     if (!transactionData) return null;
+
+    // Helper function to format payment method
+    const formatPaymentMethod = (method: string) => {
+        const formattedMethod = method.replace('_', ' ');
+        if (currentLanguage === 'hi') {
+            switch (method.toLowerCase()) {
+                case 'upi':
+                    return 'UPI';
+                case 'bank_transfer':
+                case 'bank transfer':
+                    return 'बैंक ट्रांसफर';
+                default:
+                    return formattedMethod;
+            }
+        }
+        return formattedMethod;
+    };
 
     return (
         <Modal
@@ -80,7 +102,7 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                                 ✓
                             </Text>
                         </View>
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.045
@@ -88,8 +110,8 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                             className="font-bold text-center"
                         >
                             Withdrawal Submitted!
-                        </Text>
-                        <Text
+                        </TranslatedText>
+                        <TranslatedText
                             style={{
                                 color: 'rgba(255, 255, 255, 0.7)',
                                 fontSize: width * 0.03,
@@ -99,7 +121,7 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                             }}
                         >
                             Your withdrawal request has been created successfully
-                        </Text>
+                        </TranslatedText>
                     </View>
 
                     {/* Transaction Details */}
@@ -111,7 +133,7 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                             marginBottom: height * 0.02
                         }}
                     >
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.04,
@@ -120,18 +142,18 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                             className="font-bold"
                         >
                             Transaction Details
-                        </Text>
+                        </TranslatedText>
 
                         <View style={{ gap: height * 0.01 }}>
                             <View className="flex-row justify-between items-center">
-                                <Text
+                                <TranslatedText
                                     style={{
                                         color: 'rgba(255, 255, 255, 0.7)',
                                         fontSize: width * 0.03
                                     }}
                                 >
                                     Transaction ID:
-                                </Text>
+                                </TranslatedText>
                                 <Text
                                     style={{
                                         color: Colors.light.whiteFfffff,
@@ -144,14 +166,14 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                             </View>
 
                             <View className="flex-row justify-between items-center">
-                                <Text
+                                <TranslatedText
                                     style={{
                                         color: 'rgba(255, 255, 255, 0.7)',
                                         fontSize: width * 0.03
                                     }}
                                 >
                                     Coins Withdrawn:
-                                </Text>
+                                </TranslatedText>
                                 <View className="flex-row items-center">
                                     <Image
                                         source={icons.maincoin}
@@ -174,14 +196,14 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                             </View>
 
                             <View className="flex-row justify-between items-center">
-                                <Text
+                                <TranslatedText
                                     style={{
                                         color: 'rgba(255, 255, 255, 0.7)',
                                         fontSize: width * 0.03
                                     }}
                                 >
                                     Amount:
-                                </Text>
+                                </TranslatedText>
                                 <Text
                                     style={{
                                         color: '#10B981',
@@ -194,14 +216,14 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                             </View>
 
                             <View className="flex-row justify-between items-center">
-                                <Text
+                                <TranslatedText
                                     style={{
                                         color: 'rgba(255, 255, 255, 0.7)',
                                         fontSize: width * 0.03
                                     }}
                                 >
                                     Status:
-                                </Text>
+                                </TranslatedText>
                                 <View
                                     style={{
                                         backgroundColor: 'rgba(251, 191, 36, 0.2)',
@@ -217,20 +239,25 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                                         }}
                                         className="font-medium capitalize"
                                     >
-                                        {transactionData.status}
+                                        {currentLanguage === 'hi' ?
+                                            (transactionData.status === 'pending' ? 'लंबित' :
+                                                transactionData.status === 'completed' ? 'पूर्ण' :
+                                                    transactionData.status === 'failed' ? 'असफल' :
+                                                        transactionData.status) :
+                                            transactionData.status}
                                     </Text>
                                 </View>
                             </View>
 
                             <View className="flex-row justify-between items-center">
-                                <Text
+                                <TranslatedText
                                     style={{
                                         color: 'rgba(255, 255, 255, 0.7)',
                                         fontSize: width * 0.03
                                     }}
                                 >
                                     Method:
-                                </Text>
+                                </TranslatedText>
                                 <Text
                                     style={{
                                         color: Colors.light.whiteFfffff,
@@ -238,7 +265,7 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                                     }}
                                     className="font-medium capitalize"
                                 >
-                                    {transactionData.payment_method.replace('_', ' ')}
+                                    {formatPaymentMethod(transactionData.payment_method)}
                                 </Text>
                             </View>
                         </View>
@@ -268,7 +295,7 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                             >
                                 ℹ️
                             </Text>
-                            <Text
+                            <TranslatedText
                                 style={{
                                     color: '#60A5FA',
                                     fontSize: width * 0.035
@@ -276,18 +303,17 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                                 className="font-bold"
                             >
                                 Processing Time
-                            </Text>
+                            </TranslatedText>
                         </View>
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: 'rgba(255, 255, 255, 0.8)',
                                 fontSize: width * 0.03,
                                 lineHeight: width * 0.04
                             }}
                         >
-                            Your withdrawal will be processed within 24-48 hours.
-                            You'll receive the amount in your selected payment method.
-                        </Text>
+                            Your withdrawal will be processed within 24-48 hours. You'll receive the amount in your selected payment method.
+                        </TranslatedText>
                     </View>
 
                     {/* Close Button */}
@@ -301,7 +327,7 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                         className="items-center"
                         activeOpacity={0.8}
                     >
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.04
@@ -309,7 +335,7 @@ const WithdrawalSuccessModal: React.FC<WithdrawalSuccessModalProps> = ({
                             className="font-bold"
                         >
                             Close
-                        </Text>
+                        </TranslatedText>
                     </TouchableOpacity>
                 </View>
             </View>

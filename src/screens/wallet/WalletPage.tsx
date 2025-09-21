@@ -18,8 +18,11 @@ import { icons } from '../../constants/index';
 import profilephoto from '../../assets/images/profilephoto.png';
 
 import { Colors } from '../../constants/Colors';
-
 import { useUser } from '../../context/UserContext';
+
+// Translation imports - USING CUSTOM COMPONENTS
+import { TranslatedText } from '../../components/TranslatedText';
+import { useTranslation } from '../../context/TranslationContext';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -28,6 +31,8 @@ const { width, height } = Dimensions.get('window');
 type NavigationProp = any;
 
 const WalletPage = () => {
+    const { currentLanguage } = useTranslation();
+
     const [walletBalance, setWalletBalance] = useState('0');
     const [withdrawableBalance, setWithdrawableBalance] = useState('0');
     const [loading, setLoading] = useState(true);
@@ -217,8 +222,8 @@ const WalletPage = () => {
                             />
                         </TouchableOpacity>
 
-                        {/* Centered title */}
-                        <Text
+                        {/* Centered title with translation */}
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.075
@@ -226,7 +231,7 @@ const WalletPage = () => {
                             className="font-medium"
                         >
                             Wallet
-                        </Text>
+                        </TranslatedText>
 
                         {/* Profile photo */}
                         <TouchableOpacity
@@ -287,8 +292,8 @@ const WalletPage = () => {
                             paddingVertical: height * 0.025
                         }}
                     >
-                        {/* Total balance title */}
-                        <Text
+                        {/* Total balance title with translation */}
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.06
@@ -296,7 +301,7 @@ const WalletPage = () => {
                             className="font-semibold"
                         >
                             Total Balance
-                        </Text>
+                        </TranslatedText>
 
                         {/* Balance amount with coin icon */}
                         <View
@@ -318,7 +323,7 @@ const WalletPage = () => {
                                 }}
                                 className="font-extrabold"
                             >
-                                {loading ? 'Loading...' : walletBalance}
+                                {loading ? (currentLanguage === 'hi' ? 'लोड हो रहा है...' : 'Loading...') : walletBalance}
                             </Text>
                             {/* Refresh button */}
                             <TouchableOpacity
@@ -346,7 +351,7 @@ const WalletPage = () => {
                             className="flex-row justify-between w-full"
                             style={{ marginTop: height * 0.005 }}
                         >
-                            <Text
+                            <TranslatedText
                                 style={{
                                     color: Colors.light.placeholderColorOp70,
                                     fontSize: width * 0.035,
@@ -354,7 +359,7 @@ const WalletPage = () => {
                                 }}
                             >
                                 Account Balance
-                            </Text>
+                            </TranslatedText>
 
                             {/* My transactions navigation link */}
                             <TouchableOpacity
@@ -362,14 +367,14 @@ const WalletPage = () => {
                                 style={{ paddingTop: height * 0.01 }}
                                 onPress={handleTransactionsPress}
                             >
-                                <Text
+                                <TranslatedText
                                     style={{
                                         color: Colors.light.whiteFefefe,
                                         fontSize: width * 0.035
                                     }}
                                 >
                                     My Transactions
-                                </Text>
+                                </TranslatedText>
                                 <Image
                                     source={icons.go}
                                     style={{
@@ -398,7 +403,7 @@ const WalletPage = () => {
                                 className="flex flex-row justify-between items-center"
                                 style={{ marginBottom: height * 0.015 }}
                             >
-                                <Text
+                                <TranslatedText
                                     style={{
                                         color: Colors.light.whiteFfffff,
                                         fontSize: width * 0.035
@@ -406,7 +411,7 @@ const WalletPage = () => {
                                     className="font-medium"
                                 >
                                     Available for Withdrawal
-                                </Text>
+                                </TranslatedText>
                             </View>
 
                             {/* Compact balance and button row */}
@@ -431,14 +436,14 @@ const WalletPage = () => {
                                         >
                                             {loading ? '...' : withdrawableBalance}
                                         </Text>
-                                        <Text
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.placeholderColorOp70,
                                                 fontSize: width * 0.03
                                             }}
                                         >
                                             Withdrawable
-                                        </Text>
+                                        </TranslatedText>
                                     </View>
                                 </View>
 
@@ -471,7 +476,7 @@ const WalletPage = () => {
                                             opacity: parseFloat(withdrawableBalance) >= 100 ? 1 : 0.5
                                         }}
                                     />
-                                    <Text
+                                    <TranslatedText
                                         style={{
                                             color:
                                                 parseFloat(withdrawableBalance) >= 100
@@ -482,7 +487,7 @@ const WalletPage = () => {
                                         className="font-semibold"
                                     >
                                         WITHDRAW
-                                    </Text>
+                                    </TranslatedText>
                                 </TouchableOpacity>
                             </View>
 
@@ -515,14 +520,15 @@ const WalletPage = () => {
                                     }}
                                 >
                                     {parseFloat(withdrawableBalance) >= 100
-                                        ? 'Ready to withdraw • Min: 100 coins'
-                                        : `Need ${100 - parseFloat(withdrawableBalance)
-                                        } more coins • Min: 100`}
+                                        ? (currentLanguage === 'hi'
+                                            ? 'निकालने के लिए तैयार • न्यूनतम: 100 सिक्के'
+                                            : 'Ready to withdraw • Min: 100 coins')
+                                        : (currentLanguage === 'hi'
+                                            ? `${100 - parseFloat(withdrawableBalance)} और सिक्के चाहिए • न्यूनतम: 100`
+                                            : `Need ${100 - parseFloat(withdrawableBalance)} more coins • Min: 100`)}
                                 </Text>
                             </View>
                         </View>
-
-
                     </View>
                 </View>
 
@@ -549,8 +555,8 @@ const WalletPage = () => {
                             <View
                                 style={{
                                     backgroundColor: Colors.light.backlight2,
-                                    height: height * 0.077,
-                                    width: width * 0.43,
+                                    height: height * 0.09,
+                                    width: width * 0.45,
                                     borderRadius: 12,
                                     marginHorizontal: width * 0.015
                                 }}
@@ -578,7 +584,7 @@ const WalletPage = () => {
                                     className="flex-1"
                                     style={{ marginHorizontal: width * 0.03 }}
                                 >
-                                    <Text
+                                    <TranslatedText
                                         style={{
                                             color: Colors.light.secondaryText,
                                             fontSize: width * 0.04
@@ -586,15 +592,15 @@ const WalletPage = () => {
                                         className="font-medium"
                                     >
                                         FAQs
-                                    </Text>
-                                    <Text
+                                    </TranslatedText>
+                                    <TranslatedText
                                         style={{
                                             color: Colors.light.placeholderColorOp70,
-                                            fontSize: width * 0.035
+                                            fontSize: width * 0.03
                                         }}
                                     >
                                         Contact for all queries
-                                    </Text>
+                                    </TranslatedText>
                                 </View>
                             </View>
 
@@ -602,8 +608,8 @@ const WalletPage = () => {
                             <View
                                 style={{
                                     backgroundColor: Colors.light.backlight2,
-                                    height: height * 0.077,
-                                    width: width * 0.43,
+                                    height: height * 0.09,
+                                    width: width * 0.45,
                                     borderRadius: 12,
                                     marginHorizontal: width * 0.015
                                 }}
@@ -631,7 +637,7 @@ const WalletPage = () => {
                                     className="flex-1"
                                     style={{ marginHorizontal: width * 0.03 }}
                                 >
-                                    <Text
+                                    <TranslatedText
                                         style={{
                                             color: Colors.light.secondaryText,
                                             fontSize: width * 0.04
@@ -639,22 +645,22 @@ const WalletPage = () => {
                                         className="font-medium"
                                     >
                                         Offers
-                                    </Text>
-                                    <Text
+                                    </TranslatedText>
+                                    <TranslatedText
                                         style={{
                                             color: Colors.light.placeholderColorOp70,
-                                            fontSize: width * 0.035
+                                            fontSize: width * 0.03
                                         }}
                                     >
                                         Contact for all queries
-                                    </Text>
+                                    </TranslatedText>
                                 </View>
                             </View>
                         </View>
                     </View>
 
                     {/* =================== OTHERS SECTION =================== */}
-                    <Text
+                    <TranslatedText
                         style={{
                             color: Colors.light.whiteFefefe,
                             fontSize: width * 0.05,
@@ -663,7 +669,7 @@ const WalletPage = () => {
                         className="font-medium"
                     >
                         Others
-                    </Text>
+                    </TranslatedText>
 
                     <View style={{ marginHorizontal: width * 0.03 }}>
                         {/* =================== ALL-IN-CLUB CARD =================== */}
@@ -706,7 +712,7 @@ const WalletPage = () => {
                                         className="flex-1"
                                         style={{ paddingLeft: width * 0.03 }}
                                     >
-                                        <Text
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.whiteFefefe,
                                                 fontSize: width * 0.045,
@@ -715,15 +721,15 @@ const WalletPage = () => {
                                             className="font-medium"
                                         >
                                             All-in-Club
-                                        </Text>
-                                        <Text
+                                        </TranslatedText>
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.placeholderColorOp70,
                                                 fontSize: width * 0.035
                                             }}
                                         >
                                             Feel the Privilege
-                                        </Text>
+                                        </TranslatedText>
                                     </View>
 
                                     {/* Navigation arrow */}
@@ -780,7 +786,7 @@ const WalletPage = () => {
                                         className="flex-1"
                                         style={{ paddingLeft: width * 0.03 }}
                                     >
-                                        <Text
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.whiteFefefe,
                                                 fontSize: width * 0.045,
@@ -789,15 +795,15 @@ const WalletPage = () => {
                                             className="font-medium"
                                         >
                                             Coins Enquiry
-                                        </Text>
-                                        <Text
+                                        </TranslatedText>
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.placeholderColorOp70,
                                                 fontSize: width * 0.035
                                             }}
                                         >
                                             Keep track of your coins
-                                        </Text>
+                                        </TranslatedText>
                                     </View>
 
                                     {/* Navigation arrow */}
@@ -854,7 +860,7 @@ const WalletPage = () => {
                                         className="flex-1"
                                         style={{ paddingLeft: width * 0.03 }}
                                     >
-                                        <Text
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.whiteFefefe,
                                                 fontSize: width * 0.045,
@@ -863,15 +869,15 @@ const WalletPage = () => {
                                             className="font-medium"
                                         >
                                             Responsible Gaming
-                                        </Text>
-                                        <Text
+                                        </TranslatedText>
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.placeholderColorOp70,
                                                 fontSize: width * 0.035
                                             }}
                                         >
                                             Deposit limits & game restrictions
-                                        </Text>
+                                        </TranslatedText>
                                     </View>
 
                                     {/* Navigation arrow */}
@@ -928,7 +934,7 @@ const WalletPage = () => {
                                         className="flex-1"
                                         style={{ paddingLeft: width * 0.03 }}
                                     >
-                                        <Text
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.whiteFefefe,
                                                 fontSize: width * 0.045,
@@ -937,15 +943,15 @@ const WalletPage = () => {
                                             className="font-medium"
                                         >
                                             TDS Certificate Download
-                                        </Text>
-                                        <Text
+                                        </TranslatedText>
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.placeholderColorOp70,
                                                 fontSize: width * 0.035
                                             }}
                                         >
                                             You can download your TDS certificate
-                                        </Text>
+                                        </TranslatedText>
                                     </View>
 
                                     {/* Navigation arrow */}
@@ -1002,7 +1008,7 @@ const WalletPage = () => {
                                         className="flex-1"
                                         style={{ paddingLeft: width * 0.03 }}
                                     >
-                                        <Text
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.whiteFefefe,
                                                 fontSize: width * 0.045,
@@ -1011,15 +1017,15 @@ const WalletPage = () => {
                                             className="font-medium"
                                         >
                                             Redeem Gift Card
-                                        </Text>
-                                        <Text
+                                        </TranslatedText>
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.placeholderColorOp70,
                                                 fontSize: width * 0.035
                                             }}
                                         >
                                             Enter gift card or coupon code
-                                        </Text>
+                                        </TranslatedText>
                                     </View>
 
                                     {/* Navigation arrow */}
@@ -1058,7 +1064,7 @@ const WalletPage = () => {
                                     opacity: isLoggingOut ? 0.7 : 1
                                 }}
                             />
-                            <Text
+                            <TranslatedText
                                 style={{
                                     color: Colors.light.whiteFefefe,
                                     fontSize: width * 0.05,
@@ -1066,8 +1072,8 @@ const WalletPage = () => {
                                 }}
                                 className="font-bold"
                             >
-                                {isLoggingOut ? 'Logging out...' : 'Logout'}
-                            </Text>
+                                {isLoggingOut ? (currentLanguage === 'hi' ? 'लॉगआउट हो रहा है...' : 'Logging out...') : 'Logout'}
+                            </TranslatedText>
                         </TouchableOpacity>
                     </View>
                 </View>

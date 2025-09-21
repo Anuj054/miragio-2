@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Dimensions } from 'react-native';
 import { Colors } from '../constants/Colors';
+// Translation imports - USING CUSTOM COMPONENTS
+import { TranslatedText } from './TranslatedText';
+import { useTranslation } from '../context/TranslationContext';
 
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
@@ -18,6 +21,8 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
     onSuccess,
     userId
 }) => {
+    const { currentLanguage } = useTranslation();
+
     const [modalStep, setModalStep] = useState<'select' | 'upi' | 'bank'>('select');
     const [formLoading, setFormLoading] = useState<boolean>(false);
 
@@ -73,12 +78,20 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
 
     const submitUPIForm = async () => {
         if (!upiId.trim()) {
-            Alert.alert("Error", "Please enter UPI ID");
+            Alert.alert(
+                currentLanguage === 'hi' ? "त्रुटि" : "Error",
+                currentLanguage === 'hi' ? "कृपया UPI ID दर्ज करें" : "Please enter UPI ID"
+            );
             return;
         }
 
         if (!validateUPI(upiId)) {
-            Alert.alert("Error", "Please enter a valid UPI ID (e.g., yourname@paytm)");
+            Alert.alert(
+                currentLanguage === 'hi' ? "त्रुटि" : "Error",
+                currentLanguage === 'hi' ?
+                    "कृपया वैध UPI ID दर्ज करें (जैसे, yourname@paytm)" :
+                    "Please enter a valid UPI ID (e.g., yourname@paytm)"
+            );
             return;
         }
 
@@ -100,22 +113,29 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
             const data = await response.json();
 
             if (data.status === "success") {
-                Alert.alert("Success", "UPI ID added successfully!", [
-                    {
-                        text: "OK",
-                        onPress: () => {
-                            handleClose();
-                            onSuccess();
+                Alert.alert(
+                    currentLanguage === 'hi' ? "सफल" : "Success",
+                    currentLanguage === 'hi' ? "UPI ID सफलतापूर्वक जोड़ी गई!" : "UPI ID added successfully!",
+                    [
+                        {
+                            text: currentLanguage === 'hi' ? "ठीक है" : "OK",
+                            onPress: () => {
+                                handleClose();
+                                onSuccess();
+                            }
                         }
-                    }
-                ]);
+                    ]
+                );
             } else {
-                const errorMessage = data.message || "Failed to add UPI ID";
-                Alert.alert("Error", errorMessage);
+                const errorMessage = data.message || (currentLanguage === 'hi' ? "UPI ID जोड़ने में असफल" : "Failed to add UPI ID");
+                Alert.alert(currentLanguage === 'hi' ? "त्रुटि" : "Error", errorMessage);
             }
         } catch (error) {
             console.error("Error adding UPI:", error);
-            Alert.alert("Error", "Something went wrong. Please try again.");
+            Alert.alert(
+                currentLanguage === 'hi' ? "त्रुटि" : "Error",
+                currentLanguage === 'hi' ? "कुछ गलत हुआ। कृपया फिर से कोशिश करें।" : "Something went wrong. Please try again."
+            );
         } finally {
             setFormLoading(false);
         }
@@ -126,22 +146,38 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
 
         // Validation
         if (!accountNumber || !confirmAccountNumber || !ifscCode || !bankName || !branch || !panNumber || !accountHolderName) {
-            Alert.alert("Error", "Please fill in all fields");
+            Alert.alert(
+                currentLanguage === 'hi' ? "त्रुटि" : "Error",
+                currentLanguage === 'hi' ? "कृपया सभी फील्ड भरें" : "Please fill in all fields"
+            );
             return;
         }
 
         if (accountNumber !== confirmAccountNumber) {
-            Alert.alert("Error", "Account numbers do not match");
+            Alert.alert(
+                currentLanguage === 'hi' ? "त्रुटि" : "Error",
+                currentLanguage === 'hi' ? "खाता नंबर मैच नहीं करते" : "Account numbers do not match"
+            );
             return;
         }
 
         if (!validateIFSC(ifscCode)) {
-            Alert.alert("Error", "Please enter a valid IFSC code (e.g., SBIA0154734)");
+            Alert.alert(
+                currentLanguage === 'hi' ? "त्रुटि" : "Error",
+                currentLanguage === 'hi' ?
+                    "कृपया वैध IFSC कोड दर्ज करें (जैसे, SBIA0154734)" :
+                    "Please enter a valid IFSC code (e.g., SBIA0154734)"
+            );
             return;
         }
 
         if (!validatePAN(panNumber)) {
-            Alert.alert("Error", "Please enter a valid PAN number (e.g., ABCDE1234F)");
+            Alert.alert(
+                currentLanguage === 'hi' ? "त्रुटि" : "Error",
+                currentLanguage === 'hi' ?
+                    "कृपया वैध PAN नंबर दर्ज करें (जैसे, ABCDE1234F)" :
+                    "Please enter a valid PAN number (e.g., ABCDE1234F)"
+            );
             return;
         }
 
@@ -169,22 +205,31 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
             const data = await response.json();
 
             if (data.status === "success") {
-                Alert.alert("Success", "Bank details added successfully! PAN verification may take 24-48 hours.", [
-                    {
-                        text: "OK",
-                        onPress: () => {
-                            handleClose();
-                            onSuccess();
+                Alert.alert(
+                    currentLanguage === 'hi' ? "सफल" : "Success",
+                    currentLanguage === 'hi' ?
+                        "बैंक विवरण सफलतापूर्वक जोड़े गए! PAN सत्यापन में 24-48 घंटे लग सकते हैं।" :
+                        "Bank details added successfully! PAN verification may take 24-48 hours.",
+                    [
+                        {
+                            text: currentLanguage === 'hi' ? "ठीक है" : "OK",
+                            onPress: () => {
+                                handleClose();
+                                onSuccess();
+                            }
                         }
-                    }
-                ]);
+                    ]
+                );
             } else {
-                const errorMessage = data.message || "Failed to add bank details";
-                Alert.alert("Error", errorMessage);
+                const errorMessage = data.message || (currentLanguage === 'hi' ? "बैंक विवरण जोड़ने में असफल" : "Failed to add bank details");
+                Alert.alert(currentLanguage === 'hi' ? "त्रुटि" : "Error", errorMessage);
             }
         } catch (error) {
             console.error("Error adding bank details:", error);
-            Alert.alert("Error", "Something went wrong. Please try again.");
+            Alert.alert(
+                currentLanguage === 'hi' ? "त्रुटि" : "Error",
+                currentLanguage === 'hi' ? "कुछ गलत हुआ। कृपया फिर से कोशिश करें।" : "Something went wrong. Please try again."
+            );
         } finally {
             setFormLoading(false);
         }
@@ -227,8 +272,11 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                             }}
                             className="font-bold"
                         >
-                            {modalStep === 'select' ? 'Add Payment Method' :
-                                modalStep === 'upi' ? 'Add UPI ID' : 'Add Bank Account'}
+                            {modalStep === 'select' ?
+                                (currentLanguage === 'hi' ? 'पेमेंट मेथड जोड़ें' : 'Add Payment Method') :
+                                modalStep === 'upi' ?
+                                    (currentLanguage === 'hi' ? 'UPI ID जोड़ें' : 'Add UPI ID') :
+                                    (currentLanguage === 'hi' ? 'बैंक खाता जोड़ें' : 'Add Bank Account')}
                         </Text>
                         <TouchableOpacity
                             onPress={handleClose}
@@ -255,7 +303,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                     {/* Modal Content */}
                     {modalStep === 'select' && (
                         <View>
-                            <Text
+                            <TranslatedText
                                 style={{
                                     color: 'rgba(255, 255, 255, 0.7)',
                                     fontSize: width * 0.03,
@@ -264,7 +312,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                 }}
                             >
                                 Choose a payment method to add for withdrawals
-                            </Text>
+                            </TranslatedText>
 
                             {/* UPI Option */}
                             <TouchableOpacity
@@ -301,7 +349,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     >
                                         UPI ID
                                     </Text>
-                                    <Text
+                                    <TranslatedText
                                         style={{
                                             color: 'rgba(255, 255, 255, 0.7)',
                                             fontSize: width * 0.03,
@@ -309,7 +357,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                     >
                                         Add your UPI ID for quick withdrawals
-                                    </Text>
+                                    </TranslatedText>
                                 </View>
                                 <Text
                                     style={{
@@ -346,7 +394,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     <Text style={{ fontSize: width * 0.045 }}>🏦</Text>
                                 </View>
                                 <View className="flex-1">
-                                    <Text
+                                    <TranslatedText
                                         style={{
                                             color: Colors.light.whiteFfffff,
                                             fontSize: width * 0.04
@@ -354,8 +402,8 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         className="font-bold"
                                     >
                                         Bank Account
-                                    </Text>
-                                    <Text
+                                    </TranslatedText>
+                                    <TranslatedText
                                         style={{
                                             color: 'rgba(255, 255, 255, 0.7)',
                                             fontSize: width * 0.03,
@@ -363,7 +411,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                     >
                                         Add bank details with PAN verification
-                                    </Text>
+                                    </TranslatedText>
                                 </View>
                                 <Text
                                     style={{
@@ -381,7 +429,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                     {modalStep === 'upi' && (
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View>
-                                <Text
+                                <TranslatedText
                                     style={{
                                         color: 'rgba(255, 255, 255, 0.7)',
                                         fontSize: width * 0.03,
@@ -390,7 +438,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     }}
                                 >
                                     Enter your UPI ID to enable instant withdrawals
-                                </Text>
+                                </TranslatedText>
 
                                 <View style={{ marginBottom: height * 0.02 }}>
                                     <Text
@@ -401,7 +449,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                         className="font-bold"
                                     >
-                                        UPI ID *
+                                        {currentLanguage === 'hi' ? 'UPI ID *' : 'UPI ID *'}
                                     </Text>
                                     <TextInput
                                         value={upiId}
@@ -432,7 +480,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         marginBottom: height * 0.02
                                     }}
                                 >
-                                    <Text
+                                    <TranslatedText
                                         style={{
                                             color: '#60A5FA',
                                             fontSize: width * 0.03,
@@ -440,7 +488,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                     >
                                         💡 Make sure your UPI ID is active and verified with your bank
-                                    </Text>
+                                    </TranslatedText>
                                 </View>
 
                                 <View
@@ -456,7 +504,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             paddingVertical: height * 0.015
                                         }}
                                     >
-                                        <Text
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.whiteFfffff,
                                                 fontSize: width * 0.035,
@@ -465,7 +513,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             className="font-bold"
                                         >
                                             Back
-                                        </Text>
+                                        </TranslatedText>
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         onPress={submitUPIForm}
@@ -486,7 +534,9 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             }}
                                             className="font-bold"
                                         >
-                                            {formLoading ? "Adding..." : "Add UPI ID"}
+                                            {formLoading ?
+                                                (currentLanguage === 'hi' ? "जोड़ रहे हैं..." : "Adding...") :
+                                                (currentLanguage === 'hi' ? "UPI ID जोड़ें" : "Add UPI ID")}
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
@@ -498,7 +548,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                     {modalStep === 'bank' && (
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View>
-                                <Text
+                                <TranslatedText
                                     style={{
                                         color: 'rgba(255, 255, 255, 0.7)',
                                         fontSize: width * 0.03,
@@ -507,7 +557,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     }}
                                 >
                                     Enter your bank details and PAN for verification
-                                </Text>
+                                </TranslatedText>
 
                                 {/* Form fields with responsive sizing */}
                                 {/* Account Holder Name */}
@@ -520,12 +570,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                         className="font-bold"
                                     >
-                                        Account Holder Name *
+                                        {currentLanguage === 'hi' ? 'खाता धारक का नाम *' : 'Account Holder Name *'}
                                     </Text>
                                     <TextInput
                                         value={bankDetails.accountHolderName}
                                         onChangeText={(text) => setBankDetails(prev => ({ ...prev, accountHolderName: text }))}
-                                        placeholder="Full name as per bank records"
+                                        placeholder={currentLanguage === 'hi' ?
+                                            "बैंक रिकॉर्ड के अनुसार पूरा नाम" :
+                                            "Full name as per bank records"}
                                         placeholderTextColor="rgba(255, 255, 255, 0.4)"
                                         style={{
                                             color: Colors.light.whiteFfffff,
@@ -550,12 +602,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                         className="font-bold"
                                     >
-                                        Account Number *
+                                        {currentLanguage === 'hi' ? 'खाता नंबर *' : 'Account Number *'}
                                     </Text>
                                     <TextInput
                                         value={bankDetails.accountNumber}
                                         onChangeText={(text) => setBankDetails(prev => ({ ...prev, accountNumber: text }))}
-                                        placeholder="Enter account number"
+                                        placeholder={currentLanguage === 'hi' ?
+                                            "खाता नंबर दर्ज करें" :
+                                            "Enter account number"}
                                         placeholderTextColor="rgba(255, 255, 255, 0.4)"
                                         style={{
                                             color: Colors.light.whiteFfffff,
@@ -582,12 +636,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                         className="font-bold"
                                     >
-                                        Confirm Account Number *
+                                        {currentLanguage === 'hi' ? 'खाता नंबर कन्फर्म करें *' : 'Confirm Account Number *'}
                                     </Text>
                                     <TextInput
                                         value={bankDetails.confirmAccountNumber}
                                         onChangeText={(text) => setBankDetails(prev => ({ ...prev, confirmAccountNumber: text }))}
-                                        placeholder="Re-enter account number"
+                                        placeholder={currentLanguage === 'hi' ?
+                                            "खाता नंबर दुबारा दर्ज करें" :
+                                            "Re-enter account number"}
                                         placeholderTextColor="rgba(255, 255, 255, 0.4)"
                                         style={{
                                             color: Colors.light.whiteFfffff,
@@ -615,12 +671,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                         className="font-bold"
                                     >
-                                        Bank Name *
+                                        {currentLanguage === 'hi' ? 'बैंक का नाम *' : 'Bank Name *'}
                                     </Text>
                                     <TextInput
                                         value={bankDetails.bankName}
                                         onChangeText={(text) => setBankDetails(prev => ({ ...prev, bankName: text }))}
-                                        placeholder="State Bank of India"
+                                        placeholder={currentLanguage === 'hi' ?
+                                            "भारतीय स्टेट बैंक" :
+                                            "State Bank of India"}
                                         placeholderTextColor="rgba(255, 255, 255, 0.4)"
                                         style={{
                                             color: Colors.light.whiteFfffff,
@@ -645,12 +703,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                         className="font-bold"
                                     >
-                                        Branch *
+                                        {currentLanguage === 'hi' ? 'शाखा *' : 'Branch *'}
                                     </Text>
                                     <TextInput
                                         value={bankDetails.branch}
                                         onChangeText={(text) => setBankDetails(prev => ({ ...prev, branch: text }))}
-                                        placeholder="Branch name or code"
+                                        placeholder={currentLanguage === 'hi' ?
+                                            "शाखा का नाम या कोड" :
+                                            "Branch name or code"}
                                         placeholderTextColor="rgba(255, 255, 255, 0.4)"
                                         style={{
                                             color: Colors.light.whiteFfffff,
@@ -675,7 +735,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                         className="font-bold"
                                     >
-                                        IFSC Code *
+                                        {currentLanguage === 'hi' ? 'IFSC कोड *' : 'IFSC Code *'}
                                     </Text>
                                     <TextInput
                                         value={bankDetails.ifscCode}
@@ -707,7 +767,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                         className="font-bold"
                                     >
-                                        PAN Number *
+                                        {currentLanguage === 'hi' ? 'PAN नंबर *' : 'PAN Number *'}
                                     </Text>
                                     <TextInput
                                         value={bankDetails.panNumber}
@@ -739,7 +799,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         marginBottom: height * 0.02
                                     }}
                                 >
-                                    <Text
+                                    <TranslatedText
                                         style={{
                                             color: '#F59E0B',
                                             fontSize: width * 0.03,
@@ -747,7 +807,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         }}
                                     >
                                         ⚠️ PAN verification may take 24-48 hours. Bank withdrawals will be enabled after verification.
-                                    </Text>
+                                    </TranslatedText>
                                 </View>
 
                                 <View
@@ -763,7 +823,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             paddingVertical: height * 0.015
                                         }}
                                     >
-                                        <Text
+                                        <TranslatedText
                                             style={{
                                                 color: Colors.light.whiteFfffff,
                                                 fontSize: width * 0.035,
@@ -772,7 +832,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             className="font-bold"
                                         >
                                             Back
-                                        </Text>
+                                        </TranslatedText>
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         onPress={submitBankForm}
@@ -793,7 +853,9 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             }}
                                             className="font-bold"
                                         >
-                                            {formLoading ? "Adding..." : "Add Bank Details"}
+                                            {formLoading ?
+                                                (currentLanguage === 'hi' ? "जोड़ रहे हैं..." : "Adding...") :
+                                                (currentLanguage === 'hi' ? "बैंक विवरण जोड़ें" : "Add Bank Details")}
                                         </Text>
                                     </TouchableOpacity>
                                 </View>

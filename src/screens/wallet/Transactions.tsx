@@ -11,7 +11,9 @@ import {
     Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
+// ✅ NEW
+import { TranslatedText } from '../../components/TranslatedText';
+import { useTranslation } from '../../context/TranslationContext';
 import bg2 from '../../assets/images/bg2.png';
 import { icons } from '../../constants/index';
 import { Colors } from '../../constants/Colors';
@@ -82,7 +84,7 @@ interface GroupedTransactions {
 const TransactionsPage = () => {
     const navigation = useNavigation<NavigationProp>();
     const { user, getUserId, isLoggedIn, refreshUserData } = useUser();
-
+    const { currentLanguage } = useTranslation();
     const [activeFilter, setActiveFilter] = useState<string>('All');
     const [showNoTransactionModal, setShowNoTransactionModal] = useState<boolean>(false);
     const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
@@ -90,8 +92,12 @@ const TransactionsPage = () => {
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const [searchVisible, setSearchVisible] = useState<boolean>(false);
     const [searchQuery, setSearchQuery] = useState<string>('');
+    const filterOptions: string[] = [
+        currentLanguage === 'hi' ? 'सभी' : 'All',
+        currentLanguage === 'hi' ? 'मिराजियो रिवार्ड्स' : 'Mirago Rewards',
+        currentLanguage === 'hi' ? 'निकासी' : 'Withdraw',
+    ];
 
-    const filterOptions: string[] = ['All', 'Mirago Rewards', 'Withdraw'];
 
     const handleBackPress = () => {
         navigation.replace('WalletPage');
@@ -473,7 +479,7 @@ const TransactionsPage = () => {
                             <Image source={icons.back} style={{ width: width * 0.04, height: width * 0.06 }} />
                         </TouchableOpacity>
 
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.075,
@@ -481,7 +487,7 @@ const TransactionsPage = () => {
                             }}
                         >
                             Transactions
-                        </Text>
+                        </TranslatedText>
 
                         <TouchableOpacity
                             onPress={() => setSearchVisible(!searchVisible)}
@@ -529,7 +535,7 @@ const TransactionsPage = () => {
                                 fontSize: width * 0.04,
                                 paddingRight: width * 0.1,
                             }}
-                            placeholder="Search transactions..."
+                            placeholder={currentLanguage === 'hi' ? 'लेनदेन खोजें...' : 'Search transactions...'}
                             placeholderTextColor={Colors.light.placeholderColorOp70}
                             value={searchQuery}
                             onChangeText={setSearchQuery}
@@ -573,19 +579,19 @@ const TransactionsPage = () => {
 
                 {loading && (
                     <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: height * 0.1 }}>
-                        <Text style={{ color: Colors.light.whiteFfffff, fontSize: width * 0.045 }}>Loading transactions...</Text>
+                        <TranslatedText style={{ color: Colors.light.whiteFfffff, fontSize: width * 0.045 }}>Loading transactions...</TranslatedText>
                     </View>
                 )}
 
                 {!loading && searchQuery.trim() && (
                     <View style={{ paddingHorizontal: width * 0.04, paddingBottom: height * 0.02 }}>
-                        <Text style={{ color: Colors.light.whiteFefefe, fontSize: width * 0.045, fontWeight: '600' }}>
+                        <TranslatedText style={{ color: Colors.light.whiteFefefe, fontSize: width * 0.045, fontWeight: '600' }}>
                             Search Results ({filteredTransactions.length})
                             {activeFilter !== 'All' && ` in ${activeFilter}`}
-                        </Text>
-                        <Text style={{ color: Colors.light.placeholderColorOp70, fontSize: width * 0.035, marginTop: height * 0.005 }}>
+                        </TranslatedText>
+                        <TranslatedText style={{ color: Colors.light.placeholderColorOp70, fontSize: width * 0.035, marginTop: height * 0.005 }}>
                             Showing results for "{searchQuery}"
-                        </Text>
+                        </TranslatedText>
                     </View>
                 )}
 
@@ -597,9 +603,9 @@ const TransactionsPage = () => {
                             {sortedMonthKeys.map(monthYear => (
                                 <View key={monthYear} style={{ marginBottom: height * 0.04 }}>
                                     <View style={{ paddingHorizontal: width * 0.04, paddingBottom: height * 0.015 }}>
-                                        <Text style={{ color: Colors.light.whiteFfffff, fontSize: width * 0.055, fontWeight: '600' }}>
+                                        <TranslatedText style={{ color: Colors.light.whiteFfffff, fontSize: width * 0.055, fontWeight: '600' }}>
                                             {monthYear}
-                                        </Text>
+                                        </TranslatedText>
                                         <View
                                             style={{
                                                 marginTop: height * 0.01,
@@ -631,7 +637,7 @@ const TransactionsPage = () => {
                                 style={{ width: width * 0.1, height: width * 0.1, opacity: 0.5 }}
                             />
                         </View>
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.06,
@@ -641,8 +647,8 @@ const TransactionsPage = () => {
                             }}
                         >
                             {searchQuery.trim() ? 'No Results Found' : 'No Transactions Yet'}
-                        </Text>
-                        <Text
+                        </TranslatedText>
+                        <TranslatedText
                             style={{
                                 color: 'rgba(255,255,255,0.6)',
                                 fontSize: width * 0.04,
@@ -653,10 +659,10 @@ const TransactionsPage = () => {
                             {searchQuery.trim()
                                 ? `No transactions found for "${searchQuery}"`
                                 : 'Complete and get approved tasks to see your reward transactions here'}
-                        </Text>
+                        </TranslatedText>
                         {searchQuery.trim() && (
                             <TouchableOpacity onPress={clearSearch} style={{ marginTop: height * 0.02 }}>
-                                <Text style={{ color: Colors.light.bgBlueBtn, fontSize: width * 0.04 }}>Clear Search</Text>
+                                <TranslatedText style={{ color: Colors.light.bgBlueBtn, fontSize: width * 0.04 }}>Clear Search</TranslatedText>
                             </TouchableOpacity>
                         )}
                     </View>

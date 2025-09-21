@@ -12,6 +12,10 @@ import { useUser } from "../../context/UserContext";
 import PaymentMethodModal from "../../components/PaymentMethodModal";
 import WithdrawalSuccessModal from "../../components/WithdrawlSuccessModal";
 
+// Translation imports - USING CUSTOM COMPONENTS
+import { TranslatedText } from '../../components/TranslatedText';
+import { useTranslation } from '../../context/TranslationContext';
+
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
 
@@ -35,6 +39,8 @@ interface UserDetails {
 }
 
 const WithdrawAmountPage = () => {
+    const { currentLanguage } = useTranslation();
+
     const [amount, setAmount] = useState<string>("");
     const [selectedMethod, setSelectedMethod] = useState<string>("");
     const [coinValue, setCoinValue] = useState<number>(0.1);
@@ -138,7 +144,7 @@ const WithdrawAmountPage = () => {
 
                     methods.push({
                         id: `bank_${bankItem.id}`,
-                        name: "Online Banking",
+                        name: currentLanguage === 'hi' ? "ऑनलाइन बैंकिंग" : "Online Banking",
                         icon: "🏦",
                         details: `${bankItem.bank_name} - ${maskedAccount}`,
                         verified: bankItem.pan_number ? true : false,
@@ -151,7 +157,9 @@ const WithdrawAmountPage = () => {
 
         } catch (error) {
             console.error("Error fetching payment methods:", error);
-            setErrorMessage("Failed to load payment methods. Please try again.");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "पेमेंट मेथड लोड करने में असफल। कृपया फिर से कोशिश करें।" :
+                "Failed to load payment methods. Please try again.");
         }
     };
 
@@ -191,14 +199,18 @@ const WithdrawAmountPage = () => {
                 await refreshUserData();
             } else {
                 console.error("Failed to fetch user details:", userData.message);
-                setErrorMessage("Failed to load user data. Please refresh and try again.");
+                setErrorMessage(currentLanguage === 'hi' ?
+                    "यूजर डेटा लोड करने में असफल। कृपया रिफ्रेश करें और फिर से कोशिश करें।" :
+                    "Failed to load user data. Please refresh and try again.");
             }
 
             await fetchPaymentMethods(userId);
 
         } catch (error) {
             console.error("Error fetching user data:", error);
-            setErrorMessage("Failed to load user data. Please check your connection and try again.");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "यूजर डेटा लोड करने में असफल। कृपया अपना कनेक्शन जांचें और फिर से कोशिश करें।" :
+                "Failed to load user data. Please check your connection and try again.");
         } finally {
             setLoading(false);
         }
@@ -229,7 +241,9 @@ const WithdrawAmountPage = () => {
             setAmount(quickAmount.toString());
             setErrorMessage("");
         } else {
-            setErrorMessage(`You don't have enough coins. Available: ${userBalance} coins`);
+            setErrorMessage(currentLanguage === 'hi' ?
+                `आपके पास पर्याप्त सिक्के नहीं हैं। उपलब्ध: ${userBalance} सिक्के` :
+                `You don't have enough coins. Available: ${userBalance} coins`);
         }
     };
 
@@ -237,29 +251,39 @@ const WithdrawAmountPage = () => {
         setErrorMessage("");
 
         if (!amount || parseFloat(amount) <= 0) {
-            setErrorMessage("Please enter a valid withdrawal amount");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "कृपया वैध निकासी राशि दर्ज करें" :
+                "Please enter a valid withdrawal amount");
             return;
         }
 
         if (parseFloat(amount) < minWithdrawal) {
-            setErrorMessage(`Minimum withdrawal amount is ${minWithdrawal} coins (₹${(minWithdrawal * coinValue).toFixed(2)})`);
+            setErrorMessage(currentLanguage === 'hi' ?
+                `न्यूनतम निकासी राशि ${minWithdrawal} सिक्के है (₹${(minWithdrawal * coinValue).toFixed(2)})` :
+                `Minimum withdrawal amount is ${minWithdrawal} coins (₹${(minWithdrawal * coinValue).toFixed(2)})`);
             return;
         }
 
         if (parseFloat(amount) > userBalance) {
-            setErrorMessage(`You don't have enough coins. Available: ${userBalance} coins`);
+            setErrorMessage(currentLanguage === 'hi' ?
+                `आपके पास पर्याप्त सिक्के नहीं हैं। उपलब्ध: ${userBalance} सिक्के` :
+                `You don't have enough coins. Available: ${userBalance} coins`);
             return;
         }
 
         if (!selectedMethod) {
-            setErrorMessage("Please select a withdrawal method");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "कृपया निकासी मेथड चुनें" :
+                "Please select a withdrawal method");
             return;
         }
 
         const selectedMethodData = withdrawalMethods.find(m => m.id === selectedMethod);
 
         if (!selectedMethodData?.verified) {
-            setErrorMessage("Please verify your payment method to proceed with withdrawal");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "निकासी के लिए कृपया अपना पेमेंट मेथड वेरीफाई करें" :
+                "Please verify your payment method to proceed with withdrawal");
             setShowPaymentModal(true);
             return;
         }
@@ -315,11 +339,15 @@ const WithdrawAmountPage = () => {
                 setSelectedMethod("");
                 setShowSuccessModal(true);
             } else {
-                setErrorMessage(data.message || "Failed to create withdrawal request. Please try again.");
+                setErrorMessage(currentLanguage === 'hi' ?
+                    data.message || "निकासी अनुरोध बनाने में असफल। कृपया फिर से कोशिश करें।" :
+                    data.message || "Failed to create withdrawal request. Please try again.");
             }
         } catch (error) {
             console.error("Withdrawal error:", error);
-            setErrorMessage("Failed to process withdrawal request. Please check your internet connection and try again.");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "निकासी अनुरोध प्रोसेस करने में असफल। कृपया अपना इंटरनेट कनेक्शन जांचें और फिर से कोशिश करें।" :
+                "Failed to process withdrawal request. Please check your internet connection and try again.");
         } finally {
             setLoading(false);
         }
@@ -360,7 +388,7 @@ const WithdrawAmountPage = () => {
                         fontSize: width * 0.045
                     }}
                 >
-                    Loading...
+                    {currentLanguage === 'hi' ? 'लोड हो रहा है...' : 'Loading...'}
                 </Text>
             </View>
         );
@@ -408,9 +436,9 @@ const WithdrawAmountPage = () => {
                             />
                         </TouchableOpacity>
 
-                        {/* Centered title */}
+                        {/* Centered title with translation */}
                         <View className="flex-1 items-center">
-                            <Text
+                            <TranslatedText
                                 style={{
                                     color: Colors.light.whiteFfffff,
                                     fontSize: width * 0.075
@@ -418,7 +446,7 @@ const WithdrawAmountPage = () => {
                                 className="font-medium"
                             >
                                 Withdraw
-                            </Text>
+                            </TranslatedText>
                         </View>
 
                         {/* Right spacer */}
@@ -481,7 +509,7 @@ const WithdrawAmountPage = () => {
                         className="flex-row items-center justify-between"
                         style={{ marginBottom: height * 0.01 }}
                     >
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.04
@@ -489,7 +517,7 @@ const WithdrawAmountPage = () => {
                             className="font-medium"
                         >
                             Available Balance
-                        </Text>
+                        </TranslatedText>
                         <TouchableOpacity
                             onPress={refreshBalance}
                             style={{ padding: width * 0.01 }}
@@ -522,7 +550,7 @@ const WithdrawAmountPage = () => {
                             }}
                             className="font-bold"
                         >
-                            {loading ? "Loading..." : userBalance.toLocaleString()} Coins
+                            {loading ? (currentLanguage === 'hi' ? "लोड हो रहा है..." : "Loading...") : userBalance.toLocaleString()} {currentLanguage === 'hi' ? 'सिक्के' : 'Coins'}
                         </Text>
                     </View>
                     <Text
@@ -541,13 +569,13 @@ const WithdrawAmountPage = () => {
                             marginTop: height * 0.005
                         }}
                     >
-                        Rate: 10 Coins = ₹1
+                        {currentLanguage === 'hi' ? 'दर: 10 सिक्के = ₹1' : 'Rate: 10 Coins = ₹1'}
                     </Text>
                 </View>
 
                 {/* Amount Input */}
                 <View style={{ marginTop: height * 0.01 }}>
-                    <Text
+                    <TranslatedText
                         style={{
                             color: Colors.light.whiteFfffff,
                             fontSize: width * 0.045,
@@ -556,7 +584,7 @@ const WithdrawAmountPage = () => {
                         className="font-medium"
                     >
                         Enter Withdrawal Amount
-                    </Text>
+                    </TranslatedText>
 
                     <View
                         className="bg-gray-800 rounded-lg"
@@ -601,7 +629,7 @@ const WithdrawAmountPage = () => {
                                     marginLeft: width * 0.02
                                 }}
                             >
-                                Coins
+                                {currentLanguage === 'hi' ? 'सिक्के' : 'Coins'}
                             </Text>
                         </View>
                         {amount && parseFloat(amount) > 0 && (
@@ -622,20 +650,23 @@ const WithdrawAmountPage = () => {
                                 marginTop: height * 0.01
                             }}
                         >
-                            Minimum withdrawal: {minWithdrawal} coins (₹{(minWithdrawal * coinValue).toFixed(2)})
+                            {currentLanguage === 'hi' ?
+                                `न्यूनतम निकासी: ${minWithdrawal} सिक्के (₹${(minWithdrawal * coinValue).toFixed(2)})` :
+                                `Minimum withdrawal: ${minWithdrawal} coins (₹${(minWithdrawal * coinValue).toFixed(2)})`}
                         </Text>
                     </View>
 
                     {/* Quick Amount Buttons */}
-                    <Text
+                    <TranslatedText
                         style={{
                             color: Colors.light.whiteFfffff,
                             fontSize: width * 0.04,
                             marginBottom: height * 0.01
                         }}
                         className="font-medium"
-                    >Quick Amount
-                    </Text>
+                    >
+                        Quick Amount
+                    </TranslatedText>
                     <View
                         className="flex-row flex-wrap justify-between"
                         style={{ marginBottom: height * 0.03 }}
@@ -646,7 +677,6 @@ const WithdrawAmountPage = () => {
                                 onPress={() => handleQuickAmount(quickAmount)}
                                 disabled={quickAmount > userBalance}
                                 style={{
-
                                     borderRadius: 8,
                                     paddingHorizontal: width * 0.02,
                                     paddingVertical: height * 0.01,
@@ -688,7 +718,7 @@ const WithdrawAmountPage = () => {
                         className="flex-row items-center justify-between"
                         style={{ marginBottom: height * 0.015 }}
                     >
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.045
@@ -696,7 +726,7 @@ const WithdrawAmountPage = () => {
                             className="font-medium"
                         >
                             Withdrawal Method
-                        </Text>
+                        </TranslatedText>
                         <TouchableOpacity onPress={handleAddPaymentMethod}>
                             <Text
                                 style={{
@@ -705,7 +735,7 @@ const WithdrawAmountPage = () => {
                                 }}
                                 className="font-medium"
                             >
-                                + Add Method
+                                {currentLanguage === 'hi' ? '+ मेथड जोड़ें' : '+ Add Method'}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -713,14 +743,13 @@ const WithdrawAmountPage = () => {
                     {withdrawalMethods.length === 0 ? (
                         <View
                             style={{
-
                                 borderRadius: 8,
                                 padding: width * 0.04
                             }}
                             className="items-center bg-gray-800"
                         >
                             <Text style={{ fontSize: width * 0.1, marginBottom: height * 0.015 }}>🏦</Text>
-                            <Text
+                            <TranslatedText
                                 style={{
                                     color: Colors.light.whiteFfffff,
                                     fontSize: width * 0.04,
@@ -729,8 +758,8 @@ const WithdrawAmountPage = () => {
                                 className="font-medium"
                             >
                                 No Payment Methods
-                            </Text>
-                            <Text
+                            </TranslatedText>
+                            <TranslatedText
                                 style={{
                                     color: '#9CA3AF',
                                     fontSize: width * 0.03,
@@ -739,18 +768,17 @@ const WithdrawAmountPage = () => {
                                 }}
                             >
                                 Add a UPI ID or bank account to withdraw your earnings
-                            </Text>
+                            </TranslatedText>
                             <TouchableOpacity
                                 onPress={handleAddPaymentMethod}
                                 style={{
-
                                     borderRadius: 8,
                                     paddingHorizontal: width * 0.04,
                                     paddingVertical: height * 0.01
                                 }}
                                 className='bg-gray-800'
                             >
-                                <Text
+                                <TranslatedText
                                     style={{
                                         color: Colors.light.whiteFfffff,
                                         fontSize: width * 0.035
@@ -758,7 +786,7 @@ const WithdrawAmountPage = () => {
                                     className="font-medium"
                                 >
                                     Add Payment Method
-                                </Text>
+                                </TranslatedText>
                             </TouchableOpacity>
                         </View>
                     ) : (
@@ -770,13 +798,14 @@ const WithdrawAmountPage = () => {
                                         setSelectedMethod(method.id);
                                         if (errorMessage) setErrorMessage("");
                                     } else {
-                                        setErrorMessage(`Please verify your ${method.type === 'bank' ? 'PAN number' : 'payment method'} to use this withdrawal method`);
+                                        setErrorMessage(currentLanguage === 'hi' ?
+                                            `इस निकासी मेथड का उपयोग करने के लिए कृपया अपना ${method.type === 'bank' ? 'PAN नंबर' : 'पेमेंट मेथड'} वेरीफाई करें` :
+                                            `Please verify your ${method.type === 'bank' ? 'PAN number' : 'payment method'} to use this withdrawal method`);
                                         setShowPaymentModal(true);
                                     }
                                 }}
                                 disabled={!method.verified}
                                 style={{
-
                                     borderRadius: 8,
                                     padding: width * 0.03,
                                     marginBottom: height * 0.01,
@@ -806,7 +835,7 @@ const WithdrawAmountPage = () => {
                                                 fontSize: width * 0.03
                                             }}
                                         >
-                                            {method.verified ? method.details : 'Verification required'}
+                                            {method.verified ? method.details : (currentLanguage === 'hi' ? 'सत्यापन आवश्यक' : 'Verification required')}
                                         </Text>
                                         {!method.verified && (
                                             <Text
@@ -816,7 +845,9 @@ const WithdrawAmountPage = () => {
                                                     marginTop: height * 0.005
                                                 }}
                                             >
-                                                {method.type === "bank" ? "Verify PAN to enable" : "Verification required"}
+                                                {method.type === "bank" ?
+                                                    (currentLanguage === 'hi' ? "सक्षम करने के लिए PAN वेरीफाई करें" : "Verify PAN to enable") :
+                                                    (currentLanguage === 'hi' ? "सत्यापन आवश्यक" : "Verification required")}
                                             </Text>
                                         )}
                                     </View>
@@ -852,14 +883,13 @@ const WithdrawAmountPage = () => {
                 {amount && parseFloat(amount) > 0 && (
                     <View
                         style={{
-
                             borderRadius: 8,
                             padding: width * 0.03,
                             marginBottom: height * 0.03
                         }}
                         className='bg-gray-800'
                     >
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.04,
@@ -868,19 +898,19 @@ const WithdrawAmountPage = () => {
                             className="font-medium"
                         >
                             Withdrawal Summary
-                        </Text>
+                        </TranslatedText>
                         <View
                             className="flex-row justify-between"
                             style={{ marginBottom: height * 0.005 }}
                         >
-                            <Text
+                            <TranslatedText
                                 style={{
                                     color: Colors.light.whiteFfffff,
                                     fontSize: width * 0.035
                                 }}
                             >
                                 Coins to withdraw:
-                            </Text>
+                            </TranslatedText>
                             <View className="flex-row items-center">
                                 <Image
                                     source={icons.maincoin}
@@ -905,42 +935,42 @@ const WithdrawAmountPage = () => {
                             className="flex-row justify-between"
                             style={{ marginBottom: height * 0.005 }}
                         >
-                            <Text
+                            <TranslatedText
                                 style={{
                                     color: Colors.light.whiteFfffff,
                                     fontSize: width * 0.035
                                 }}
                             >
                                 Rate:
-                            </Text>
+                            </TranslatedText>
                             <Text
                                 style={{
                                     color: Colors.light.whiteFfffff,
                                     fontSize: width * 0.035
                                 }}
                             >
-                                10 Coins = ₹1
+                                {currentLanguage === 'hi' ? '10 सिक्के = ₹1' : '10 Coins = ₹1'}
                             </Text>
                         </View>
                         <View
                             className="flex-row justify-between"
                             style={{ marginBottom: height * 0.005 }}
                         >
-                            <Text
+                            <TranslatedText
                                 style={{
                                     color: Colors.light.whiteFfffff,
                                     fontSize: width * 0.035
                                 }}
                             >
                                 Processing Fee:
-                            </Text>
+                            </TranslatedText>
                             <Text
                                 style={{
                                     color: '#10B981',
                                     fontSize: width * 0.035
                                 }}
                             >
-                                Free
+                                {currentLanguage === 'hi' ? 'मुफ्त' : 'Free'}
                             </Text>
                         </View>
                         <View
@@ -952,7 +982,7 @@ const WithdrawAmountPage = () => {
                             }}
                         >
                             <View className="flex-row justify-between">
-                                <Text
+                                <TranslatedText
                                     style={{
                                         color: Colors.light.whiteFfffff,
                                         fontSize: width * 0.04
@@ -960,7 +990,7 @@ const WithdrawAmountPage = () => {
                                     className="font-bold"
                                 >
                                     You will receive:
-                                </Text>
+                                </TranslatedText>
                                 <Text
                                     style={{
                                         color: '#10B981',
@@ -984,7 +1014,9 @@ const WithdrawAmountPage = () => {
                         borderRadius={12}
                         height={height * 0.06}
                         width={width * 0.9}
-                        text={`WITHDRAW ${amount || '0'} COINS`}
+                        text={currentLanguage === 'hi' ?
+                            `${amount || '0'} सिक्के निकालें` :
+                            `WITHDRAW ${amount || '0'} COINS`}
                         onPress={handleWithdraw}
                         disabled={
                             !amount ||
@@ -1012,7 +1044,6 @@ const WithdrawAmountPage = () => {
                 {/* Info Sections */}
                 <View
                     style={{
-
                         borderRadius: 8,
                         padding: width * 0.03,
                         marginTop: height * 0.02,
@@ -1033,7 +1064,7 @@ const WithdrawAmountPage = () => {
                         >
                             ℹ️
                         </Text>
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.035
@@ -1041,7 +1072,7 @@ const WithdrawAmountPage = () => {
                             className="font-medium"
                         >
                             Withdrawal Information
-                        </Text>
+                        </TranslatedText>
                     </View>
                     <Text
                         style={{
@@ -1051,7 +1082,9 @@ const WithdrawAmountPage = () => {
                             marginBottom: height * 0.005
                         }}
                     >
-                        • Withdrawals are processed within 24-48 hours
+                        {currentLanguage === 'hi' ?
+                            '• निकासी 24-48 घंटों के भीतर प्रोसेस होती है' :
+                            '• Withdrawals are processed within 24-48 hours'}
                     </Text>
                     <Text
                         style={{
@@ -1061,7 +1094,9 @@ const WithdrawAmountPage = () => {
                             marginBottom: height * 0.005
                         }}
                     >
-                        • Minimum withdrawal amount: {minWithdrawal} coins (₹{(minWithdrawal * coinValue).toFixed(2)})
+                        {currentLanguage === 'hi' ?
+                            `• न्यूनतम निकासी राशि: ${minWithdrawal} सिक्के (₹${(minWithdrawal * coinValue).toFixed(2)})` :
+                            `• Minimum withdrawal amount: ${minWithdrawal} coins (₹${(minWithdrawal * coinValue).toFixed(2)})`}
                     </Text>
                     <Text
                         style={{
@@ -1071,7 +1106,9 @@ const WithdrawAmountPage = () => {
                             marginBottom: height * 0.005
                         }}
                     >
-                        • PAN verification required for bank transfers
+                        {currentLanguage === 'hi' ?
+                            '• बैंक ट्रांसफर के लिए PAN सत्यापन आवश्यक' :
+                            '• PAN verification required for bank transfers'}
                     </Text>
                     <Text
                         style={{
@@ -1080,13 +1117,14 @@ const WithdrawAmountPage = () => {
                             lineHeight: width * 0.04
                         }}
                     >
-                        • No processing fees on withdrawals
+                        {currentLanguage === 'hi' ?
+                            '• निकासी पर कोई प्रोसेसिंग फीस नहीं' :
+                            '• No processing fees on withdrawals'}
                     </Text>
                 </View>
 
                 <View
                     style={{
-
                         borderRadius: 8,
                         padding: width * 0.03
                     }}
@@ -1105,7 +1143,7 @@ const WithdrawAmountPage = () => {
                         >
                             🔒
                         </Text>
-                        <Text
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.035
@@ -1113,7 +1151,7 @@ const WithdrawAmountPage = () => {
                             className="font-medium"
                         >
                             Secure Withdrawal
-                        </Text>
+                        </TranslatedText>
                     </View>
                     <Text
                         style={{
@@ -1122,9 +1160,9 @@ const WithdrawAmountPage = () => {
                             lineHeight: width * 0.04
                         }}
                     >
-                        All withdrawals are processed securely through encrypted channels.
-                        Your financial information is protected and never stored on our servers.
-                        Current rate: 10 Miragio Coins = ₹1
+                        {currentLanguage === 'hi' ?
+                            'सभी निकासी सुरक्षित एन्क्रिप्टेड चैनलों के माध्यम से प्रोसेस की जाती हैं। आपकी वित्तीय जानकारी सुरक्षित है और हमारे सर्वर पर कभी संग्रहीत नहीं की जाती। वर्तमान दर: 10 मिराजियो सिक्के = ₹1' :
+                            'All withdrawals are processed securely through encrypted channels. Your financial information is protected and never stored on our servers. Current rate: 10 Miragio Coins = ₹1'}
                     </Text>
                 </View>
             </ScrollView>
