@@ -25,13 +25,33 @@ import { Colors } from "../../constants/Colors";
 import { useUser } from "../../context/UserContext";
 import type { MainStackParamList } from "../../navigation/types";
 
+// Translation imports - USING CUSTOM COMPONENTS
+import { TranslatedText } from '../../components/TranslatedText';
+import { useTranslation } from '../../context/TranslationContext';
+import { usePlaceholder } from '../../hooks/useTranslatedText';
+
 // Define props type for React Navigation
 type Props = NativeStackScreenProps<MainStackParamList, 'MorePagesScreen'>;
 
 // Get screen dimensions for responsive design
 const { width, height } = Dimensions.get('window');
 
+interface SettingsItem {
+    id: number;
+    title: string;
+    titleHi: string;
+    icon: any;
+    category: string;
+    categoryHi: string;
+    hasBottomBorder: boolean;
+    route: keyof MainStackParamList;
+    description: string;
+    descriptionHi: string;
+}
+
 const MorePagesScreen = ({ navigation }: Props) => {
+    const { currentLanguage } = useTranslation();
+
     // State for search functionality
     const [searchVisible, setSearchVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -40,18 +60,21 @@ const MorePagesScreen = ({ navigation }: Props) => {
     // Get user context for logout functionality
     const { logout } = useUser();
 
+    // Using custom placeholder hook for search
+    const searchPlaceholder = usePlaceholder('Search settings...', 'सेटिंग्स खोजें...');
+
     // Logout handler with confirmation
     const handleLogout = () => {
         Alert.alert(
-            "Logout",
-            "Are you sure you want to logout?",
+            currentLanguage === 'hi' ? "लॉगआउट" : "Logout",
+            currentLanguage === 'hi' ? "क्या आप वाकई लॉगआउट करना चाहते हैं?" : "Are you sure you want to logout?",
             [
                 {
-                    text: "Cancel",
+                    text: currentLanguage === 'hi' ? "रद्द करें" : "Cancel",
                     style: "cancel"
                 },
                 {
-                    text: "Logout",
+                    text: currentLanguage === 'hi' ? "लॉगआउट" : "Logout",
                     style: "destructive",
                     onPress: async () => {
                         setIsLoading(true);
@@ -60,7 +83,10 @@ const MorePagesScreen = ({ navigation }: Props) => {
                             console.log('Logout successful');
                         } catch (error) {
                             console.error('Logout error:', error);
-                            Alert.alert("Error", "Failed to logout. Please try again.");
+                            Alert.alert(
+                                currentLanguage === 'hi' ? "त्रुटि" : "Error",
+                                currentLanguage === 'hi' ? "लॉगआउट करने में असफल। कृपया फिर से कोशिश करें।" : "Failed to logout. Please try again."
+                            );
                         } finally {
                             setIsLoading(false);
                         }
@@ -122,12 +148,18 @@ const MorePagesScreen = ({ navigation }: Props) => {
                         navigation.navigate('Legality');
                         break;
                     default:
-                        Alert.alert("Coming Soon", `${title} feature will be available soon!`);
+                        Alert.alert(
+                            currentLanguage === 'hi' ? "जल्द आ रहा है" : "Coming Soon",
+                            currentLanguage === 'hi' ? `${title} फीचर जल्द ही उपलब्ध होगा!` : `${title} feature will be available soon!`
+                        );
                         break;
                 }
             } catch (error) {
                 console.error(`Navigation error to ${title}:`, error);
-                Alert.alert("Coming Soon", `${title} feature will be available soon!`);
+                Alert.alert(
+                    currentLanguage === 'hi' ? "जल्द आ रहा है" : "Coming Soon",
+                    currentLanguage === 'hi' ? `${title} फीचर जल्द ही उपलब्ध होगा!` : `${title} feature will be available soon!`
+                );
             }
         }
     };
@@ -139,168 +171,224 @@ const MorePagesScreen = ({ navigation }: Props) => {
         }
     };
 
-    // Define settings items based on your folder structure
-    const settingsItems = [
+    // Define settings items with Hindi translations
+    const settingsItems: SettingsItem[] = [
         // Updates folder screens
         {
             id: 1,
             title: "Play Music on App Launch",
+            titleHi: "ऐप लॉन्च पर संगीत चलाएं",
             icon: music,
             category: "Updates",
+            categoryHi: "अपडेट्स",
             hasBottomBorder: true,
             route: "PlayMusicSettings" as keyof MainStackParamList,
-            description: "Control app music preferences"
+            description: "Control app music preferences",
+            descriptionHi: "ऐप संगीत प्राथमिकताएं नियंत्रित करें"
         },
         {
             id: 2,
             title: "Account Security",
+            titleHi: "खाता सुरक्षा",
             icon: accountsecurity,
             category: "Updates",
+            categoryHi: "अपडेट्स",
             hasBottomBorder: true,
             route: "AccountSecurity" as keyof MainStackParamList,
-            description: "Manage your account security settings"
+            description: "Manage your account security settings",
+            descriptionHi: "अपनी खाता सुरक्षा सेटिंग्स प्रबंधित करें"
         },
         {
             id: 3,
             title: "New Updates",
+            titleHi: "नए अपडेट्स",
             icon: newupdate,
             category: "Updates",
+            categoryHi: "अपडेट्स",
             hasBottomBorder: false,
             route: "NewUpdates" as keyof MainStackParamList,
-            description: "Check latest app updates"
+            description: "Check latest app updates",
+            descriptionHi: "नवीनतम ऐप अपडेट्स जांचें"
         },
 
         // Help folder screens
         {
             id: 4,
             title: "Refer Friends, Earn Money",
+            titleHi: "मित्रों को रेफर करें, पैसे कमाएं",
             icon: refer,
             category: "Help",
+            categoryHi: "सहायता",
             hasBottomBorder: true,
             route: "ReferFriends" as keyof MainStackParamList,
-            description: "Invite friends and earn rewards"
+            description: "Invite friends and earn rewards",
+            descriptionHi: "मित्रों को आमंत्रित करें और पुरस्कार कमाएं"
         },
         {
             id: 5,
             title: "How To Play Games",
+            titleHi: "गेम कैसे खेलें",
             icon: howtoplay,
             category: "Help",
+            categoryHi: "सहायता",
             hasBottomBorder: true,
             route: "HowToPlay" as keyof MainStackParamList,
-            description: "Learn how to play games"
+            description: "Learn how to play games",
+            descriptionHi: "गेम खेलना सीखें"
         },
         {
             id: 6,
             title: "Responsible Gaming",
+            titleHi: "जिम्मेदार गेमिंग",
             icon: responsible,
             category: "Help",
+            categoryHi: "सहायता",
             hasBottomBorder: true,
             route: "ResponsibleGaming" as keyof MainStackParamList,
-            description: "Gaming responsibility guidelines"
+            description: "Gaming responsibility guidelines",
+            descriptionHi: "गेमिंग जिम्मेदारी दिशानिर्देश"
         },
         {
             id: 7,
             title: "Fair Play",
+            titleHi: "निष्पक्ष खेल",
             icon: fairplay,
             category: "Help",
+            categoryHi: "सहायता",
             hasBottomBorder: true,
             route: "FairPlay" as keyof MainStackParamList,
-            description: "Fair play policies and rules"
+            description: "Fair play policies and rules",
+            descriptionHi: "निष्पक्ष खेल नीतियां और नियम"
         },
         {
             id: 8,
             title: "Help Desk",
+            titleHi: "सहायता डेस्क",
             icon: helpdesk,
             category: "Help",
+            categoryHi: "सहायता",
             hasBottomBorder: true,
             route: "HelpDesk" as keyof MainStackParamList,
-            description: "Get help and support"
+            description: "Get help and support",
+            descriptionHi: "सहायता और समर्थन प्राप्त करें"
         },
         {
             id: 9,
             title: "System Status",
+            titleHi: "सिस्टम स्थिति",
             icon: systemstatus,
             category: "Help",
+            categoryHi: "सहायता",
             hasBottomBorder: false,
             route: "SystemStatus" as keyof MainStackParamList,
-            description: "Check system status and uptime"
+            description: "Check system status and uptime",
+            descriptionHi: "सिस्टम स्थिति और अपटाइम जांचें"
         },
 
         // System folder screens
         {
             id: 10,
             title: "Security & Privacy Policy",
+            titleHi: "सुरक्षा और गोपनीयता नीति",
             icon: securityandprivacy,
             category: "System",
+            categoryHi: "सिस्टम",
             hasBottomBorder: true,
             route: "PrivacyPolicy" as keyof MainStackParamList,
-            description: "Read our privacy policy"
+            description: "Read our privacy policy",
+            descriptionHi: "हमारी गोपनीयता नीति पढ़ें"
         },
         {
             id: 11,
             title: "RNG Certification",
+            titleHi: "RNG प्रमाणीकरण",
             icon: Rngcerti,
             category: "System",
+            categoryHi: "सिस्टम",
             hasBottomBorder: true,
             route: "RNGCertification" as keyof MainStackParamList,
-            description: "Random number generation certification"
+            description: "Random number generation certification",
+            descriptionHi: "यादृच्छिक संख्या निर्माण प्रमाणीकरण"
         },
         {
             id: 12,
             title: "Careers",
+            titleHi: "करियर",
             icon: careers,
             category: "System",
+            categoryHi: "सिस्टम",
             hasBottomBorder: true,
             route: "Careers" as keyof MainStackParamList,
-            description: "Join our team"
+            description: "Join our team",
+            descriptionHi: "हमारी टीम में शामिल हों"
         },
         {
             id: 13,
             title: "About Us (Miragio Games)",
+            titleHi: "हमारे बारे में (मिराजियो गेम्स)",
             icon: aboutus,
             category: "System",
+            categoryHi: "सिस्टम",
             hasBottomBorder: true,
             route: "AboutUs" as keyof MainStackParamList,
-            description: "Learn about Miragio Games"
+            description: "Learn about Miragio Games",
+            descriptionHi: "मिराजियो गेम्स के बारे में जानें"
         },
         {
             id: 14,
             title: "Terms of Use",
+            titleHi: "उपयोग की शर्तें",
             icon: terms,
             category: "System",
+            categoryHi: "सिस्टम",
             hasBottomBorder: true,
             route: "TermsOfUse" as keyof MainStackParamList,
-            description: "Terms and conditions"
+            description: "Terms and conditions",
+            descriptionHi: "नियम और शर्तें"
         },
         {
             id: 15,
             title: "Legality",
+            titleHi: "कानूनी",
             icon: legality,
             category: "System",
+            categoryHi: "सिस्टम",
             hasBottomBorder: false,
             route: "Legality" as keyof MainStackParamList,
-            description: "Legal compliance information"
+            description: "Legal compliance information",
+            descriptionHi: "कानूनी अनुपालन जानकारी"
         }
     ];
 
+    // Helper functions to get text in current language
+    const getItemTitle = (item: SettingsItem) => currentLanguage === 'hi' ? item.titleHi : item.title;
+    const getItemDescription = (item: SettingsItem) => currentLanguage === 'hi' ? item.descriptionHi : item.description;
+    const getItemCategory = (item: SettingsItem) => currentLanguage === 'hi' ? item.categoryHi : item.category;
+
     // Filter settings based on search query
-    const filteredSettings = settingsItems.filter(item =>
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredSettings = settingsItems.filter(item => {
+        const searchLower = searchQuery.toLowerCase();
+        return (
+            getItemTitle(item).toLowerCase().includes(searchLower) ||
+            getItemCategory(item).toLowerCase().includes(searchLower) ||
+            getItemDescription(item).toLowerCase().includes(searchLower) ||
+            item.title.toLowerCase().includes(searchLower) ||
+            item.titleHi.toLowerCase().includes(searchLower)
+        );
+    });
 
     // Group filtered settings by category
     const groupedSettings = filteredSettings.reduce((acc, item) => {
-        if (!acc[item.category]) {
-            acc[item.category] = [];
+        const categoryKey = getItemCategory(item);
+        if (!acc[categoryKey]) {
+            acc[categoryKey] = [];
         }
-        acc[item.category].push(item);
+        acc[categoryKey].push(item);
         return acc;
-    }, {} as Record<string, typeof settingsItems>);
+    }, {} as Record<string, SettingsItem[]>);
 
     // Render settings item with responsive styling
-    const renderSettingsItem = (item: typeof settingsItems[0]) => (
+    const renderSettingsItem = (item: SettingsItem) => (
         <TouchableOpacity
             key={item.id}
             style={{
@@ -310,7 +398,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
                 paddingVertical: height * 0.015
             }}
             className="flex flex-row items-center justify-between"
-            onPress={() => handleSettingsNavigation(item.route, item.title)}
+            onPress={() => handleSettingsNavigation(item.route, getItemTitle(item))}
             activeOpacity={0.7}
             disabled={isLoading}
         >
@@ -355,7 +443,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
                             }}
                             className="font-semibold"
                         >
-                            {item.title}
+                            {getItemTitle(item)}
                         </Text>
                         <Text
                             style={{
@@ -363,7 +451,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                 fontSize: width * 0.035
                             }}
                         >
-                            {item.description}
+                            {getItemDescription(item)}
                         </Text>
                     </View>
 
@@ -434,8 +522,8 @@ const MorePagesScreen = ({ navigation }: Props) => {
                             />
                         </TouchableOpacity>
 
-                        {/* Centered title */}
-                        <Text
+                        {/* Centered title with translation */}
+                        <TranslatedText
                             style={{
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.075
@@ -443,7 +531,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
                             className="font-medium"
                         >
                             Settings
-                        </Text>
+                        </TranslatedText>
 
                         {/* Search toggle button */}
                         <TouchableOpacity
@@ -499,7 +587,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                 borderRadius: width * 0.025,
                                 fontSize: width * 0.04
                             }}
-                            placeholder="Search settings..."
+                            placeholder={searchPlaceholder}
                             placeholderTextColor={Colors.light.placeholderColorOp70}
                             value={searchQuery}
                             onChangeText={setSearchQuery}
@@ -560,7 +648,9 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                         }}
                                         className="font-semibold"
                                     >
-                                        Search Results ({filteredSettings.length})
+                                        {currentLanguage === 'hi' ?
+                                            `खोज परिणाम (${filteredSettings.length})` :
+                                            `Search Results (${filteredSettings.length})`}
                                     </Text>
                                 </View>
                                 {/* Render filtered settings items */}
@@ -576,7 +666,6 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                 </View>
                             </View>
                         ) : (
-
                             <View
                                 className="flex items-center justify-center"
                                 style={{ paddingVertical: height * 0.1 }}
@@ -588,7 +677,9 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                     }}
                                     className="text-center"
                                 >
-                                    No settings found for "{searchQuery}"
+                                    {currentLanguage === 'hi' ?
+                                        `"${searchQuery}" के लिए कोई सेटिंग नहीं मिली` :
+                                        `No settings found for "${searchQuery}"`}
                                 </Text>
                                 <TouchableOpacity
                                     onPress={clearSearch}
@@ -600,16 +691,16 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                             fontSize: width * 0.04
                                         }}
                                     >
-                                        Clear Search
+                                        {currentLanguage === 'hi' ? 'खोज साफ़ करें' : 'Clear Search'}
                                     </Text>
                                 </TouchableOpacity>
                             </View>
                         )
                     ) : (
-                        // Default grouped view by category (matching your folder structure)
+                        // Default grouped view by category
                         <>
                             {/* Updates Section */}
-                            {groupedSettings.Updates && (
+                            {groupedSettings[currentLanguage === 'hi' ? 'अपडेट्स' : 'Updates'] && (
                                 <View style={{ marginBottom: height * 0.03 }}>
                                     <View
                                         style={{
@@ -625,7 +716,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                             }}
                                             className="font-semibold"
                                         >
-                                            Updates
+                                            {currentLanguage === 'hi' ? 'अपडेट्स' : 'Updates'}
                                         </Text>
                                     </View>
                                     <View
@@ -636,13 +727,13 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                         }}
                                         className="overflow-hidden"
                                     >
-                                        {groupedSettings.Updates.map(renderSettingsItem)}
+                                        {groupedSettings[currentLanguage === 'hi' ? 'अपडेट्स' : 'Updates'].map(renderSettingsItem)}
                                     </View>
                                 </View>
                             )}
 
                             {/* Help Section */}
-                            {groupedSettings.Help && (
+                            {groupedSettings[currentLanguage === 'hi' ? 'सहायता' : 'Help'] && (
                                 <View style={{ marginBottom: height * 0.03 }}>
                                     <View
                                         style={{
@@ -658,7 +749,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                             }}
                                             className="font-semibold"
                                         >
-                                            Help
+                                            {currentLanguage === 'hi' ? 'सहायता' : 'Help'}
                                         </Text>
                                     </View>
                                     <View
@@ -669,13 +760,13 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                         }}
                                         className="overflow-hidden"
                                     >
-                                        {groupedSettings.Help.map(renderSettingsItem)}
+                                        {groupedSettings[currentLanguage === 'hi' ? 'सहायता' : 'Help'].map(renderSettingsItem)}
                                     </View>
                                 </View>
                             )}
 
                             {/* System Section */}
-                            {groupedSettings.System && (
+                            {groupedSettings[currentLanguage === 'hi' ? 'सिस्टम' : 'System'] && (
                                 <View style={{ marginBottom: height * 0.03 }}>
                                     <View
                                         style={{
@@ -691,7 +782,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                             }}
                                             className="font-semibold"
                                         >
-                                            System
+                                            {currentLanguage === 'hi' ? 'सिस्टम' : 'System'}
                                         </Text>
                                     </View>
                                     <View
@@ -702,7 +793,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                         }}
                                         className="overflow-hidden"
                                     >
-                                        {groupedSettings.System.map(renderSettingsItem)}
+                                        {groupedSettings[currentLanguage === 'hi' ? 'सिस्टम' : 'System'].map(renderSettingsItem)}
                                     </View>
                                 </View>
                             )}
@@ -742,7 +833,9 @@ const MorePagesScreen = ({ navigation }: Props) => {
                                 }}
                                 className="font-bold"
                             >
-                                {isLoading ? 'Logging out...' : 'Logout'}
+                                {isLoading ?
+                                    (currentLanguage === 'hi' ? 'लॉगआउट हो रहा है...' : 'Logging out...') :
+                                    (currentLanguage === 'hi' ? 'लॉगआउट' : 'Logout')}
                             </Text>
                         </TouchableOpacity>
                     </View>

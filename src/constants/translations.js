@@ -602,6 +602,159 @@ export const APP_TRANSLATIONS = {
   'Approved on {date}': '{date} को स्वीकृत',
   Withdrawal: 'निकासी',
   'Task Reward': 'कार्य पुरस्कार',
+  // Add these translations to your existing APP_TRANSLATIONS object in translations.js
+
+  // Transactions Page Translations
+  Transactions: 'लेनदेन',
+  'Search transactions...': 'लेनदेन खोजें...',
+  All: 'सभी',
+  'Mirago Rewards': 'मिराजियो रिवार्ड्स',
+  'Task Reward': 'टास्क रिवार्ड',
+  'Approved on {date}': '{date} को अप्रूव्ड',
+  Withdrawal: 'निकासी',
+  'Loading transactions...': 'लेनदेन लोड हो रहे हैं...',
+  'Search Results ({count})': 'खोज परिणाम ({count})',
+  'Showing results for "{query}"': '"{query}" के लिए परिणाम दिखाए जा रहे हैं',
+  'No Results Found': 'कोई परिणाम नहीं मिला',
+  'No Transactions Yet': 'अभी तक कोई लेनदेन नहीं',
+  'No transactions found for "{query}"':
+    '"{query}" के लिए कोई लेनदेन नहीं मिला',
+  'Complete and get approved tasks to see your reward transactions here':
+    'अप्रूव्ड टास्क पूरे करें और यहाँ अपने रिवार्ड लेनदेन देखें',
+  'Clear Search': 'खोज साफ़ करें',
+
+  // Date and time translations
+  Today: 'आज',
+  Yesterday: 'कल',
+  January: 'जनवरी',
+  February: 'फरवरी',
+  March: 'मार्च',
+  April: 'अप्रैल',
+  May: 'मई',
+  June: 'जून',
+  July: 'जुलाई',
+  August: 'अगस्त',
+  September: 'सितंबर',
+  October: 'अक्टूबर',
+  November: 'नवंबर',
+  December: 'दिसंबर',
+
+  // Short month names for transactions
+  Jan: 'जन',
+  Feb: 'फर',
+  Mar: 'मार',
+  Apr: 'अप्र',
+  Jun: 'जून',
+  Jul: 'जुल',
+  Aug: 'अग',
+  Sep: 'सित',
+  Oct: 'अक्ट',
+  Nov: 'नव',
+  Dec: 'दिस',
+
+  // Settings Page Translations
+  Settings: 'सेटिंग्स',
+  'Search settings...': 'सेटिंग्स खोजें...',
+  'Search Results ({count})': 'खोज परिणाम ({count})',
+  'No settings found for "{query}"': '"{query}" के लिए कोई सेटिंग नहीं मिली',
+  'Clear Search': 'खोज साफ़ करें',
+  'Coming Soon': 'जल्द आ रहा है',
+  '{feature} feature will be available soon!':
+    '{feature} फीचर जल्द ही उपलब्ध होगा!',
+  'Failed to logout. Please try again.':
+    'लॉगआउट करने में असफल। कृपया फिर से कोशिश करें।',
+  'Are you sure you want to logout?': 'क्या आप वाकई लॉगआउट करना चाहते हैं?',
+  'Logging out...': 'लॉगआउट हो रहा है...',
+
+  // Settings Categories
+  Updates: 'अपडेट्स',
+  Help: 'सहायता',
+  System: 'सिस्टम',
+
+  // Settings Items Translations
+  'Play Music on App Launch': 'ऐप लॉन्च पर संगीत चलाएं',
+  'Control app music preferences': 'ऐप संगीत प्राथमिकताएं नियंत्रित करें',
+  'Account Security': 'खाता सुरक्षा',
+  'Manage your account security settings':
+    'अपनी खाता सुरक्षा सेटिंग्स प्रबंधित करें',
+  'New Updates': 'नए अपडेट्स',
+  'Check latest app updates': 'नवीनतम ऐप अपडेट्स जांचें',
+  'Refer Friends, Earn Money': 'मित्रों को रेफर करें, पैसे कमाएं',
+  'Invite friends and earn rewards':
+    'मित्रों को आमंत्रित करें और पुरस्कार कमाएं',
+  'How To Play Games': 'गेम कैसे खेलें',
+  'Learn how to play games': 'गेम खेलना सीखें',
+  'Responsible Gaming': 'जिम्मेदार गेमिंग',
+  'Gaming responsibility guidelines': 'गेमिंग जिम्मेदारी दिशानिर्देश',
+  'Fair Play': 'निष्पक्ष खेल',
+  'Fair play policies and rules': 'निष्पक्ष खेल नीतियां और नियम',
+  'Help Desk': 'सहायता डेस्क',
+  'Get help and support': 'सहायता और समर्थन प्राप्त करें',
+  'System Status': 'सिस्टम स्थिति',
+  'Check system status and uptime': 'सिस्टम स्थिति और अपटाइम जांचें',
+  'Security & Privacy Policy': 'सुरक्षा और गोपनीयता नीति',
+  'Read our privacy policy': 'हमारी गोपनीयता नीति पढ़ें',
+  'RNG Certification': 'RNG प्रमाणीकरण',
+  'Random number generation certification':
+    'यादृच्छिक संख्या निर्माण प्रमाणीकरण',
+  Careers: 'करियर',
+  'Join our team': 'हमारी टीम में शामिल हों',
+  'About Us (Miragio Games)': 'हमारे बारे में (मिराजियो गेम्स)',
+  'Learn about Miragio Games': 'मिराजियो गेम्स के बारे में जानें',
+  'Terms of Use': 'उपयोग की शर्तें',
+  'Terms and conditions': 'नियम और शर्तें',
+  Legality: 'कानूनी',
+  'Legal compliance information': 'कानूनी अनुपालन जानकारी',
+
+  // Transaction Status Translations (for withdrawal status)
+  pending: 'लंबित',
+  completed: 'पूर्ण',
+  approved: 'अप्रूव्ड',
+  failed: 'असफल',
+  rejected: 'अस्वीकृत',
+  processing: 'प्रोसेसिंग',
+
+  // Payment Method Translations (for transactions)
+  bank_transfer: 'बैंक ट्रांसफर',
+  'bank transfer': 'बैंक ट्रांसफर',
+
+  // Alert and Dialog Translations
+  Cancel: 'रद्द करें',
+  OK: 'ठीक है',
+  Error: 'त्रुटि',
+  Success: 'सफल',
+
+  // Common Navigation and Actions
+  'Go Back': 'वापस जाएं',
+  Search: 'खोजें',
+  Filter: 'फिल्टर',
+  Refresh: 'रिफ्रेश करें',
+  Update: 'अपडेट करें',
+  // Add these translations to your existing APP_TRANSLATIONS object in translations.js
+
+  // New Component Header Translations
+  'Account Security': 'खाता सुरक्षा',
+  'New Updates': 'नई अपडेट',
+  'Music Settings': 'संगीत सेटिंग्स',
+
+  // Content Placeholder Translations
+  'Account security settings will be displayed here':
+    'खाता सुरक्षा सेटिंग्स यहाँ दिखाई जाएंगी',
+  'New updates will be displayed here': 'नई अपडेट यहाँ दिखाई जाएंगी',
+  'Music settings will be displayed here': 'संगीत सेटिंग्स यहाँ दिखाई जाएंगी',
+
+  // Component Headers
+  'Account Security': 'खाता सुरक्षा',
+  'New Updates': 'नई अपडेट',
+  'Music Settings': 'संगीत सेटिंग्स',
+
+  // Content Placeholders
+  'Account security settings will be displayed here':
+    'खाता सुरक्षा सेटिंग्स यहाँ दिखाई जाएंगी',
+  'New updates will be displayed here': 'नई अपडेट यहाँ दिखाई जाएंगी',
+  'Music settings will be displayed here': 'संगीत सेटिंग्स यहाँ दिखाई जाएंगी',
+
+  // ... rest of your existing translations ...
 };
 
 // Function to get translation

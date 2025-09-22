@@ -1,80 +1,90 @@
-import { Image, ScrollView, Text, TouchableOpacity, View, StatusBar } from "react-native";
-
+// FairPlay.tsx
+import { Image, ScrollView, Text, TouchableOpacity, View, StatusBar, Dimensions } from "react-native";
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg2 from "../../../assets/images/bg2.png";
 import { icons } from "../../../constants/index";
 import { Colors } from "../../../constants/Colors";
+import type { MainStackParamList } from "../../../navigation/types";
 
-// ADDED: Import navigation types - adjust based on your navigation structure
-import type { MainStackParamList } from "../../../navigation/types"; // or your navigation types file
+// ✅ Translation
+import { useTranslation } from '../../../context/TranslationContext';
 
-// ADDED: Define props type for React Navigation
 type Props = NativeStackScreenProps<MainStackParamList, 'FairPlay'>;
 
+const { width, height } = Dimensions.get('window');
+
 const FairPlay = ({ navigation }: Props) => {
+    const { currentLanguage } = useTranslation();
+    const isHi = currentLanguage === 'hi';
 
-
-    // ADDED: Back button handler for React Native CLI
     const handleBackPress = (): void => {
         navigation.goBack();
     };
+
+
 
     return (
         <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-            {/* =================== HEADER WITH BACKGROUND IMAGE =================== */}
-            <View className="relative h-32">
-                {/* Background image */}
+            {/* Header */}
+            <View style={{ height: height * 0.14 }}>
                 <Image source={bg2} resizeMode="cover" className="w-full h-full absolute" />
-
-                {/* Header overlay content with navigation */}
-                <View className="flex-1 pt-12 pb-4 px-4">
-                    {/* Header row with proper spacing */}
-                    <View className="flex-row items-center justify-between h-16">
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
                         {/* Back button */}
                         <TouchableOpacity
                             onPress={handleBackPress}
-                            className="w-10 h-10 items-center justify-center"
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
                         >
-                            {icons && (
-                                <Image
-                                    source={icons.back}
-                                    className="w-4 h-6"
-                                />
-                            )}
+                            <Image
+                                source={icons.back}
+                                style={{
+                                    width: width * 0.04,
+                                    height: width * 0.06
+                                }}
+                            />
                         </TouchableOpacity>
 
-                        {/* Centered title */}
-                        <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium pt-1"
-                        >
-                            Fair Play
-                        </Text>
+                        {/* Centered title with translation */}
+                        <View className="flex-1 items-center">
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.075
+                                }}
+                                className="font-medium"
+                            >
+                                {isHi ? 'निष्पक्ष खेल' : 'Fair Play'}
+                            </Text>
+                        </View>
 
-                        {/* Empty space for balance (same width as back button) */}
-                        <View className="w-10 h-10" />
+                        <View style={{ width: width * 0.1, height: width * 0.1 }} />
                     </View>
                 </View>
-
-                {/* Header border line */}
-                <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
-                />
+                <View className="absolute bottom-0 w-full" style={{ backgroundColor: Colors.light.whiteFfffff, height: 1 }} />
             </View>
 
-            {/* =================== SCROLLABLE CONTENT SECTION =================== */}
-            <ScrollView
-                className="flex-1"
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100 }}
-            >
-                {/* ADD YOUR FAIR PLAY CONTENT HERE */}
-                <View className="p-4">
-                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-lg">
-                        Fair Play content goes here...
+            <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: height * 0.12 }}>
+                {/* Content goes here */}
+                <View className="items-center justify-center" style={{ paddingVertical: height * 0.1 }}>
+                    <Text style={{ color: Colors.light.placeholderColorOp70, fontSize: width * 0.045 }} className="text-center">
+                        {isHi ? 'निष्पक्ष खेल नीतियां यहाँ दिखाई जाएंगी' : 'Fair play policies will be displayed here'}
                     </Text>
                 </View>
             </ScrollView>
