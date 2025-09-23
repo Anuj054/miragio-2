@@ -435,8 +435,8 @@ export const APP_TRANSLATIONS = {
     'निकासी अनुरोध प्रोसेस करने में असफल। कृपया अपना इंटरनेट कनेक्शन जांचें और फिर से कोशिश करें।',
 
   // Rate and Security Info
-  'Rate: 10 Coins = ₹1': 'दर: 10 सिक्के = ₹1',
-  '10 Coins = ₹1': '10 सिक्के = ₹1',
+  'Rate: 1 Coins = ₹1': 'दर: 1 सिक्के = ₹1',
+  '1 Coins = ₹1': '1 सिक्के = ₹1',
   'Minimum withdrawal: {amount} coins (₹{inr})':
     'न्यूनतम निकासी: {amount} सिक्के (₹{inr})',
   'All withdrawals are processed securely through encrypted channels. Your financial information is protected and never stored on our servers. Current rate: 10 Miragio Coins = ₹1':

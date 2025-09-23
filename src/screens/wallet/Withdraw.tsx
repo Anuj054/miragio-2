@@ -43,7 +43,7 @@ const WithdrawAmountPage = () => {
 
     const [amount, setAmount] = useState<string>("");
     const [selectedMethod, setSelectedMethod] = useState<string>("");
-    const [coinValue, setCoinValue] = useState<number>(0.1);
+    const [coinValue, setCoinValue] = useState<number>(1); // Changed from 1 to 1
     const [userBalance, setUserBalance] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [withdrawalMethods, setWithdrawalMethods] = useState<WithdrawalMethod[]>([]);
@@ -177,7 +177,7 @@ const WithdrawAmountPage = () => {
                 return;
             }
 
-            setCoinValue(0.1);
+            setCoinValue(1); // Changed from 0.1 to 1
 
             const userResponse = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
                 method: "POST",
@@ -569,7 +569,7 @@ const WithdrawAmountPage = () => {
                             marginTop: height * 0.005
                         }}
                     >
-                        {currentLanguage === 'hi' ? 'दर: 10 सिक्के = ₹1' : 'Rate: 10 Coins = ₹1'}
+                        {currentLanguage === 'hi' ? 'दर: 1 सिक्के = ₹1' : 'Rate: 1 Coins = ₹1'}
                     </Text>
                 </View>
 
@@ -949,7 +949,7 @@ const WithdrawAmountPage = () => {
                                     fontSize: width * 0.035
                                 }}
                             >
-                                {currentLanguage === 'hi' ? '10 सिक्के = ₹1' : '10 Coins = ₹1'}
+                                {currentLanguage === 'hi' ? '1 सिक्के = ₹1' : '1 Coins = ₹1'}
                             </Text>
                         </View>
                         <View
@@ -1161,8 +1161,8 @@ const WithdrawAmountPage = () => {
                         }}
                     >
                         {currentLanguage === 'hi' ?
-                            'सभी निकासी सुरक्षित एन्क्रिप्टेड चैनलों के माध्यम से प्रोसेस की जाती हैं। आपकी वित्तीय जानकारी सुरक्षित है और हमारे सर्वर पर कभी संग्रहीत नहीं की जाती। वर्तमान दर: 10 मिराजियो सिक्के = ₹1' :
-                            'All withdrawals are processed securely through encrypted channels. Your financial information is protected and never stored on our servers. Current rate: 10 Miragio Coins = ₹1'}
+                            'सभी निकासी सुरक्षित एन्क्रिप्टेड चैनलों के माध्यम से प्रोसेस की जाती हैं। आपकी वित्तीय जानकारी सुरक्षित है और हमारे सर्वर पर कभी संग्रहीत नहीं की जाती। वर्तमान दर: 1 मिराजियो सिक्के = ₹1' :
+                            'All withdrawals are processed securely through encrypted channels. Your financial information is protected and never stored on our servers. Current rate: 1 Miragio Coins = ₹1'}
                     </Text>
                 </View>
             </ScrollView>

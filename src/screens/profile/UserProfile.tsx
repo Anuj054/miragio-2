@@ -14,7 +14,33 @@ import { useTranslation } from "../../context/TranslationContext";
 const { width, height } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<MainStackParamList, 'UserProfile'>;
+// Add interfaces for task-related data (similar to TaskPage)
+interface AssignedUser {
+    id: string;
+    username: string;
+    email: string;
+    task_status: string | null;
+}
 
+interface ApiTask {
+    task_id?: string;
+    id: string;
+    task_name: string;
+    task_description: string;
+    task_reward: string;
+    task_status: string;
+    task_starttime: string;
+    task_endtime: string;
+    created_at: string;
+    status: string;
+    assigned_users: AssignedUser[];
+}
+
+interface ApiResponse {
+    status: string;
+    message: string;
+    data: ApiTask[];
+}
 const UserProfile = ({ navigation, route }: Props) => {
     const { from } = route.params || {};
     const { currentLanguage, toggleLanguage } = useTranslation();
@@ -24,7 +50,7 @@ const UserProfile = ({ navigation, route }: Props) => {
     const { getUserId, getUserWallet } = useUser();
     const [completedTasks, setCompletedTasks] = useState(0);
     const [loadingTasks, setLoadingTasks] = useState(true);
-
+    const [totalTasks, setTotalTasks] = useState(0);
     const walletBalance = getUserWallet();
     const t = {
         loadingProfile: isHindi ? "प्रोफ़ाइल लोड हो रही है..." : "Loading profile...",
@@ -38,8 +64,13 @@ const UserProfile = ({ navigation, route }: Props) => {
     const handleLanguageToggle = () => {
         toggleLanguage();
     };
-
+    // Helper function to get user task status (from TaskPage)
+    const getUserTaskStatus = (assignedUsers: AssignedUser[], userId: string): string | null => {
+        const currentUser = assignedUsers.find(user => String(user.id) === String(userId));
+        return currentUser?.task_status || null;
+    };
     // Fetch completed tasks
+    // Fetch completed tasks using the same logic as TaskPage
     const fetchCompletedTasks = async () => {
         try {
             setLoadingTasks(true);
@@ -55,27 +86,34 @@ const UserProfile = ({ navigation, route }: Props) => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    action: "get_user_tasksby_id",
-                    user_id: userId,
+                    action: "get_tasks", // Use the same action as TaskPage
                 }),
             });
 
-            const data = await response.json();
-
-            let tasks: any[] = [];
+            const data: ApiResponse = await response.json();
 
             if (data.status === "success") {
-                if (Array.isArray(data.data)) {
-                    tasks = data.data;
-                } else if (Array.isArray(data.data?.tasks)) {
-                    tasks = data.data.tasks;
-                }
-            }
+                // Filter tasks assigned to the current user (same logic as TaskPage)
+                const userTasks = data.data.filter(task =>
+                    task.assigned_users.some(user => String(user.id) === String(userId))
+                );
 
-            const completed = tasks.filter((t: any) => t.task_status === "completed").length;
-            setCompletedTasks(completed);
+                // Count completed tasks using the same logic as TaskPage
+                const completed = userTasks.filter(task => {
+                    const userStatus = getUserTaskStatus(task.assigned_users, userId);
+                    return userStatus === 'approved'; // 'approved' maps to 'completed' status
+                }).length;
+
+                setCompletedTasks(completed);
+                setTotalTasks(userTasks.length);
+            } else {
+                setCompletedTasks(0);
+                setTotalTasks(0);
+            }
         } catch (err) {
             console.error('Error fetching completed tasks:', err);
+            setCompletedTasks(0);
+            setTotalTasks(0);
         } finally {
             setLoadingTasks(false);
         }
@@ -391,7 +429,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                     }}
                                     className="font-semibold"
                                 >
-                                    {loadingTasks ? "..." : completedTasks}
+                                    {loadingTasks ? "..." : `${completedTasks}/${totalTasks}`}
                                 </Text>
                                 <Text
                                     style={{
