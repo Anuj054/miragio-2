@@ -96,12 +96,25 @@ const ResetPassword = ({ navigation }: Props) => {
     return (
         <View className="flex-1 items-center">
             {/* Background Image */}
-            <Image
-                source={bg}
-                resizeMode="cover"
-                className="w-full h-full absolute"
-                style={{ width, height }}
-            />
+            <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#000', // Fallback color
+            }}>
+                <Image
+                    source={bg}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        minWidth: width,
+                        minHeight: height,
+                    }}
+                    resizeMode="cover"
+                />
+            </View>
 
             {/* Back Button */}
             <TouchableOpacity

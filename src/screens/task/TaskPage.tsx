@@ -50,7 +50,7 @@ interface Task {
     title: string;
     description: string;
     reward: number;
-    status: 'upcoming' | 'completed' | 'pending' | 'rejected';
+    status: 'upcoming' | 'completed' | 'pending' | 'rejected' | 'active' | 'expired';
     icon: any;
     hasCheckmarks: boolean;
     completedSteps: number;
@@ -85,13 +85,17 @@ interface GroupedTasks {
     [monthYear: string]: Task[];
 }
 
-type FilterOption = 'All' | 'Upcoming' | 'Completed' | 'Pending' | 'Rejected';
+type MainTab = 'pending' | 'completed';
+type PendingFilter = 'active' | 'expired';
+type CompletedFilter = 'completed' | 'pendingReview';
 
 const TaskPage = ({ navigation }: Props) => {
     const { currentLanguage } = useTranslation();
     const isHi = currentLanguage === 'hi';
 
-    const [activeFilter, setActiveFilter] = useState<FilterOption>('All');
+    const [activeMainTab, setActiveMainTab] = useState<MainTab>('pending');
+    const [activePendingFilter, setActivePendingFilter] = useState<PendingFilter>('active');
+    const [activeCompletedFilter, setActiveCompletedFilter] = useState<CompletedFilter>('completed');
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -101,21 +105,38 @@ const TaskPage = ({ navigation }: Props) => {
     const USER_ID = getUserId();
 
     const taskIcons = [task1, task2, task3, task4];
-    const filterOptions: FilterOption[] = ['All', 'Upcoming', 'Completed', 'Pending', 'Rejected'];
 
     const getUserTaskStatus = (assignedUsers: AssignedUser[], userId: string): string | null => {
         const currentUser = assignedUsers.find(user => String(user.id) === String(userId));
         return currentUser?.task_status || null;
     };
 
-    const mapUserTaskStatus = (userStatus: string | null): Task['status'] => {
-        if (!userStatus) return 'upcoming';
+    const isTaskExpired = (deadlineString: string): boolean => {
+        if (!deadlineString) return false;
+        const deadline = new Date(deadlineString);
+        const now = new Date();
+        return deadline < now;
+    };
+
+    const mapUserTaskStatus = (userStatus: string | null, deadline?: string): Task['status'] => {
+        if (!userStatus) {
+            // Check if task is expired for upcoming tasks
+            if (deadline && isTaskExpired(deadline)) {
+                return 'expired';
+            }
+            return 'active'; // Changed from 'upcoming' to 'active'
+        }
+
         const normalized = userStatus.toLowerCase().trim();
         switch (normalized) {
             case 'approved': return 'completed';
             case 'rejected': return 'rejected';
             case 'pending': return 'pending';
-            default: return 'upcoming';
+            default:
+                if (deadline && isTaskExpired(deadline)) {
+                    return 'expired';
+                }
+                return 'active';
         }
     };
 
@@ -158,21 +179,24 @@ const TaskPage = ({ navigation }: Props) => {
                     .filter(t => t.assigned_users.some(u => String(u.id) === String(USER_ID)))
                     .map((t, i) => {
                         const userStatus = getUserTaskStatus(t.assigned_users, USER_ID);
+                        const mappedStatus = mapUserTaskStatus(userStatus, t.task_endtime);
+
                         return {
                             id: t.task_id || t.id,
                             title: t.task_name,
                             description: t.task_description,
                             reward: parseInt(t.task_reward) || 0,
-                            status: mapUserTaskStatus(userStatus),
+                            status: mappedStatus,
                             icon: taskIcons[i % taskIcons.length],
                             hasCheckmarks: false,
-                            completedSteps: userStatus === 'approved' ? 1 : 0,
+                            completedSteps: ['completed', 'rejected'].includes(mappedStatus) ? 1 : 0,
                             totalSteps: 1,
                             type: 'general',
                             created_at: t.created_at,
                             deadline: t.task_endtime,
                         };
                     });
+
                 setTasks(userTasks);
             } else {
                 setError(data.message || (isHi ? 'कार्य प्राप्त करने में विफल' : 'Failed to fetch tasks'));
@@ -192,11 +216,24 @@ const TaskPage = ({ navigation }: Props) => {
         fetchUserTasks(false);
     }, []);
 
-    const filteredTasks = tasks.filter(task => {
-        if (activeFilter === 'All') return true;
-        return task.status.toLowerCase() === activeFilter.toLowerCase();
-    });
+    // Filter tasks based on active tab and sub-filters
+    const getFilteredTasks = (): Task[] => {
+        if (activeMainTab === 'pending') {
+            const pendingTasks = tasks.filter(task => ['active', 'expired'].includes(task.status));
+            return pendingTasks.filter(task => task.status === activePendingFilter);
+        } else {
+            // Completed tab
+            const completedTasks = tasks.filter(task => ['completed', 'rejected', 'pending'].includes(task.status));
+            if (activeCompletedFilter === 'completed') {
+                return completedTasks.filter(task => ['completed', 'rejected'].includes(task.status));
+            } else {
+                // pendingReview
+                return completedTasks.filter(task => task.status === 'pending');
+            }
+        }
+    };
 
+    const filteredTasks = getFilteredTasks();
     const groupedTasks = groupTasksByMonth(filteredTasks);
     const monthKeys = Object.keys(groupedTasks).sort((a, b) => {
         const aDate = new Date(groupedTasks[a][0]?.created_at || 0).getTime();
@@ -209,7 +246,8 @@ const TaskPage = ({ navigation }: Props) => {
             case 'completed': return '#48BB78';
             case 'rejected': return '#FF6B6B';
             case 'pending': return '#FFA726';
-            default: return Colors.light.bgBlueBtn;
+            case 'expired': return '#757575';
+            default: return Colors.light.bgBlueBtn; // active
         }
     };
 
@@ -228,6 +266,16 @@ const TaskPage = ({ navigation }: Props) => {
             );
             return;
         }
+        if (task.status === 'expired') {
+            Alert.alert(
+                isHi ? 'कार्य समाप्त' : 'Task Expired',
+                isHi
+                    ? 'यह कार्य की समयसीमा समाप्त हो गई है।'
+                    : 'This task has expired and is no longer available.',
+                [{ text: isHi ? 'ठीक है' : 'OK' }],
+            );
+            return;
+        }
         navigation.navigate('TaskDetails', { taskId: String(task.id) });
     };
 
@@ -235,42 +283,62 @@ const TaskPage = ({ navigation }: Props) => {
         navigation.getParent()?.navigate('UserProfile', { from: 'taskpage' });
     };
 
-    const renderFilterButton = (option: FilterOption, index: number) => {
-        const labels: Record<FilterOption, string> = {
-            All: isHi ? 'सभी' : 'All',
-            Upcoming: isHi ? 'आगामी' : 'Upcoming',
-            Completed: isHi ? 'पूर्ण' : 'Completed',
-            Pending: isHi ? 'लंबित' : 'Pending',
-            Rejected: isHi ? 'अस्वीकृत' : 'Rejected',
-        };
-        return (
-            <TouchableOpacity
-                key={option}
-                onPress={() => setActiveFilter(option)}
+    const renderMainTabButton = (tab: MainTab, label: string) => (
+        <TouchableOpacity
+            onPress={() => setActiveMainTab(tab)}
+            style={{
+                flex: 1,
+                backgroundColor: activeMainTab === tab ? Colors.light.bgBlueBtn : 'transparent',
+                borderColor: activeMainTab === tab ? 'transparent' : Colors.light.secondaryText,
+                borderWidth: activeMainTab === tab ? 0 : 1,
+                borderRadius: 20,
+                paddingVertical: height * 0.012,
+                marginHorizontal: width * 0.01,
+            }}
+        >
+            <Text
                 style={{
-                    backgroundColor: activeFilter === option ? Colors.light.bgBlueBtn : 'transparent',
-                    borderColor: activeFilter === option ? 'transparent' : Colors.light.secondaryText,
-                    borderWidth: activeFilter === option ? 0 : 1,
-                    borderRadius: 20,
-                    paddingHorizontal: width * 0.04,
-                    paddingVertical: height * 0.009,
-                    marginRight: index < filterOptions.length - 1 ? width * 0.03 : 0,
-                    minWidth: width * 0.18,
+                    color: Colors.light.whiteFefefe,
+                    fontSize: width * 0.04,
+                    fontWeight: activeMainTab === tab ? 'bold' : 'normal',
+                    textAlign: 'center',
                 }}
             >
-                <Text
-                    style={{
-                        color: Colors.light.whiteFefefe,
-                        fontSize: width * 0.035,
-                        fontWeight: activeFilter === option ? 'bold' : 'normal',
-                        textAlign: 'center',
-                    }}
-                >
-                    {labels[option]}
-                </Text>
-            </TouchableOpacity>
-        );
-    };
+                {label}
+            </Text>
+        </TouchableOpacity>
+    );
+
+    const renderSubFilterButton = (
+        _filter: PendingFilter | CompletedFilter,
+        label: string,
+        isActive: boolean,
+        onPress: () => void
+    ) => (
+        <TouchableOpacity
+            onPress={onPress}
+            style={{
+                backgroundColor: isActive ? Colors.light.bgBlueBtn : 'transparent',
+                borderColor: isActive ? 'transparent' : Colors.light.secondaryText,
+                borderWidth: isActive ? 0 : 1,
+                borderRadius: 15,
+                paddingHorizontal: width * 0.04,
+                paddingVertical: height * 0.008,
+                marginRight: width * 0.03,
+            }}
+        >
+            <Text
+                style={{
+                    color: Colors.light.whiteFefefe,
+                    fontSize: width * 0.035,
+                    fontWeight: isActive ? 'bold' : 'normal',
+                    textAlign: 'center',
+                }}
+            >
+                {label}
+            </Text>
+        </TouchableOpacity>
+    );
 
     const renderTaskItem = (task: Task) => (
         <ImageBackground
@@ -289,13 +357,17 @@ const TaskPage = ({ navigation }: Props) => {
             <View className="flex-row items-center" style={{ marginBottom: height * 0.015 }}>
                 <Image
                     source={task.icon}
-                    style={{ height: width * 0.12, width: width * 0.12, opacity: task.status === 'rejected' ? 0.5 : 1 }}
+                    style={{
+                        height: width * 0.12,
+                        width: width * 0.12,
+                        opacity: ['rejected', 'expired'].includes(task.status) ? 0.5 : 1
+                    }}
                     resizeMode="contain"
                 />
                 <View className="flex-1" style={{ marginHorizontal: width * 0.03 }}>
                     <Text
                         style={{
-                            color: task.status === 'rejected'
+                            color: ['rejected', 'expired'].includes(task.status)
                                 ? Colors.light.placeholderColorOp70
                                 : Colors.light.whiteFefefe,
                             fontSize: width * 0.045,
@@ -316,7 +388,11 @@ const TaskPage = ({ navigation }: Props) => {
                 <TouchableOpacity onPress={() => handleTaskNavigation(task)}>
                     <Image
                         source={icons.go}
-                        style={{ width: width * 0.03, height: width * 0.03, opacity: task.status === 'rejected' ? 0.5 : 1 }}
+                        style={{
+                            width: width * 0.03,
+                            height: width * 0.03,
+                            opacity: ['rejected', 'expired'].includes(task.status) ? 0.5 : 1
+                        }}
                     />
                 </TouchableOpacity>
             </View>
@@ -359,7 +435,7 @@ const TaskPage = ({ navigation }: Props) => {
                             onPress={() => handleTaskNavigation(task)}
                         />
                     )}
-                    {task.status === 'upcoming' && (
+                    {task.status === 'active' && (
                         <CustomGradientButton
                             text={isHi ? 'अब करें' : 'Do It Now'}
                             width={width * 0.63}
@@ -371,16 +447,32 @@ const TaskPage = ({ navigation }: Props) => {
                             onPress={() => handleTaskNavigation(task)}
                         />
                     )}
+                    {task.status === 'expired' && (
+                        <CustomRedGradientButton
+                            text={isHi ? 'समाप्त' : 'Expired'}
+                            width={width * 0.63}
+                            height={height * 0.038}
+                            fontWeight={600}
+                            borderRadius={10}
+                            fontSize={width * 0.04}
+                            textColor="white"
+                            disabled
+                        />
+                    )}
                 </View>
 
                 <View className="flex flex-row items-center" style={{ marginLeft: width * 0.03 }}>
                     <Image
                         source={icons.maincoin}
-                        style={{ width: width * 0.06, height: width * 0.06, opacity: task.status === 'rejected' ? 0.5 : 1 }}
+                        style={{
+                            width: width * 0.06,
+                            height: width * 0.06,
+                            opacity: ['rejected', 'expired'].includes(task.status) ? 0.5 : 1
+                        }}
                     />
                     <Text
                         style={{
-                            color: task.status === 'rejected'
+                            color: ['rejected', 'expired'].includes(task.status)
                                 ? Colors.light.placeholderColorOp70
                                 : Colors.light.whiteFefefe,
                             fontSize: width * 0.04,
@@ -393,6 +485,34 @@ const TaskPage = ({ navigation }: Props) => {
             </View>
         </ImageBackground>
     );
+
+    const getEmptyStateMessage = () => {
+        if (activeMainTab === 'pending') {
+            if (activePendingFilter === 'active') {
+                return {
+                    title: isHi ? 'कोई सक्रिय कार्य नहीं' : 'No Active Tasks',
+                    subtitle: isHi ? 'नए कार्यों के लिए बाद में जाँच करें!' : 'Check back later for new tasks!'
+                };
+            } else {
+                return {
+                    title: isHi ? 'कोई समाप्त कार्य नहीं' : 'No Expired Tasks',
+                    subtitle: isHi ? 'कोई समाप्त कार्य नहीं मिला।' : 'No expired tasks found.'
+                };
+            }
+        } else {
+            if (activeCompletedFilter === 'completed') {
+                return {
+                    title: isHi ? 'कोई पूर्ण कार्य नहीं' : 'No Completed Tasks',
+                    subtitle: isHi ? 'कोई पूर्ण या अस्वीकृत कार्य नहीं मिला।' : 'No completed or rejected tasks found.'
+                };
+            } else {
+                return {
+                    title: isHi ? 'कोई समीक्षाधीन कार्य नहीं' : 'No Pending Review Tasks',
+                    subtitle: isHi ? 'कोई समीक्षाधीन कार्य नहीं मिला।' : 'No tasks pending review found.'
+                };
+            }
+        }
+    };
 
     return (
         <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
@@ -440,19 +560,74 @@ const TaskPage = ({ navigation }: Props) => {
                     />
                 }
             >
-                {/* Filter Buttons */}
+                {/* Main Tabs */}
+                <View style={{
+                    paddingHorizontal: width * 0.04,
+                    paddingTop: height * 0.025,
+                    paddingBottom: height * 0.02,
+                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                    borderRadius: 30,
+                    marginHorizontal: width * 0.03,
+                    marginTop: height * 0.01,
+                }}>
+                    <View className="flex-row" style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        borderRadius: 28,
+                        padding: 4,
+                    }}>
+                        {renderMainTabButton('pending', isHi ? 'लंबित कार्य' : 'Pending Tasks')}
+                        {renderMainTabButton('completed', isHi ? 'पूर्ण कार्य' : 'Completed Tasks')}
+                    </View>
+                </View>
+
+                {/* Sub Filters */}
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{
                         paddingHorizontal: width * 0.04,
-                        paddingVertical: height * 0.02,
-                        paddingTop: height * 0.025,
+                        paddingBottom: height * 0.025,
+                        paddingTop: height * 0.01,
                     }}
                     className="flex-grow-0"
                 >
-                    <View className="flex-row">
-                        {filterOptions.map((option, i) => renderFilterButton(option, i))}
+                    <View className="flex-row" style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                        borderRadius: 22,
+                        paddingHorizontal: width * 0.03,
+                        paddingVertical: height * 0.01,
+                    }}>
+                        {activeMainTab === 'pending' ? (
+                            <>
+                                {renderSubFilterButton(
+                                    'active',
+                                    isHi ? 'सक्रिय' : 'Active',
+                                    activePendingFilter === 'active',
+                                    () => setActivePendingFilter('active')
+                                )}
+                                {renderSubFilterButton(
+                                    'expired',
+                                    isHi ? 'समाप्त' : 'Expired',
+                                    activePendingFilter === 'expired',
+                                    () => setActivePendingFilter('expired')
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                {renderSubFilterButton(
+                                    'completed',
+                                    isHi ? 'पूर्ण' : 'Completed',
+                                    activeCompletedFilter === 'completed',
+                                    () => setActiveCompletedFilter('completed')
+                                )}
+                                {renderSubFilterButton(
+                                    'pendingReview',
+                                    isHi ? 'समीक्षाधीन' : 'Pending Review',
+                                    activeCompletedFilter === 'pendingReview',
+                                    () => setActiveCompletedFilter('pendingReview')
+                                )}
+                            </>
+                        )}
                     </View>
                 </ScrollView>
 
@@ -522,7 +697,7 @@ const TaskPage = ({ navigation }: Props) => {
                             }}
                             className="font-medium text-center"
                         >
-                            {isHi ? 'कोई कार्य उपलब्ध नहीं' : 'No Tasks Available'}
+                            {getEmptyStateMessage().title}
                         </Text>
                         <Text
                             style={{
@@ -532,21 +707,7 @@ const TaskPage = ({ navigation }: Props) => {
                             }}
                             className="text-center"
                         >
-                            {activeFilter === 'All'
-                                ? isHi
-                                    ? 'नए कार्यों के लिए बाद में जाँच करें!'
-                                    : 'Check back later for new tasks!'
-                                : isHi
-                                    ? `कोई ${activeFilter === 'Upcoming'
-                                        ? 'आगामी'
-                                        : activeFilter === 'Completed'
-                                            ? 'पूर्ण'
-                                            : activeFilter === 'Pending'
-                                                ? 'लंबित'
-                                                : 'अस्वीकृत'
-                                    } कार्य नहीं मिला।`
-                                    : `No ${activeFilter.toLowerCase()} tasks found.`
-                            }
+                            {getEmptyStateMessage().subtitle}
                         </Text>
                     </View>
                 )}
@@ -556,4 +717,3 @@ const TaskPage = ({ navigation }: Props) => {
 };
 
 export default TaskPage;
-

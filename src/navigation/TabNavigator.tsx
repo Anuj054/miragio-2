@@ -18,6 +18,9 @@ import WithdrawScreen from '../screens/wallet/Withdraw';
 // UPDATED: Import More Stack Navigator
 import MoreStackNavigator from './MoreStackNavigator';
 
+// ✅ Translation
+import { useTranslation } from '../context/TranslationContext';
+
 // Icons
 import { icons } from '../constants/index';
 import type { TabParamList, TaskStackParamList, WalletStackParamList } from './types';
@@ -26,7 +29,7 @@ const Tab = createBottomTabNavigator<TabParamList>();
 const TaskStack = createNativeStackNavigator<TaskStackParamList>();
 const WalletStack = createNativeStackNavigator<WalletStackParamList>();
 
-// Custom Tab Icon Component (same as before)
+// Custom Tab Icon Component with translation support
 const TabIcon = ({
     focused,
     activeSource,
@@ -97,7 +100,7 @@ const TabIcon = ({
     );
 };
 
-// Task Stack Navigator (same as before)
+// Task Stack Navigator
 const TaskStackNavigator = () => (
     <TaskStack.Navigator
         screenOptions={{
@@ -112,7 +115,7 @@ const TaskStackNavigator = () => (
     </TaskStack.Navigator>
 );
 
-// Wallet Stack Navigator (same as before)
+// Wallet Stack Navigator
 const WalletStackNavigator = () => (
     <WalletStack.Navigator
         screenOptions={{
@@ -127,6 +130,19 @@ const WalletStackNavigator = () => (
 );
 
 const TabNavigator = () => {
+    // ✅ Use translation hook
+    const { currentLanguage } = useTranslation();
+    const isHi = currentLanguage === 'hi';
+
+    // ✅ Translation labels
+    const getTabLabels = () => ({
+        task: isHi ? 'कार्य' : 'Task',
+        wallet: isHi ? 'वॉलेट' : 'Wallet',
+        more: isHi ? 'और' : 'More'
+    });
+
+    const tabLabels = getTabLabels();
+
     return (
         <Tab.Navigator
             initialRouteName="TaskTab"
@@ -161,13 +177,13 @@ const TabNavigator = () => {
                 name="TaskTab"
                 component={TaskStackNavigator}
                 options={{
-                    title: "Task",
+                    title: tabLabels.task,
                     tabBarIcon: ({ focused }) => (
                         <TabIcon
                             focused={focused}
                             activeSource={icons.coin1}
                             inactiveSource={icons.coin}
-                            label="Task"
+                            label={tabLabels.task}
                         />
                     )
                 }}
@@ -177,30 +193,29 @@ const TabNavigator = () => {
                 name="WalletTab"
                 component={WalletStackNavigator}
                 options={{
-                    title: "Wallet",
+                    title: tabLabels.wallet,
                     tabBarIcon: ({ focused }) => (
                         <TabIcon
                             focused={focused}
                             activeSource={icons.wallet1}
                             inactiveSource={icons.wallet}
-                            label="Wallet"
+                            label={tabLabels.wallet}
                         />
                     )
                 }}
             />
 
-            {/* UPDATED: Use More Stack Navigator instead of direct component */}
             <Tab.Screen
                 name="MoreTab"
                 component={MoreStackNavigator}
                 options={{
-                    title: "More",
+                    title: tabLabels.more,
                     tabBarIcon: ({ focused }) => (
                         <TabIcon
                             focused={focused}
                             activeSource={icons.app1}
                             inactiveSource={icons.app}
-                            label="More"
+                            label={tabLabels.more}
                         />
                     )
                 }}
