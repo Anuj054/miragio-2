@@ -1,5 +1,5 @@
 // src/screens/Welcome.tsx
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Image,
     Text,
@@ -10,7 +10,6 @@ import {
     StyleSheet,
     SafeAreaView
 } from 'react-native';
-import Swiper from 'react-native-swiper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors } from '../../constants/Colors';
 import { onboarding } from '../../constants';
@@ -24,8 +23,6 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
 const { width, height } = Dimensions.get('window');
 
 const Welcome = ({ navigation }: Props) => {
-    const swiperRef = useRef<Swiper>(null);
-    const [, setActiveIndex] = useState<number>(0);
     const [showLanguageModal, setShowLanguageModal] = useState(false);
     const [isFirstTime, setIsFirstTime] = useState(true);
 
@@ -71,34 +68,13 @@ const Welcome = ({ navigation }: Props) => {
 
     return (
         <View className="flex-1 bg-black">
-            <Swiper
-                ref={swiperRef}
-                loop={false}
-                dot={
-                    <View
-                        className="w-8 h-1 mx-1 rounded-full"
-                        style={{ backgroundColor: Colors.light.secondaryText }}
-                    />
-                }
-                activeDot={
-                    <View
-                        className="w-8 h-1 mx-1 rounded-full"
-                        style={{ backgroundColor: Colors.light.blueTheme }}
-                    />
-                }
-                onIndexChanged={(index: number) => setActiveIndex(index)}
-            >
-                {onboarding.map((item) => (
-                    <View key={item.id} className="flex-1 items-center justify-center">
-                        <Image
-                            source={item.image}
-                            className="w-full h-full"
-                            resizeMode="cover"
-                            style={{ width, height }}
-                        />
-                    </View>
-                ))}
-            </Swiper>
+            {/* Single background image - first image from onboarding array */}
+            <Image
+                source={onboarding[0].image}
+                className="w-full h-full absolute"
+                resizeMode="cover"
+                style={{ width, height }}
+            />
 
             {/* Language selector - now clickable and shows current language */}
             <View
@@ -142,7 +118,6 @@ const Welcome = ({ navigation }: Props) => {
                                 color: Colors.light.whiteFfffff,
                                 fontSize: width * 0.065,
                                 lineHeight: width * 0.097
-
                             }}
                             className="font-bold text-center"
                         >
@@ -155,7 +130,6 @@ const Welcome = ({ navigation }: Props) => {
                                 fontSize: width * 0.06,
                                 lineHeight: width * 0.097,
                                 paddingtop: height * 0.01
-
                             }}
                             className="font-bold"
                         >
@@ -167,7 +141,6 @@ const Welcome = ({ navigation }: Props) => {
                             color: Colors.light.whiteFfffff,
                             fontSize: width * 0.06,
                             lineHeight: width * 0.07,
-
                         }}
                         className="font-semibold text-center"
                     >
