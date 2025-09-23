@@ -11,15 +11,14 @@ import EditProfile from '../screens/profile/EditProfile';
 import MorePagesScreen from '../screens/more/MorePageScreen';
 
 // Updates folder screens
-import PlayMusicSettings from '../screens/more/updates/PlayMusicSettings';
+
 import AccountSecurity from '../screens/more/updates/AccountSecurity';
 import NewUpdates from '../screens/more/updates/NewUpdates';
 
 // Help folder screens
 import ReferFriends from '../screens/more/help/ReferFriends';
-import HowToPlay from '../screens/more/help/HowToPlay';
-import ResponsibleGaming from '../screens/more/help/ResponsibleGaming';
-import FairPlay from '../screens/more/help/FairPlay';
+
+
 import HelpDesk from '../screens/more/help/HelpDesk';
 import SystemStatus from '../screens/more/help/SystemStatus';
 
@@ -29,7 +28,7 @@ import RNGCertification from '../screens/more/system/RNGCertification';
 import Careers from '../screens/more/system/Careers';
 import AboutUs from '../screens/more/system/AboutUs';
 import TermsOfUse from '../screens/more/system/TermsOfUse';
-import Legality from '../screens/more/system/Legality';
+
 
 import type { MainStackParamList } from './types';
 
@@ -69,15 +68,14 @@ const MainNavigator = () => {
             <Stack.Screen name="MorePagesScreen" component={MorePagesScreen} />
 
             {/* Updates folder screens */}
-            <Stack.Screen name="PlayMusicSettings" component={PlayMusicSettings} />
+
             <Stack.Screen name="AccountSecurity" component={AccountSecurity} />
             <Stack.Screen name="NewUpdates" component={NewUpdates} />
 
             {/* Help folder screens */}
             <Stack.Screen name="ReferFriends" component={ReferFriends} />
-            <Stack.Screen name="HowToPlay" component={HowToPlay} />
-            <Stack.Screen name="ResponsibleGaming" component={ResponsibleGaming} />
-            <Stack.Screen name="FairPlay" component={FairPlay} />
+
+
             <Stack.Screen name="HelpDesk" component={HelpDesk} />
             <Stack.Screen name="SystemStatus" component={SystemStatus} />
 
@@ -87,7 +85,7 @@ const MainNavigator = () => {
             <Stack.Screen name="Careers" component={Careers} />
             <Stack.Screen name="AboutUs" component={AboutUs} />
             <Stack.Screen name="TermsOfUse" component={TermsOfUse} />
-            <Stack.Screen name="Legality" component={Legality} />
+
         </Stack.Navigator>
     );
 };

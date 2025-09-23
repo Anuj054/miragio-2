@@ -203,7 +203,7 @@ const SignUp = ({ navigation }: Props) => {
                 <Image
                     source={bg}
                     resizeMode="cover"
-                    className="w-full h-full absolute"
+                    className="w-full h-full "
                     style={{ width, height }}
                 />
 

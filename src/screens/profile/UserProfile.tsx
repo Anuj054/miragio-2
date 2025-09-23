@@ -1,19 +1,20 @@
-import { Image, ScrollView, Text, TouchableOpacity, View, ActivityIndicator, StatusBar, Dimensions } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View, ActivityIndicator, StatusBar, Dimensions, Modal, StyleSheet, SafeAreaView } from "react-native";
 import { useEffect, useState } from "react";
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg2 from "../../assets/images/bg2.png";
 import { icons } from "../../constants/index";
-
 import profileimg from "../../assets/images/profileimg.png";
 import CustomGradientButton from "../../components/CustomGradientButton";
 import { Colors } from "../../constants/Colors";
 import { useUser } from "../../context/UserContext";
 import type { MainStackParamList } from "../../navigation/types";
 import { useTranslation } from "../../context/TranslationContext";
+
 // Get screen dimensions
 const { width, height } = Dimensions.get('window');
 
 type Props = NativeStackScreenProps<MainStackParamList, 'UserProfile'>;
+
 // Add interfaces for task-related data (similar to TaskPage)
 interface AssignedUser {
     id: string;
@@ -41,17 +42,20 @@ interface ApiResponse {
     message: string;
     data: ApiTask[];
 }
+
 const UserProfile = ({ navigation, route }: Props) => {
     const { from } = route.params || {};
-    const { currentLanguage, toggleLanguage } = useTranslation();
+    const { currentLanguage, changeLanguage, isLoading: translationLoading } = useTranslation();
     const isHindi = currentLanguage === 'hi';
     const { user, isLoading: userLoading, refreshUserData } = useUser();
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [showLanguageModal, setShowLanguageModal] = useState(false);
     const { getUserId, getUserWallet } = useUser();
     const [completedTasks, setCompletedTasks] = useState(0);
     const [loadingTasks, setLoadingTasks] = useState(true);
     const [totalTasks, setTotalTasks] = useState(0);
     const walletBalance = getUserWallet();
+
     const t = {
         loadingProfile: isHindi ? "प्रोफ़ाइल लोड हो रही है..." : "Loading profile...",
         noUserData: isHindi ? "कोई उपयोगकर्ता डेटा उपलब्ध नहीं" : "No user data available",
@@ -60,16 +64,22 @@ const UserProfile = ({ navigation, route }: Props) => {
         walletBalance: isHindi ? "वॉलेट बैलेंस" : "Wallet Balance",
     };
 
-    // Language toggle handler
-    const handleLanguageToggle = () => {
-        toggleLanguage();
+    // Language selection handler
+    const handleLanguageSelect = async (languageCode: 'en' | 'hi') => {
+        await changeLanguage(languageCode);
+        setShowLanguageModal(false);
     };
+
+    const openLanguageModal = () => {
+        setShowLanguageModal(true);
+    };
+
     // Helper function to get user task status (from TaskPage)
     const getUserTaskStatus = (assignedUsers: AssignedUser[], userId: string): string | null => {
         const currentUser = assignedUsers.find(user => String(user.id) === String(userId));
         return currentUser?.task_status || null;
     };
-    // Fetch completed tasks
+
     // Fetch completed tasks using the same logic as TaskPage
     const fetchCompletedTasks = async () => {
         try {
@@ -264,28 +274,16 @@ const UserProfile = ({ navigation, route }: Props) => {
                             {isHindi ? 'उपयोगकर्ता प्रोफ़ाइल' : 'User Profile'}
                         </Text>
 
-                        {/* Language Toggle Button */}
+                        {/* Language Toggle Button - Updated to match Welcome page style */}
                         <TouchableOpacity
-                            onPress={handleLanguageToggle}
-                            style={{
-                                width: width * 0.1,
-                                height: width * 0.1,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                backgroundColor: Colors.light.bgBlueBtn,
-                                borderRadius: width * 0.05,
-                                borderWidth: 1,
-                                borderColor: Colors.light.whiteFfffff
-                            }}
+                            className="py-2 px-3 bg-black bg-opacity-50 rounded-full"
+                            onPress={openLanguageModal}
                         >
                             <Text
-                                style={{
-                                    color: Colors.light.whiteFfffff,
-                                    fontSize: width * 0.035,
-                                    fontWeight: 'bold'
-                                }}
+                                className="font-medium text-white"
+                                style={{ fontSize: width * 0.035 }}
                             >
-                                {currentLanguage === 'hi' ? 'EN' : 'हि'}
+                                {currentLanguage === 'hi' ? 'भाषा' : 'Language'} ({currentLanguage.toUpperCase()})
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -443,400 +441,17 @@ const UserProfile = ({ navigation, route }: Props) => {
                         </View>
                     </View>
 
-                    {/* =================== TOTAL WINNING TITLE SECTION =================== */}
-                    <View
-                        className="flex justify-center items-center"
-                        style={{ paddingVertical: height * 0.04 }}
-                    >
-                        <Text
-                            style={{
-                                color: Colors.light.whiteFfffff,
-                                fontSize: width * 0.075
-                            }}
-                            className="font-medium"
-                        >
-                            {isHindi ? 'कुल जीत' : 'Total Winning'}
-                        </Text>
-                    </View>
 
-                    {/* Total winnings summary row */}
-                    <View
-                        className="flex justify-between flex-row"
-                        style={{ paddingBottom: height * 0.01 }}
-                    >
-                        <Text
-                            style={{
-                                color: Colors.light.whiteFefefe,
-                                fontSize: width * 0.05
-                            }}
-                            className="font-medium"
-                        >
-                            {isHindi ? 'कुल जीत' : 'Total Winnings'}
-                        </Text>
-                        <View className="flex flex-row items-center">
-                            <Text
-                                style={{
-                                    color: Colors.light.whiteFefefe,
-                                    fontSize: width * 0.05
-                                }}
-                                className="font-medium"
-                            >
-                                {isHindi ? 'कुल' : 'Total'}
-                            </Text>
-                            <Image
-                                source={icons.maincoin}
-                                style={{
-                                    width: width * 0.04,
-                                    height: width * 0.04,
-                                    marginHorizontal: width * 0.01
-                                }}
-                            />
-                            <Text
-                                style={{
-                                    color: Colors.light.whiteFefefe,
-                                    fontSize: width * 0.05
-                                }}
-                                className="font-medium"
-                            >
-                                500
-                            </Text>
-                        </View>
-                    </View>
-
-                    {/* =================== FIRST STATISTICS BLOCK =================== */}
-                    <View className="flex">
-                        {/* Stats header with icon and title */}
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.backlight2,
-                                borderTopLeftRadius: 10,
-                                borderTopRightRadius: 10,
-                                padding: width * 0.03
-                            }}
-                            className="flex flex-row items-center"
-                        >
-                            <Image
-                                source={profileimg}
-                                style={{
-                                    width: width * 0.075,
-                                    height: width * 0.075
-                                }}
-                            />
-                            <View
-                                className="flex flex-row items-center justify-between flex-1"
-                                style={{ marginLeft: width * 0.03 }}
-                            >
-                                <Text
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.05
-                                    }}
-                                    className="font-bold"
-                                >
-                                    {isHindi ? 'खेले गए खेल' : 'Games Played'}
-                                </Text>
-                                <View className="flex flex-row items-center">
-                                    <Image
-                                        source={icons.maincoin}
-                                        style={{
-                                            height: width * 0.063,
-                                            width: width * 0.063
-                                        }}
-                                    />
-                                    <Text
-                                        style={{
-                                            color: Colors.light.whiteFfffff,
-                                            fontSize: width * 0.05,
-                                            marginLeft: width * 0.02
-                                        }}
-                                        className="font-bold"
-                                    >
-                                        5,009
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                        {/* Stats content with achievements and games data */}
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.whiteFfffff,
-                                paddingHorizontal: width * 0.05,
-                                paddingVertical: height * 0.01,
-                                borderBottomLeftRadius: 10,
-                                borderBottomRightRadius: 10
-                            }}
-                        >
-                            <View className="flex flex-row justify-between">
-                                <View>
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                        className="font-bold"
-                                    >
-                                        745
-                                    </Text>
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                    >
-                                        {isHindi ? 'उपलब्धियां' : 'Achievements'}
-                                    </Text>
-                                </View>
-                                <View className="flex items-end">
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                        className="font-bold"
-                                    >
-                                        750
-                                    </Text>
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                    >
-                                        {isHindi ? 'खेले गए खेल' : 'Games Played'}
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* =================== SECOND STATISTICS BLOCK =================== */}
-                    <View
-                        className="flex"
-                        style={{ paddingTop: height * 0.04 }}
-                    >
-                        {/* Stats header with icon and title */}
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.backlight2,
-                                borderTopLeftRadius: 10,
-                                borderTopRightRadius: 10,
-                                padding: width * 0.03
-                            }}
-                            className="flex flex-row items-center"
-                        >
-                            <Image
-                                source={profileimg}
-                                style={{
-                                    width: width * 0.075,
-                                    height: width * 0.075
-                                }}
-                            />
-                            <View
-                                className="flex flex-row items-center justify-between flex-1"
-                                style={{ marginLeft: width * 0.03 }}
-                            >
-                                <Text
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.05
-                                    }}
-                                    className="font-bold"
-                                >
-                                    {isHindi ? 'उपलब्धियां' : 'Achievements'}
-                                </Text>
-                                <View className="flex flex-row items-center">
-                                    <Image
-                                        source={icons.maincoin}
-                                        style={{
-                                            height: width * 0.063,
-                                            width: width * 0.063
-                                        }}
-                                    />
-                                    <Text
-                                        style={{
-                                            color: Colors.light.whiteFfffff,
-                                            fontSize: width * 0.05,
-                                            marginLeft: width * 0.02
-                                        }}
-                                        className="font-bold"
-                                    >
-                                        5,009
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                        {/* Stats content with games played data */}
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.whiteFfffff,
-                                paddingHorizontal: width * 0.05,
-                                paddingVertical: height * 0.01,
-                                borderBottomLeftRadius: 10,
-                                borderBottomRightRadius: 10
-                            }}
-                        >
-                            <View className="flex flex-row justify-between">
-                                <View>
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                        className="font-bold"
-                                    >
-                                        120
-                                    </Text>
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                    >
-                                        {isHindi ? 'खेले गए खेल' : 'Games Played'}
-                                    </Text>
-                                </View>
-                                <View className="flex items-end">
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                        className="font-bold"
-                                    >
-                                        1234
-                                    </Text>
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                    >
-                                        {isHindi ? 'खेला गया' : 'Played'}
-
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* =================== THIRD STATISTICS BLOCK =================== */}
-                    <View
-                        className="flex"
-                        style={{ paddingTop: height * 0.04 }}
-                    >
-                        {/* Stats header with icon and title */}
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.backlight2,
-                                borderTopLeftRadius: 10,
-                                borderTopRightRadius: 10,
-                                padding: width * 0.03
-                            }}
-                            className="flex flex-row items-center"
-                        >
-                            <Image
-                                source={profileimg}
-                                style={{
-                                    width: width * 0.075,
-                                    height: width * 0.075
-                                }}
-                            />
-                            <View
-                                className="flex flex-row items-center justify-between flex-1"
-                                style={{ marginLeft: width * 0.03 }}
-                            >
-                                <Text
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.05
-                                    }}
-                                    className="font-bold"
-                                >
-                                    {isHindi ? 'उपलब्धियां' : 'Achievements'}
-                                </Text>
-                                <View className="flex flex-row items-center">
-                                    <Image
-                                        source={icons.maincoin}
-                                        style={{
-                                            height: width * 0.063,
-                                            width: width * 0.063
-                                        }}
-                                    />
-                                    <Text
-                                        style={{
-                                            color: Colors.light.whiteFfffff,
-                                            fontSize: width * 0.05,
-                                            marginLeft: width * 0.02
-                                        }}
-                                        className="font-bold"
-                                    >
-                                        5,009
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                        {/* Stats content with games played data */}
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.whiteFfffff,
-                                paddingHorizontal: width * 0.05,
-                                paddingVertical: height * 0.01,
-                                borderBottomLeftRadius: 10,
-                                borderBottomRightRadius: 10
-                            }}
-                        >
-                            <View className="flex flex-row justify-between">
-                                <View>
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                        className="font-bold"
-                                    >
-                                        120
-                                    </Text>
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                    >
-                                        {isHindi ? 'खेले गए खेल' : 'Games Played'}
-                                    </Text>
-                                </View>
-                                <View className="flex items-end">
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                        className="font-bold"
-                                    >
-                                        1234
-                                    </Text>
-                                    <Text
-                                        style={{
-                                            color: Colors.light.backlight2,
-                                            fontSize: width * 0.06
-                                        }}
-                                    >
-                                        {isHindi ? 'खेला गया' : 'Played'}
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    </View>
 
                     {/* =================== BOTTOM ACTION BUTTONS =================== */}
                     <View
                         className="flex flex-row justify-between"
-                        style={{ marginTop: height * 0.07 }}
+                        style={{ marginTop: height * 0.4 }}
                     >
                         {/* Edit Profile Button */}
                         <CustomGradientButton
                             text={isHindi ? 'प्रोफ़ाइल संपादित करें' : 'Edit Profile'}
-                            width={width * 0.43}
+                            width={width * 0.9}
                             height={height * 0.055}
                             borderRadius={10}
                             fontSize={width * 0.045}
@@ -844,31 +459,207 @@ const UserProfile = ({ navigation, route }: Props) => {
                             textColor={Colors.light.whiteFfffff}
                             onPress={handleEditProfilePress}
                         />
-                        {/* Game History Button */}
-                        <TouchableOpacity
-                            style={{
-                                backgroundColor: Colors.light.backlight2,
-                                borderRadius: 10,
-                                width: width * 0.43,
-                                height: height * 0.055
-                            }}
-                            className="flex items-center justify-center"
-                        >
-                            <Text
-                                style={{
-                                    color: Colors.light.whiteFfffff,
-                                    fontSize: width * 0.05
-                                }}
-                                className="font-medium"
-                            >
-                                {isHindi ? 'गेम इतिहास' : 'Game History'}
-                            </Text>
-                        </TouchableOpacity>
+
                     </View>
                 </View>
             </ScrollView>
+
+            {/* Language Selection Modal - Same as Welcome page */}
+            <Modal
+                visible={showLanguageModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowLanguageModal(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <SafeAreaView style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            {/* Modal Header */}
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>
+                                    Select Language
+                                </Text>
+                                <Text style={styles.modalSubtitle}>
+                                    भाषा चुनें
+                                </Text>
+                            </View>
+
+                            {/* Language Options */}
+                            <View style={styles.languageOptions}>
+                                {/* English Option */}
+                                <TouchableOpacity
+                                    style={[
+                                        styles.languageOption,
+                                        currentLanguage === 'en' && styles.selectedOption
+                                    ]}
+                                    onPress={() => handleLanguageSelect('en')}
+                                    disabled={translationLoading}
+                                >
+                                    <View style={styles.languageInfo}>
+                                        <Text style={styles.languageFlag}>🇺🇸</Text>
+                                        <View style={styles.languageText}>
+                                            <Text style={[
+                                                styles.languageName,
+                                                currentLanguage === 'en' && styles.selectedText
+                                            ]}>
+                                                English
+                                            </Text>
+                                            <Text style={styles.languageNative}>
+                                                English
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    {currentLanguage === 'en' && (
+                                        <Text style={styles.checkMark}>✓</Text>
+                                    )}
+                                </TouchableOpacity>
+
+                                {/* Hindi Option */}
+                                <TouchableOpacity
+                                    style={[
+                                        styles.languageOption,
+                                        currentLanguage === 'hi' && styles.selectedOption
+                                    ]}
+                                    onPress={() => handleLanguageSelect('hi')}
+                                    disabled={translationLoading}
+                                >
+                                    <View style={styles.languageInfo}>
+                                        <Text style={styles.languageFlag}>🇮🇳</Text>
+                                        <View style={styles.languageText}>
+                                            <Text style={[
+                                                styles.languageName,
+                                                currentLanguage === 'hi' && styles.selectedText
+                                            ]}>
+                                                Hindi
+                                            </Text>
+                                            <Text style={styles.languageNative}>
+                                                हिन्दी
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    {currentLanguage === 'hi' && (
+                                        <Text style={styles.checkMark}>✓</Text>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Close button */}
+                            <TouchableOpacity
+                                style={styles.closeButton}
+                                onPress={() => setShowLanguageModal(false)}
+                            >
+                                <Text style={styles.closeButtonText}>Close / बंद करें</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </SafeAreaView>
+                </View>
+            </Modal>
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 24,
+        width: '100%',
+        maxWidth: 400,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    modalHeader: {
+        alignItems: 'center',
+        marginBottom: 30,
+    },
+    modalTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#333',
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    modalSubtitle: {
+        fontSize: 18,
+        color: '#666',
+        textAlign: 'center',
+    },
+    languageOptions: {
+        marginBottom: 24,
+    },
+    languageOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: '#f0f0f0',
+        marginBottom: 12,
+        backgroundColor: '#fafafa',
+    },
+    selectedOption: {
+        borderColor: '#007AFF',
+        backgroundColor: '#f0f7ff',
+    },
+    languageInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    languageFlag: {
+        fontSize: 28,
+        marginRight: 12,
+    },
+    languageText: {
+        flex: 1,
+    },
+    languageName: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 2,
+    },
+    selectedText: {
+        color: '#007AFF',
+    },
+    languageNative: {
+        fontSize: 16,
+        color: '#666',
+    },
+    checkMark: {
+        fontSize: 20,
+        color: '#007AFF',
+        fontWeight: 'bold',
+    },
+    closeButton: {
+        paddingVertical: 12,
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    closeButtonText: {
+        color: '#666',
+        fontSize: 16,
+    },
+});
 
 export default UserProfile;

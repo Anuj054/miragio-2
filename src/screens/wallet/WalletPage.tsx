@@ -270,7 +270,7 @@ const WalletPage = () => {
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: height * 0.12 }}
+                contentContainerStyle={{ paddingBottom: height * 0.01 }}
             >
                 {/* =================== WALLET BALANCE CARD SECTION =================== */}
                 <View className="relative">
@@ -536,7 +536,7 @@ const WalletPage = () => {
                 <View
                     style={{
                         backgroundColor: Colors.light.blackPrimary,
-                        minHeight: height
+                        minHeight: height * 0.7
                     }}
                 >
                     <View
@@ -672,79 +672,7 @@ const WalletPage = () => {
                     </TranslatedText>
 
                     <View style={{ marginHorizontal: width * 0.03 }}>
-                        {/* =================== ALL-IN-CLUB CARD =================== */}
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.backlight2,
-                                borderLeftColor: Colors.light.bgBlueBtn,
-                                borderLeftWidth: 4,
-                                borderRadius: 12,
-                                padding: width * 0.03,
-                                marginVertical: height * 0.015,
-                                width: '100%'
-                            }}
-                        >
-                            <View className="flex-row items-center">
-                                {/* Card icon */}
-                                <View
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        marginRight: width * 0.02,
-                                        width: width * 0.1,
-                                        height: width * 0.1,
-                                        borderRadius: 8
-                                    }}
-                                    className="items-center justify-center"
-                                >
-                                    <Image
-                                        source={icons.duedateicon}
-                                        style={{
-                                            height: width * 0.07,
-                                            width: width * 0.07
-                                        }}
-                                        resizeMode="contain"
-                                    />
-                                </View>
 
-                                {/* Card content */}
-                                <View className="flex-1 flex-row justify-between items-center">
-                                    <View
-                                        className="flex-1"
-                                        style={{ paddingLeft: width * 0.03 }}
-                                    >
-                                        <TranslatedText
-                                            style={{
-                                                color: Colors.light.whiteFefefe,
-                                                fontSize: width * 0.045,
-                                                marginBottom: height * 0.005
-                                            }}
-                                            className="font-medium"
-                                        >
-                                            All-in-Club
-                                        </TranslatedText>
-                                        <TranslatedText
-                                            style={{
-                                                color: Colors.light.placeholderColorOp70,
-                                                fontSize: width * 0.035
-                                            }}
-                                        >
-                                            Feel the Privilege
-                                        </TranslatedText>
-                                    </View>
-
-                                    {/* Navigation arrow */}
-                                    <TouchableOpacity>
-                                        <Image
-                                            source={icons.go}
-                                            style={{
-                                                width: width * 0.03,
-                                                height: width * 0.03
-                                            }}
-                                        />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </View>
 
                         {/* =================== COINS ENQUIRY CARD =================== */}
                         <View
@@ -820,79 +748,7 @@ const WalletPage = () => {
                             </View>
                         </View>
 
-                        {/* =================== RESPONSIBLE GAMING CARD =================== */}
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.backlight2,
-                                borderLeftColor: Colors.light.bgBlueBtn,
-                                borderLeftWidth: 4,
-                                borderRadius: 12,
-                                padding: width * 0.03,
-                                marginVertical: height * 0.015,
-                                width: '100%'
-                            }}
-                        >
-                            <View className="flex-row items-center">
-                                {/* Card icon */}
-                                <View
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        marginRight: width * 0.02,
-                                        width: width * 0.1,
-                                        height: width * 0.1,
-                                        borderRadius: 8
-                                    }}
-                                    className="items-center justify-center"
-                                >
-                                    <Image
-                                        source={icons.duedateicon}
-                                        style={{
-                                            height: width * 0.07,
-                                            width: width * 0.07
-                                        }}
-                                        resizeMode="contain"
-                                    />
-                                </View>
 
-                                {/* Card content */}
-                                <View className="flex-1 flex-row justify-between items-center">
-                                    <View
-                                        className="flex-1"
-                                        style={{ paddingLeft: width * 0.03 }}
-                                    >
-                                        <TranslatedText
-                                            style={{
-                                                color: Colors.light.whiteFefefe,
-                                                fontSize: width * 0.045,
-                                                marginBottom: height * 0.005
-                                            }}
-                                            className="font-medium"
-                                        >
-                                            Responsible Gaming
-                                        </TranslatedText>
-                                        <TranslatedText
-                                            style={{
-                                                color: Colors.light.placeholderColorOp70,
-                                                fontSize: width * 0.035
-                                            }}
-                                        >
-                                            Deposit limits & game restrictions
-                                        </TranslatedText>
-                                    </View>
-
-                                    {/* Navigation arrow */}
-                                    <TouchableOpacity>
-                                        <Image
-                                            source={icons.go}
-                                            style={{
-                                                width: width * 0.03,
-                                                height: width * 0.03
-                                            }}
-                                        />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </View>
 
                         {/* =================== TDS CERTIFICATE CARD =================== */}
                         <View
@@ -968,79 +824,7 @@ const WalletPage = () => {
                             </View>
                         </View>
 
-                        {/* =================== REDEEM GIFT CARD =================== */}
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.backlight2,
-                                borderLeftColor: Colors.light.bgBlueBtn,
-                                borderLeftWidth: 4,
-                                borderRadius: 12,
-                                padding: width * 0.03,
-                                marginVertical: height * 0.015,
-                                width: '100%'
-                            }}
-                        >
-                            <View className="flex-row items-center">
-                                {/* Card icon */}
-                                <View
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        marginRight: width * 0.02,
-                                        width: width * 0.1,
-                                        height: width * 0.1,
-                                        borderRadius: 8
-                                    }}
-                                    className="items-center justify-center"
-                                >
-                                    <Image
-                                        source={icons.duedateicon}
-                                        style={{
-                                            height: width * 0.07,
-                                            width: width * 0.07
-                                        }}
-                                        resizeMode="contain"
-                                    />
-                                </View>
 
-                                {/* Card content */}
-                                <View className="flex-1 flex-row justify-between items-center">
-                                    <View
-                                        className="flex-1"
-                                        style={{ paddingLeft: width * 0.03 }}
-                                    >
-                                        <TranslatedText
-                                            style={{
-                                                color: Colors.light.whiteFefefe,
-                                                fontSize: width * 0.045,
-                                                marginBottom: height * 0.005
-                                            }}
-                                            className="font-medium"
-                                        >
-                                            Redeem Gift Card
-                                        </TranslatedText>
-                                        <TranslatedText
-                                            style={{
-                                                color: Colors.light.placeholderColorOp70,
-                                                fontSize: width * 0.035
-                                            }}
-                                        >
-                                            Enter gift card or coupon code
-                                        </TranslatedText>
-                                    </View>
-
-                                    {/* Navigation arrow */}
-                                    <TouchableOpacity>
-                                        <Image
-                                            source={icons.go}
-                                            style={{
-                                                width: width * 0.03,
-                                                height: width * 0.03
-                                            }}
-                                        />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </View>
 
                         {/* =================== FIXED LOGOUT BUTTON =================== */}
                         <TouchableOpacity

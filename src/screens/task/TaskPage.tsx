@@ -29,7 +29,7 @@ import CustomOrangeGradientButton from '../../components/CustomOrangeGradientBut
 import CustomGreenGradientButton from '../../components/CustomGreenGradientButton';
 import { useUser } from '../../context/UserContext';
 
-// Translation
+// ✅ Translation
 import { useTranslation } from '../../context/TranslationContext';
 
 import type { TaskStackParamList } from '../../navigation/types';
@@ -50,7 +50,7 @@ interface Task {
     title: string;
     description: string;
     reward: number;
-    status: 'upcoming' | 'completed' | 'pending' | 'rejected' | 'expired';
+    status: 'upcoming' | 'completed' | 'pending' | 'rejected';
     icon: any;
     hasCheckmarks: boolean;
     completedSteps: number;
@@ -67,7 +67,7 @@ interface ApiTask {
     task_name: string;
     task_description: string;
     task_reward: string;
-    task_status: string; // Overall task status (active, expired, etc.)
+    task_status: string;
     task_starttime: string;
     task_endtime: string;
     created_at: string;
@@ -85,7 +85,7 @@ interface GroupedTasks {
     [monthYear: string]: Task[];
 }
 
-type FilterOption = 'All' | 'Upcoming' | 'Completed' | 'Pending' | 'Rejected' | 'Expired';
+type FilterOption = 'All' | 'Upcoming' | 'Completed' | 'Pending' | 'Rejected';
 
 const TaskPage = ({ navigation }: Props) => {
     const { currentLanguage } = useTranslation();
@@ -101,18 +101,14 @@ const TaskPage = ({ navigation }: Props) => {
     const USER_ID = getUserId();
 
     const taskIcons = [task1, task2, task3, task4];
-    const filterOptions: FilterOption[] = ['All', 'Upcoming', 'Completed', 'Pending', 'Rejected', 'Expired'];
+    const filterOptions: FilterOption[] = ['All', 'Upcoming', 'Completed', 'Pending', 'Rejected'];
 
     const getUserTaskStatus = (assignedUsers: AssignedUser[], userId: string): string | null => {
         const currentUser = assignedUsers.find(user => String(user.id) === String(userId));
         return currentUser?.task_status || null;
     };
 
-    const mapTaskStatus = (userStatus: string | null, overallTaskStatus: string): Task['status'] => {
-        // First check if the overall task is expired
-        if (overallTaskStatus === 'expired') return 'expired';
-
-        // Then check user's individual status
+    const mapUserTaskStatus = (userStatus: string | null): Task['status'] => {
         if (!userStatus) return 'upcoming';
         const normalized = userStatus.toLowerCase().trim();
         switch (normalized) {
@@ -167,7 +163,7 @@ const TaskPage = ({ navigation }: Props) => {
                             title: t.task_name,
                             description: t.task_description,
                             reward: parseInt(t.task_reward) || 0,
-                            status: mapTaskStatus(userStatus, t.task_status), // Pass overall task_status
+                            status: mapUserTaskStatus(userStatus),
                             icon: taskIcons[i % taskIcons.length],
                             hasCheckmarks: false,
                             completedSteps: userStatus === 'approved' ? 1 : 0,
@@ -213,22 +209,11 @@ const TaskPage = ({ navigation }: Props) => {
             case 'completed': return '#48BB78';
             case 'rejected': return '#FF6B6B';
             case 'pending': return '#FFA726';
-            case 'expired': return '#9CA3AF'; // Gray color for expired
             default: return Colors.light.bgBlueBtn;
         }
     };
 
     const handleTaskNavigation = (task: Task) => {
-        if (task.status === 'expired') {
-            Alert.alert(
-                isHi ? 'कार्य समाप्त' : 'Task Expired',
-                isHi
-                    ? 'यह कार्य समाप्त हो गया है और अब उपलब्ध नहीं है।'
-                    : 'This task has expired and is no longer available.',
-                [{ text: isHi ? 'ठीक है' : 'OK' }],
-            );
-            return;
-        }
         if (task.status === 'completed') {
             navigation.navigate('TaskSuccessful', {});
             return;
@@ -257,7 +242,6 @@ const TaskPage = ({ navigation }: Props) => {
             Completed: isHi ? 'पूर्ण' : 'Completed',
             Pending: isHi ? 'लंबित' : 'Pending',
             Rejected: isHi ? 'अस्वीकृत' : 'Rejected',
-            Expired: isHi ? 'समाप्त' : 'Expired',
         };
         return (
             <TouchableOpacity
@@ -305,17 +289,13 @@ const TaskPage = ({ navigation }: Props) => {
             <View className="flex-row items-center" style={{ marginBottom: height * 0.015 }}>
                 <Image
                     source={task.icon}
-                    style={{
-                        height: width * 0.12,
-                        width: width * 0.12,
-                        opacity: (task.status === 'rejected' || task.status === 'expired') ? 0.5 : 1
-                    }}
+                    style={{ height: width * 0.12, width: width * 0.12, opacity: task.status === 'rejected' ? 0.5 : 1 }}
                     resizeMode="contain"
                 />
                 <View className="flex-1" style={{ marginHorizontal: width * 0.03 }}>
                     <Text
                         style={{
-                            color: (task.status === 'rejected' || task.status === 'expired')
+                            color: task.status === 'rejected'
                                 ? Colors.light.placeholderColorOp70
                                 : Colors.light.whiteFefefe,
                             fontSize: width * 0.045,
@@ -336,29 +316,13 @@ const TaskPage = ({ navigation }: Props) => {
                 <TouchableOpacity onPress={() => handleTaskNavigation(task)}>
                     <Image
                         source={icons.go}
-                        style={{
-                            width: width * 0.03,
-                            height: width * 0.03,
-                            opacity: (task.status === 'rejected' || task.status === 'expired') ? 0.5 : 1
-                        }}
+                        style={{ width: width * 0.03, height: width * 0.03, opacity: task.status === 'rejected' ? 0.5 : 1 }}
                     />
                 </TouchableOpacity>
             </View>
 
             <View className="flex-row items-center justify-between">
                 <View className="flex-1" style={{ marginRight: width * 0.04 }}>
-                    {task.status === 'expired' && (
-                        <CustomRedGradientButton
-                            text={isHi ? 'समाप्त' : 'Expired'}
-                            width={width * 0.63}
-                            height={height * 0.038}
-                            fontWeight={600}
-                            borderRadius={10}
-                            fontSize={width * 0.04}
-                            textColor="white"
-                            disabled
-                        />
-                    )}
                     {task.status === 'rejected' && (
                         <CustomRedGradientButton
                             text={isHi ? 'अस्वीकृत' : 'Rejected'}
@@ -412,15 +376,11 @@ const TaskPage = ({ navigation }: Props) => {
                 <View className="flex flex-row items-center" style={{ marginLeft: width * 0.03 }}>
                     <Image
                         source={icons.maincoin}
-                        style={{
-                            width: width * 0.06,
-                            height: width * 0.06,
-                            opacity: (task.status === 'rejected' || task.status === 'expired') ? 0.5 : 1
-                        }}
+                        style={{ width: width * 0.06, height: width * 0.06, opacity: task.status === 'rejected' ? 0.5 : 1 }}
                     />
                     <Text
                         style={{
-                            color: (task.status === 'rejected' || task.status === 'expired')
+                            color: task.status === 'rejected'
                                 ? Colors.light.placeholderColorOp70
                                 : Colors.light.whiteFefefe,
                             fontSize: width * 0.04,
@@ -583,9 +543,7 @@ const TaskPage = ({ navigation }: Props) => {
                                             ? 'पूर्ण'
                                             : activeFilter === 'Pending'
                                                 ? 'लंबित'
-                                                : activeFilter === 'Rejected'
-                                                    ? 'अस्वीकृत'
-                                                    : 'समाप्त'
+                                                : 'अस्वीकृत'
                                     } कार्य नहीं मिला।`
                                     : `No ${activeFilter.toLowerCase()} tasks found.`
                             }
@@ -598,3 +556,4 @@ const TaskPage = ({ navigation }: Props) => {
 };
 
 export default TaskPage;
+

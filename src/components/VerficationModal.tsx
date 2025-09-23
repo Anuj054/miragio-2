@@ -4,14 +4,14 @@ import {
     View,
     Text,
     Image,
-    Dimensions,
+
 } from 'react-native';
 import verified from '../assets/images/verified.gif';
 import CustomGradientButton from './CustomGradientButton';
 import { Colors } from '../constants/Colors';
 import { useTranslation } from '../context/TranslationContext'; // ✅ Language context
 
-const { width } = Dimensions.get('window');
+
 
 interface VerificationModalProps {
     visible: boolean;
@@ -81,8 +81,8 @@ const VerificationModal: React.FC<VerificationModalProps> = ({
                         className="text-center text-base leading-5 mb-4 px-3"
                     >
                         {isHindi
-                            ? 'हम आपके कार्य की जांच कर रहे हैं। सत्यापन पूर्ण होने पर आपके खाते में टोकन जोड़ दिए जाएंगे।'
-                            : 'We are verifying your task. Once verification is done, your token will be credited to your account.'}
+                            ? 'हम आपके कार्य का सत्यापन कर रहे हैं। यह प्रक्रिया आमतौर पर 8-9 दिन लेती है। आपका टोकन आपके खाते में जमा कर दिया जाएगा।'
+                            : 'We are verifying your task. It generally takes 8-9 days to complete verification.  Post Verificaiton: your token will be credited to your account.'}
                     </Text>
 
                     {/* Action button */}

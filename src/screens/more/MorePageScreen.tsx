@@ -7,11 +7,10 @@ import { icons } from "../../constants/index";
 // Settings category icons imports
 import accountsecurity from "../../assets/images/accountsecurity.png"
 import newupdate from "../../assets/images/newupdate.png"
-import music from "../../assets/images/music.png"
+
 import refer from "../../assets/images/refer.png"
-import howtoplay from "../../assets/images/howtoplay.png"
-import responsible from "../../assets/images/responsiblegaming.png"
-import fairplay from "../../assets/images/fairplay.png"
+
+
 import helpdesk from "../../assets/images/helpdesk.png"
 import systemstatus from "../../assets/images/systemstatus.png"
 import securityandprivacy from "../../assets/images/securityandprivacy.png"
@@ -19,7 +18,6 @@ import Rngcerti from "../../assets/images/Rngcerti.png"
 import careers from "../../assets/images/careers.png"
 import aboutus from "../../assets/images/aboutus.png"
 import terms from "../../assets/images/terms.png"
-import legality from "../../assets/images/legality.png"
 
 import { Colors } from "../../constants/Colors";
 import { useUser } from "../../context/UserContext";
@@ -102,9 +100,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
             try {
                 // Type-safe navigation based on route
                 switch (route) {
-                    case 'PlayMusicSettings':
-                        navigation.navigate('PlayMusicSettings');
-                        break;
+
                     case 'AccountSecurity':
                         navigation.navigate('AccountSecurity');
                         break;
@@ -114,15 +110,8 @@ const MorePagesScreen = ({ navigation }: Props) => {
                     case 'ReferFriends':
                         navigation.navigate('ReferFriends');
                         break;
-                    case 'HowToPlay':
-                        navigation.navigate('HowToPlay');
-                        break;
-                    case 'ResponsibleGaming':
-                        navigation.navigate('ResponsibleGaming');
-                        break;
-                    case 'FairPlay':
-                        navigation.navigate('FairPlay');
-                        break;
+
+
                     case 'HelpDesk':
                         navigation.navigate('HelpDesk');
                         break;
@@ -144,9 +133,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
                     case 'TermsOfUse':
                         navigation.navigate('TermsOfUse');
                         break;
-                    case 'Legality':
-                        navigation.navigate('Legality');
-                        break;
+
                     default:
                         Alert.alert(
                             currentLanguage === 'hi' ? "जल्द आ रहा है" : "Coming Soon",
@@ -174,20 +161,9 @@ const MorePagesScreen = ({ navigation }: Props) => {
     // Define settings items with Hindi translations
     const settingsItems: SettingsItem[] = [
         // Updates folder screens
+
         {
             id: 1,
-            title: "Play Music on App Launch",
-            titleHi: "ऐप लॉन्च पर संगीत चलाएं",
-            icon: music,
-            category: "Updates",
-            categoryHi: "अपडेट्स",
-            hasBottomBorder: true,
-            route: "PlayMusicSettings" as keyof MainStackParamList,
-            description: "Control app music preferences",
-            descriptionHi: "ऐप संगीत प्राथमिकताएं नियंत्रित करें"
-        },
-        {
-            id: 2,
             title: "Account Security",
             titleHi: "खाता सुरक्षा",
             icon: accountsecurity,
@@ -199,7 +175,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
             descriptionHi: "अपनी खाता सुरक्षा सेटिंग्स प्रबंधित करें"
         },
         {
-            id: 3,
+            id: 2,
             title: "New Updates",
             titleHi: "नए अपडेट्स",
             icon: newupdate,
@@ -213,7 +189,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
 
         // Help folder screens
         {
-            id: 4,
+            id: 3,
             title: "Refer Friends, Earn Money",
             titleHi: "मित्रों को रेफर करें, पैसे कमाएं",
             icon: refer,
@@ -224,44 +200,11 @@ const MorePagesScreen = ({ navigation }: Props) => {
             description: "Invite friends and earn rewards",
             descriptionHi: "मित्रों को आमंत्रित करें और पुरस्कार कमाएं"
         },
+
+
+
         {
-            id: 5,
-            title: "How To Play Games",
-            titleHi: "गेम कैसे खेलें",
-            icon: howtoplay,
-            category: "Help",
-            categoryHi: "सहायता",
-            hasBottomBorder: true,
-            route: "HowToPlay" as keyof MainStackParamList,
-            description: "Learn how to play games",
-            descriptionHi: "गेम खेलना सीखें"
-        },
-        {
-            id: 6,
-            title: "Responsible Gaming",
-            titleHi: "जिम्मेदार गेमिंग",
-            icon: responsible,
-            category: "Help",
-            categoryHi: "सहायता",
-            hasBottomBorder: true,
-            route: "ResponsibleGaming" as keyof MainStackParamList,
-            description: "Gaming responsibility guidelines",
-            descriptionHi: "गेमिंग जिम्मेदारी दिशानिर्देश"
-        },
-        {
-            id: 7,
-            title: "Fair Play",
-            titleHi: "निष्पक्ष खेल",
-            icon: fairplay,
-            category: "Help",
-            categoryHi: "सहायता",
-            hasBottomBorder: true,
-            route: "FairPlay" as keyof MainStackParamList,
-            description: "Fair play policies and rules",
-            descriptionHi: "निष्पक्ष खेल नीतियां और नियम"
-        },
-        {
-            id: 8,
+            id: 4,
             title: "Help Desk",
             titleHi: "सहायता डेस्क",
             icon: helpdesk,
@@ -273,7 +216,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
             descriptionHi: "सहायता और समर्थन प्राप्त करें"
         },
         {
-            id: 9,
+            id: 5,
             title: "System Status",
             titleHi: "सिस्टम स्थिति",
             icon: systemstatus,
@@ -287,7 +230,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
 
         // System folder screens
         {
-            id: 10,
+            id: 6,
             title: "Security & Privacy Policy",
             titleHi: "सुरक्षा और गोपनीयता नीति",
             icon: securityandprivacy,
@@ -299,7 +242,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
             descriptionHi: "हमारी गोपनीयता नीति पढ़ें"
         },
         {
-            id: 11,
+            id: 7,
             title: "RNG Certification",
             titleHi: "RNG प्रमाणीकरण",
             icon: Rngcerti,
@@ -311,7 +254,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
             descriptionHi: "यादृच्छिक संख्या निर्माण प्रमाणीकरण"
         },
         {
-            id: 12,
+            id: 8,
             title: "Careers",
             titleHi: "करियर",
             icon: careers,
@@ -323,19 +266,19 @@ const MorePagesScreen = ({ navigation }: Props) => {
             descriptionHi: "हमारी टीम में शामिल हों"
         },
         {
-            id: 13,
-            title: "About Us (Miragio Games)",
-            titleHi: "हमारे बारे में (मिराजियो गेम्स)",
+            id: 9,
+            title: "About Us (Miragio )",
+            titleHi: "हमारे बारे में (मिराजियो )",
             icon: aboutus,
             category: "System",
             categoryHi: "सिस्टम",
             hasBottomBorder: true,
             route: "AboutUs" as keyof MainStackParamList,
-            description: "Learn about Miragio Games",
-            descriptionHi: "मिराजियो गेम्स के बारे में जानें"
+            description: "Learn about Miragio ",
+            descriptionHi: "मिराजियो  के बारे में जानें"
         },
         {
-            id: 14,
+            id: 10,
             title: "Terms of Use",
             titleHi: "उपयोग की शर्तें",
             icon: terms,
@@ -346,18 +289,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
             description: "Terms and conditions",
             descriptionHi: "नियम और शर्तें"
         },
-        {
-            id: 15,
-            title: "Legality",
-            titleHi: "कानूनी",
-            icon: legality,
-            category: "System",
-            categoryHi: "सिस्टम",
-            hasBottomBorder: false,
-            route: "Legality" as keyof MainStackParamList,
-            description: "Legal compliance information",
-            descriptionHi: "कानूनी अनुपालन जानकारी"
-        }
+
     ];
 
     // Helper functions to get text in current language
