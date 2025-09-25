@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     View,
     StatusBar,
+    Alert,
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -121,6 +122,69 @@ const WalletPage = () => {
         navigation.goBack();
     };
 
+    
+    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+    const handleDeleteAccountPress = async () => {
+        if (isDeletingAccount) return;
+
+        Alert.alert(
+            "Delete Account",
+            "Are you sure you want to delete your account? This action cannot be undone.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        setIsDeletingAccount(true);
+                        try {
+                            const userId = getUserId && getUserId();
+                            if (!userId) {
+                                Alert.alert("Error", "User ID not found.");
+                                setIsDeletingAccount(false);
+                                return;
+                            }
+                            const response = await fetch('https://netinnovatus.tech/miragio_task/api/api.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    action: 'delete_user',
+                                    id: userId,
+                                }),
+                            });
+                            const data = await response.json();
+                            if (data.status === "success") {
+                                Alert.alert(
+                                    "Account Deleted",
+                                    "Your account has been deleted.",
+                                    [
+                                        {
+                                            text: "OK",
+                                            onPress: async () => {
+                                                // Log out the user after deletion
+                                                Alert.alert("Account Deleted", "Your account has been deleted. Contact admin for more information.");
+                                                await handleLogout();
+                                            }
+                                        }
+                                    ]
+                                );
+                            } else {
+                                Alert.alert("Error", data.message || "Failed to delete account.");
+                            }
+                        } catch (error) {
+                            console.error('Delete account error:', error);
+                            Alert.alert("Error", "An error occurred while deleting your account.");
+                        } finally {
+                            setIsDeletingAccount(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     const handleProfilePress = () => {
         // Since UserProfile is at root level, navigate directly
@@ -135,7 +199,6 @@ const WalletPage = () => {
         navigation.navigate('Withdraw');
     };
 
-    // FIXED: Proper logout function
     // FIXED: Proper logout function
     const handleLogout = async () => {
         if (isLoggingOut) return; // Prevent double-tap
@@ -735,6 +798,15 @@ const WalletPage = () => {
                             >
                                 {isLoggingOut ? 'Logging out...' : 'Logout'}
                             </Text>
+                        </TouchableOpacity>
+
+                        {/* =================== FIXED DELETE ACCOUNT BUTTON =================== */}
+                        <TouchableOpacity
+                            style={{ backgroundColor: Colors.light.bgBlueBtn }}
+                            className="flex items-center justify-center h-[52px] my-5 rounded-xl flex-row"
+                            onPress={handleDeleteAccountPress}
+                        >
+                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-bold px-2">Delete Account</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
