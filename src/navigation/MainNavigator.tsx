@@ -24,8 +24,8 @@ import SystemStatus from '../screens/more/help/SystemStatus';
 
 // System folder screens
 import PrivacyPolicy from '../screens/more/system/PrivacyPolicy';
-import RNGCertification from '../screens/more/system/RNGCertification';
-import Careers from '../screens/more/system/Careers';
+
+
 import AboutUs from '../screens/more/system/AboutUs';
 import TermsOfUse from '../screens/more/system/TermsOfUse';
 
@@ -81,8 +81,8 @@ const MainNavigator = () => {
 
             {/* System folder screens */}
             <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
-            <Stack.Screen name="RNGCertification" component={RNGCertification} />
-            <Stack.Screen name="Careers" component={Careers} />
+
+
             <Stack.Screen name="AboutUs" component={AboutUs} />
             <Stack.Screen name="TermsOfUse" component={TermsOfUse} />
 

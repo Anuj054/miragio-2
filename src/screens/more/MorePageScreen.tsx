@@ -5,17 +5,14 @@ import bg2 from "../../assets/images/bg2.png";
 import { icons } from "../../constants/index";
 
 // Settings category icons imports
-import accountsecurity from "../../assets/images/accountsecurity.png"
-import newupdate from "../../assets/images/newupdate.png"
 
-import refer from "../../assets/images/refer.png"
 
 
 import helpdesk from "../../assets/images/helpdesk.png"
-import systemstatus from "../../assets/images/systemstatus.png"
+
 import securityandprivacy from "../../assets/images/securityandprivacy.png"
-import Rngcerti from "../../assets/images/Rngcerti.png"
-import careers from "../../assets/images/careers.png"
+
+
 import aboutus from "../../assets/images/aboutus.png"
 import terms from "../../assets/images/terms.png"
 
@@ -101,32 +98,28 @@ const MorePagesScreen = ({ navigation }: Props) => {
                 // Type-safe navigation based on route
                 switch (route) {
 
-                    case 'AccountSecurity':
-                        navigation.navigate('AccountSecurity');
-                        break;
-                    case 'NewUpdates':
-                        navigation.navigate('NewUpdates');
-                        break;
-                    case 'ReferFriends':
-                        navigation.navigate('ReferFriends');
-                        break;
+                    // case 'AccountSecurity':
+                    //    navigation.navigate('AccountSecurity');
+                    //   break;
+                    // case 'NewUpdates':
+                    //      navigation.navigate('NewUpdates');
+                    //     break;
+                    //    case 'ReferFriends':
+                    //    navigation.navigate('ReferFriends');
+                    //    break;
 
 
                     case 'HelpDesk':
                         navigation.navigate('HelpDesk');
                         break;
-                    case 'SystemStatus':
-                        navigation.navigate('SystemStatus');
-                        break;
+                    //        case 'SystemStatus':
+                    //          navigation.navigate('SystemStatus');
+                    //        break;
                     case 'PrivacyPolicy':
                         navigation.navigate('PrivacyPolicy');
                         break;
-                    case 'RNGCertification':
-                        navigation.navigate('RNGCertification');
-                        break;
-                    case 'Careers':
-                        navigation.navigate('Careers');
-                        break;
+
+
                     case 'AboutUs':
                         navigation.navigate('AboutUs');
                         break;
@@ -162,49 +155,49 @@ const MorePagesScreen = ({ navigation }: Props) => {
     const settingsItems: SettingsItem[] = [
         // Updates folder screens
 
-        {
-            id: 1,
-            title: "Account Security",
-            titleHi: "खाता सुरक्षा",
-            icon: accountsecurity,
-            category: "Updates",
-            categoryHi: "अपडेट्स",
-            hasBottomBorder: true,
-            route: "AccountSecurity" as keyof MainStackParamList,
-            description: "Manage your account security settings",
-            descriptionHi: "अपनी खाता सुरक्षा सेटिंग्स प्रबंधित करें"
-        },
-        {
-            id: 2,
-            title: "New Updates",
-            titleHi: "नए अपडेट्स",
-            icon: newupdate,
-            category: "Updates",
-            categoryHi: "अपडेट्स",
-            hasBottomBorder: false,
-            route: "NewUpdates" as keyof MainStackParamList,
-            description: "Check latest app updates",
-            descriptionHi: "नवीनतम ऐप अपडेट्स जांचें"
-        },
+        // {
+        //     id: 1,
+        //     title: "Account Security",
+        //     titleHi: "खाता सुरक्षा",
+        //     icon: accountsecurity,
+        //     category: "Updates",
+        //     categoryHi: "अपडेट्स",
+        //     hasBottomBorder: true,
+        //     route: "AccountSecurity" as keyof MainStackParamList,
+        //     description: "Manage your account security settings",
+        //     descriptionHi: "अपनी खाता सुरक्षा सेटिंग्स प्रबंधित करें"
+        // },
+        // {
+        //     id: 2,
+        //     title: "New Updates",
+        //     titleHi: "नए अपडेट्स",
+        //     icon: newupdate,
+        //     category: "Updates",
+        //     categoryHi: "अपडेट्स",
+        //     hasBottomBorder: false,
+        //     route: "NewUpdates" as keyof MainStackParamList,
+        //     description: "Check latest app updates",
+        //     descriptionHi: "नवीनतम ऐप अपडेट्स जांचें"
+        // },
 
         // Help folder screens
-        {
-            id: 3,
-            title: "Refer Friends, Earn Money",
-            titleHi: "मित्रों को रेफर करें, पैसे कमाएं",
-            icon: refer,
-            category: "Help",
-            categoryHi: "सहायता",
-            hasBottomBorder: true,
-            route: "ReferFriends" as keyof MainStackParamList,
-            description: "Invite friends and earn rewards",
-            descriptionHi: "मित्रों को आमंत्रित करें और पुरस्कार कमाएं"
-        },
+        // {
+        //     id: 3,
+        //     title: "Refer Friends, Earn Money",
+        //     titleHi: "मित्रों को रेफर करें, पैसे कमाएं",
+        //     icon: refer,
+        //     category: "Help",
+        //     categoryHi: "सहायता",
+        //     hasBottomBorder: true,
+        //     route: "ReferFriends" as keyof MainStackParamList,
+        //     description: "Invite friends and earn rewards",
+        //     descriptionHi: "मित्रों को आमंत्रित करें और पुरस्कार कमाएं"
+        // },
 
 
 
         {
-            id: 4,
+            id: 1,
             title: "Help Desk",
             titleHi: "सहायता डेस्क",
             icon: helpdesk,
@@ -215,22 +208,10 @@ const MorePagesScreen = ({ navigation }: Props) => {
             description: "Get help and support",
             descriptionHi: "सहायता और समर्थन प्राप्त करें"
         },
-        {
-            id: 5,
-            title: "System Status",
-            titleHi: "सिस्टम स्थिति",
-            icon: systemstatus,
-            category: "Help",
-            categoryHi: "सहायता",
-            hasBottomBorder: false,
-            route: "SystemStatus" as keyof MainStackParamList,
-            description: "Check system status and uptime",
-            descriptionHi: "सिस्टम स्थिति और अपटाइम जांचें"
-        },
 
         // System folder screens
         {
-            id: 6,
+            id: 2,
             title: "Security & Privacy Policy",
             titleHi: "सुरक्षा और गोपनीयता नीति",
             icon: securityandprivacy,
@@ -241,32 +222,10 @@ const MorePagesScreen = ({ navigation }: Props) => {
             description: "Read our privacy policy",
             descriptionHi: "हमारी गोपनीयता नीति पढ़ें"
         },
+
+
         {
-            id: 7,
-            title: "RNG Certification",
-            titleHi: "RNG प्रमाणीकरण",
-            icon: Rngcerti,
-            category: "System",
-            categoryHi: "सिस्टम",
-            hasBottomBorder: true,
-            route: "RNGCertification" as keyof MainStackParamList,
-            description: "Random number generation certification",
-            descriptionHi: "यादृच्छिक संख्या निर्माण प्रमाणीकरण"
-        },
-        {
-            id: 8,
-            title: "Careers",
-            titleHi: "करियर",
-            icon: careers,
-            category: "System",
-            categoryHi: "सिस्टम",
-            hasBottomBorder: true,
-            route: "Careers" as keyof MainStackParamList,
-            description: "Join our team",
-            descriptionHi: "हमारी टीम में शामिल हों"
-        },
-        {
-            id: 9,
+            id: 3,
             title: "About Us (Miragio )",
             titleHi: "हमारे बारे में (मिराजियो )",
             icon: aboutus,
@@ -278,7 +237,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
             descriptionHi: "मिराजियो  के बारे में जानें"
         },
         {
-            id: 10,
+            id: 4,
             title: "Terms of Use",
             titleHi: "उपयोग की शर्तें",
             icon: terms,

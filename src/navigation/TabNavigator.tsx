@@ -14,7 +14,8 @@ import InstructionsScreen from '../screens/task/Instructions';
 import WalletPageScreen from '../screens/wallet/WalletPage';
 import TransactionsScreen from '../screens/wallet/Transactions';
 import WithdrawScreen from '../screens/wallet/Withdraw';
-
+import FAQ from '../screens/wallet/FAQ'
+import TdsSummaryScreen from "../screens/wallet/Tdssummary"
 // UPDATED: Import More Stack Navigator
 import MoreStackNavigator from './MoreStackNavigator';
 
@@ -126,6 +127,8 @@ const WalletStackNavigator = () => (
         <WalletStack.Screen name="WalletPage" component={WalletPageScreen} />
         <WalletStack.Screen name="Transactions" component={TransactionsScreen} />
         <WalletStack.Screen name="Withdraw" component={WithdrawScreen} />
+        <WalletStack.Screen name="FAQ" component={FAQ} />
+        <WalletStack.Screen name="TdsSummary" component={TdsSummaryScreen} />
     </WalletStack.Navigator>
 );
 

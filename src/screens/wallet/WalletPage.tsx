@@ -552,7 +552,7 @@ const WalletPage = () => {
                             style={{ marginVertical: height * 0.015 }}
                         >
                             {/* FAQs card */}
-                            <View
+                            <TouchableOpacity
                                 style={{
                                     backgroundColor: Colors.light.backlight2,
                                     height: height * 0.09,
@@ -561,6 +561,7 @@ const WalletPage = () => {
                                     marginHorizontal: width * 0.015
                                 }}
                                 className="flex-row items-center"
+                                onPress={() => navigation.navigate('FAQ')}
                             >
                                 <View
                                     style={{
@@ -602,7 +603,7 @@ const WalletPage = () => {
                                         Contact for all queries
                                     </TranslatedText>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
 
                             {/* Offers card */}
                             <View
@@ -674,79 +675,7 @@ const WalletPage = () => {
                     <View style={{ marginHorizontal: width * 0.03 }}>
 
 
-                        {/* =================== COINS ENQUIRY CARD =================== */}
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.backlight2,
-                                borderLeftColor: Colors.light.bgBlueBtn,
-                                borderLeftWidth: 4,
-                                borderRadius: 12,
-                                padding: width * 0.03,
-                                marginVertical: height * 0.015,
-                                width: '100%'
-                            }}
-                        >
-                            <View className="flex-row items-center">
-                                {/* Card icon */}
-                                <View
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        marginRight: width * 0.02,
-                                        width: width * 0.1,
-                                        height: width * 0.1,
-                                        borderRadius: 8
-                                    }}
-                                    className="items-center justify-center"
-                                >
-                                    <Image
-                                        source={icons.duedateicon}
-                                        style={{
-                                            height: width * 0.07,
-                                            width: width * 0.07
-                                        }}
-                                        resizeMode="contain"
-                                    />
-                                </View>
 
-                                {/* Card content */}
-                                <View className="flex-1 flex-row justify-between items-center">
-                                    <View
-                                        className="flex-1"
-                                        style={{ paddingLeft: width * 0.03 }}
-                                    >
-                                        <TranslatedText
-                                            style={{
-                                                color: Colors.light.whiteFefefe,
-                                                fontSize: width * 0.045,
-                                                marginBottom: height * 0.005
-                                            }}
-                                            className="font-medium"
-                                        >
-                                            Coins Enquiry
-                                        </TranslatedText>
-                                        <TranslatedText
-                                            style={{
-                                                color: Colors.light.placeholderColorOp70,
-                                                fontSize: width * 0.035
-                                            }}
-                                        >
-                                            Keep track of your coins
-                                        </TranslatedText>
-                                    </View>
-
-                                    {/* Navigation arrow */}
-                                    <TouchableOpacity>
-                                        <Image
-                                            source={icons.go}
-                                            style={{
-                                                width: width * 0.03,
-                                                height: width * 0.03
-                                            }}
-                                        />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </View>
 
 
 
@@ -762,7 +691,8 @@ const WalletPage = () => {
                                 width: '100%'
                             }}
                         >
-                            <View className="flex-row items-center">
+                            <TouchableOpacity className="flex-row items-center"
+                                onPress={() => navigation.navigate('TdsSummary')} >
                                 {/* Card icon */}
                                 <View
                                     style={{
@@ -798,7 +728,7 @@ const WalletPage = () => {
                                             }}
                                             className="font-medium"
                                         >
-                                            TDS Certificate Download
+                                            TDS Summary
                                         </TranslatedText>
                                         <TranslatedText
                                             style={{
@@ -821,7 +751,7 @@ const WalletPage = () => {
                                         />
                                     </TouchableOpacity>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         </View>
 
 
