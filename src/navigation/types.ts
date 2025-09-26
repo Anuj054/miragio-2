@@ -16,7 +16,7 @@ export type AuthStackParamList = {
     SignUp: undefined;
     KYC: undefined;
     UserDetails: undefined;
-    Otp: { userId?: string | undefined }; // UPDATED: Explicitly allow undefined
+    Otp: { userId?: string | any }; // UPDATED: Explicitly allow undefined
     KycSuccess: undefined;
     ResetPassword: undefined;
     VerifyCode: { email?: string };
@@ -51,6 +51,7 @@ export type MainStackParamList = {
     AboutUs: undefined;
     TermsOfUse: undefined;
     Legality: undefined;
+
 };
 
 // Tab Navigator
@@ -73,6 +74,8 @@ export type WalletStackParamList = {
     WalletPage: undefined;
     Transactions: undefined;
     Withdraw: undefined;
+    FAQ: undefined;
+    TdsSummary: undefined;
 };
 
 // ADDED: More Stack for settings pages

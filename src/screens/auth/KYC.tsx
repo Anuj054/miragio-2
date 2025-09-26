@@ -1,29 +1,36 @@
-import { Image, Text, TextInput, TouchableOpacity, View, ScrollView } from "react-native"
-import { useState, useEffect } from 'react'
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import bg from "../../assets/images/bg.png"
-import logo from "../../assets/images/MIRAGIO--LOGO.png"
-import { icons } from "../../constants/index"
-import CustomGradientButton from "../../components/CustomGradientButton"
-import { Colors } from "../../constants/Colors"
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import type { AuthStackParamList } from "../../navigation/types"
+import React, { useState, useEffect } from 'react';
+import {
+    Image,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    ScrollView,
+    Dimensions,
+} from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import bg from '../../assets/images/bg.png';
+import logo from '../../assets/images/MIRAGIO--LOGO.png';
+import { icons } from '../../constants/index';
+import CustomGradientButton from '../../components/CustomGradientButton';
+import { Colors } from '../../constants/Colors';
 
-// FIXED: Proper TypeScript props
+// ✅ Translation
+import { useTranslation } from '../../context/TranslationContext';
+import { TranslatedText } from '../../components/TranslatedText';
+import type { AuthStackParamList } from '../../navigation/types';
+
 type Props = NativeStackScreenProps<AuthStackParamList, 'KYC'>;
 
-// Type definitions
+const { width, height } = Dimensions.get('window');
+
 interface SignupData {
     email: string;
     password: string;
     referral_code: string;
     user_role: string;
     status: string;
-}
-
-interface Occupation {
-    label: string;
-    value: string;
 }
 
 interface RegistrationData extends SignupData {
@@ -36,623 +43,570 @@ interface RegistrationData extends SignupData {
 }
 
 const KYC = ({ navigation }: Props) => {
-    // State for signup data
+    const { currentLanguage } = useTranslation();
+    const isHi = currentLanguage === 'hi';
+
     const [signupData, setSignupData] = useState<SignupData | null>(null);
 
-    // State for KYC form fields - START EMPTY
-    const [aadharNumber, setAadharNumber] = useState<string>("")
-    const [username, setUsername] = useState<string>("")
-    const [age, setAge] = useState<string>("")
-    const [gender, setGender] = useState<string>("")
-    const [phoneNumber, setPhoneNumber] = useState<string>("")
+    const [aadharNumber, setAadharNumber] = useState('');
+    const [username, setUsername] = useState('');
+    const [age, setAge] = useState('');
+    const [gender, setGender] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [selectedOccupation, setSelectedOccupation] = useState('');
 
-    // State for occupation dropdown functionality
-    const [selectedOccupation, setSelectedOccupation] = useState<string>("")
-    const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false)
-    const [searchQuery, setSearchQuery] = useState<string>("")
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isGenderDropdownOpen, setIsGenderDropdownOpen] = useState(false);
+    const [genderSearchQuery, setGenderSearchQuery] = useState('');
 
-    // Loading state
-    const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Error state
-    const [errorMessage, setErrorMessage] = useState<string>("")
-
-    // Track if we've loaded data in this session (to allow back navigation within session)
-    const [hasLoadedSessionData, setHasLoadedSessionData] = useState<boolean>(false);
-
-    // Occupation options data
-    const occupations: Occupation[] = [
-        { label: "Doctor", value: "doctor" },
-        { label: "Engineer", value: "engineer" },
-        { label: "Lawyer", value: "lawyer" },
-        { label: "Teacher", value: "teacher" },
-        { label: "Business Owner", value: "business_owner" },
-        { label: "Student", value: "student" },
-        { label: "Accountant", value: "accountant" },
-        { label: "Nurse", value: "nurse" },
-        { label: "Developer", value: "developer" },
-        { label: "Designer", value: "designer" },
-        { label: "Web Developer", value: "web_developer" },
-        { label: "Others", value: "others" }
-    ]
-
-    // Load signup data on component mount
-    useEffect(() => {
-        loadSignupData();
-    }, []);
-
-    // Gender options
-    const genderOptions = [
-        { label: "Male", value: "male" },
-        { label: "Female", value: "female" },
-        { label: "Prefer Not to Say", value: "prefer not to say" },
-        { label: "Other", value: "other" },
-
+    const occupations = [
+        { label: isHi ? 'डॉक्टर' : 'Doctor', value: 'doctor' },
+        { label: isHi ? 'इंजीनियर' : 'Engineer', value: 'engineer' },
+        { label: isHi ? 'वकील' : 'Lawyer', value: 'lawyer' },
+        { label: isHi ? 'शिक्षक' : 'Teacher', value: 'teacher' },
+        { label: isHi ? 'व्यवसायी' : 'Business Owner', value: 'business_owner' },
+        { label: isHi ? 'छात्र' : 'Student', value: 'student' },
+        { label: isHi ? 'अकाउंटेंट' : 'Accountant', value: 'accountant' },
+        { label: isHi ? 'नर्स' : 'Nurse', value: 'nurse' },
+        { label: isHi ? 'डेवलपर' : 'Developer', value: 'developer' },
+        { label: isHi ? 'डिज़ाइनर' : 'Designer', value: 'designer' },
+        { label: isHi ? 'वेब डेवलपर' : 'Web Developer', value: 'web_developer' },
+        { label: isHi ? 'अन्य' : 'Others', value: 'others' },
     ];
 
-    const [isGenderDropdownOpen, setIsGenderDropdownOpen] = useState<boolean>(false);
-    const [genderSearchQuery, setGenderSearchQuery] = useState<string>("");
+    const genderOptions = [
+        { label: isHi ? 'पुरुष' : 'Male', value: 'male' },
+        { label: isHi ? 'महिला' : 'Female', value: 'female' },
+        { label: isHi ? 'नहीं बताना चाहते' : 'Prefer Not to Say', value: 'prefer' },
+        { label: isHi ? 'अन्य' : 'Other', value: 'other' },
+    ];
 
-    const filteredGenderOptions = genderOptions.filter(option =>
-        option.label.toLowerCase().includes(genderSearchQuery.toLowerCase())
-    );
-
-    const handleGenderSelect = (option: { label: string; value: string }): void => {
-        setGender(option.label);
-        setIsGenderDropdownOpen(false);
-        setGenderSearchQuery("");
-        if (errorMessage) setErrorMessage("");
-    };
-
-    const handleGenderDropdownToggle = (): void => {
-        if (!isLoading) {
-            setIsGenderDropdownOpen(!isGenderDropdownOpen);
-            if (!isGenderDropdownOpen) {
-                setGenderSearchQuery("");
+    useEffect(() => {
+        (async () => {
+            try {
+                const stored = await AsyncStorage.getItem('@signup_data');
+                if (stored) setSignupData(JSON.parse(stored));
+                else {
+                    setErrorMessage(
+                        isHi
+                            ? 'साइनअप डेटा नहीं मिला। कृपया साइनअप से शुरू करें।'
+                            : 'Signup data not found. Please start from signup page.'
+                    );
+                    setTimeout(() => navigation.navigate('SignUp'), 2000);
+                }
+            } catch {
+                setErrorMessage(
+                    isHi ? 'डेटा लोड करने में त्रुटि।' : 'Error loading signup data.'
+                );
             }
-        }
-    };
+        })();
+    }, [isHi, navigation]);
 
-    const loadSignupData = async (): Promise<void> => {
-        try {
-            const storedData = await AsyncStorage.getItem('@signup_data');
-            if (storedData) {
-                const data: SignupData = JSON.parse(storedData);
-                setSignupData(data);
-                console.log('KYC - Loaded signup data:', data);
-
-                // Only load existing KYC data if we've already saved some in this session
-                await loadCurrentSessionKYCData();
-            } else {
-                console.log('KYC - No signup data found, redirecting to signup');
-                setErrorMessage("No signup data found. Please start from signup page.");
-                // FIXED: Use proper navigation with timeout
-                setTimeout(() => {
-                    navigation.navigate('SignUp');
-                }, 2000);
-            }
-        } catch (error) {
-            console.error('KYC - Error loading signup data:', error);
-            setErrorMessage("Error loading data. Please try again.");
-        }
-    };
-
-    // Only load KYC data if it was saved in the current session
-    const loadCurrentSessionKYCData = async (): Promise<void> => {
-        try {
-            const existingData = await AsyncStorage.getItem('@registration_data');
-            if (existingData && hasLoadedSessionData) {
-                // Only load if we've already saved data in this session (back navigation)
-                const data: RegistrationData = JSON.parse(existingData);
-                setAadharNumber(data.aadharnumber || "");
-                setUsername(data.username || "");
-                setAge(data.age || "");
-                setGender(data.gender || "");
-                setPhoneNumber(data.phone_number || "");
-                setSelectedOccupation(data.occupation ?
-                    occupations.find(occ => occ.label === data.occupation)?.value || "" : "");
-                console.log('KYC - Loaded current session KYC data for editing');
-            }
-        } catch (error) {
-            console.error('KYC - Error loading current session KYC data:', error);
-        }
-    };
-
-    // Handle Aadhar number input - only allow 12 digits
-    const handleAadharChange = (text: string): void => {
-        // Remove all non-numeric characters
-        const numericText = text.replace(/[^0-9]/g, '');
-
-        // Limit to 12 digits
-        const limitedText = numericText.slice(0, 12);
-
-        setAadharNumber(limitedText);
-        if (errorMessage) setErrorMessage("");
-    };
-
-    // Handle phone number input - only allow 10 digits
-    const handlePhoneChange = (text: string): void => {
-        // Remove all non-numeric characters
-        const numericText = text.replace(/[^0-9]/g, '');
-
-        // Limit to 10 digits
-        const limitedText = numericText.slice(0, 10);
-
-        setPhoneNumber(limitedText);
-        if (errorMessage) setErrorMessage("");
-    };
-
-    // Handle age input - only allow numbers up to 3 digits
-    const handleAgeChange = (text: string): void => {
-        // Remove all non-numeric characters
-        const numericText = text.replace(/[^0-9]/g, '');
-
-        // Limit to 3 digits
-        const limitedText = numericText.slice(0, 3);
-
-        setAge(limitedText);
-        if (errorMessage) setErrorMessage("");
-    };
-
-    // Filter occupations based on search query
-    const filteredOccupations = occupations.filter(occupation =>
-        occupation.label.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-
-    // Handle occupation selection from dropdown
-    const handleOccupationSelect = (occupation: Occupation): void => {
-        setSelectedOccupation(occupation.value)
-        setIsDropdownOpen(false)
-        setSearchQuery("")
-        if (errorMessage) setErrorMessage("");
-    }
-
-    // Toggle dropdown visibility and reset search
-    const handleDropdownToggle = (): void => {
-        if (!isLoading) {
-            setIsDropdownOpen(!isDropdownOpen)
-            if (!isDropdownOpen) {
-                setSearchQuery("")
-            }
-        }
-    }
-
-    // Clear error when user starts typing in any field
-    const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string): void => {
-        setter(value);
-        if (errorMessage) setErrorMessage("");
-    }
-
-    // Validate form inputs with enhanced numeric validation
-    const validateForm = (): boolean => {
-        // Aadhar validation - must be exactly 12 digits and not start with 0 or 1
-        if (!aadharNumber.trim()) {
-            setErrorMessage("Please enter your Aadhar number");
-            return false;
-        }
-
-        if (aadharNumber.length !== 12) {
-            setErrorMessage("Aadhar number must be exactly 12 digits");
-            return false;
-        }
-
-        // Aadhar should not start with 0 or 1
-        if (aadharNumber.startsWith('0') || aadharNumber.startsWith('1')) {
-            setErrorMessage("Aadhar number cannot start with 0 or 1");
-            return false;
-        }
-
-        // Check if all characters are numeric
-        if (!/^\d{12}$/.test(aadharNumber)) {
-            setErrorMessage("Aadhar number must contain only digits");
-            return false;
-        }
-
-        if (!username.trim()) {
-            setErrorMessage("Please enter your username");
-            return false;
-        }
-
-        if (!age.trim()) {
-            setErrorMessage("Please enter your age");
-            return false;
-        }
-
+    const validateForm = () => {
+        const err = (en: string, hi: string) => (isHi ? hi : en);
+        if (!aadharNumber.trim())
+            return err('Please enter Aadhar number', 'कृपया आधार नंबर दर्ज करें');
+        if (aadharNumber.length !== 12)
+            return err('Aadhar number must be 12 digits', 'आधार नंबर 12 अंकों का होना चाहिए');
+        if (!username.trim())
+            return err('Please enter username', 'कृपया यूज़रनेम दर्ज करें');
+        if (!age.trim())
+            return err('Please enter age', 'कृपया उम्र दर्ज करें');
         const ageNum = parseInt(age);
-        if (isNaN(ageNum) || ageNum < 18 || ageNum > 100) {
-            setErrorMessage("Please enter a valid age between 18 and 100");
-            return false;
-        }
-
-        if (!gender.trim()) {
-            setErrorMessage("Please enter your gender");
-            return false;
-        }
-
-        if (!selectedOccupation) {
-            setErrorMessage("Please select your occupation");
-            return false;
-        }
-
-        // Phone number validation - must be exactly 10 digits
-        if (!phoneNumber.trim()) {
-            setErrorMessage("Please enter your phone number");
-            return false;
-        }
-
-        if (phoneNumber.length !== 10) {
-            setErrorMessage("Phone number must be exactly 10 digits");
-            return false;
-        }
-
-        // Check if all characters are numeric
-        if (!/^\d{10}$/.test(phoneNumber)) {
-            setErrorMessage("Phone number must contain only digits");
-            return false;
-        }
-
-        // Phone number should not start with 0, 1, or 2
-        if (phoneNumber.startsWith('0') || phoneNumber.startsWith('1') || phoneNumber.startsWith('2')) {
-            setErrorMessage("Phone number cannot start with 0, 1, or 2");
-            return false;
-        }
-
-        return true;
+        if (isNaN(ageNum) || ageNum < 18 || ageNum > 100)
+            return err('Enter valid age (18-100)', 'उम्र 18 से 100 के बीच होनी चाहिए');
+        if (!gender.trim())
+            return err('Please select gender', 'कृपया लिंग चुनें');
+        if (!selectedOccupation)
+            return err('Please select occupation', 'कृपया व्यवसाय चुनें');
+        if (!phoneNumber.trim())
+            return err('Please enter phone number', 'कृपया फ़ोन नंबर दर्ज करें');
+        if (phoneNumber.length !== 10)
+            return err('Phone number must be 10 digits', 'फ़ोन नंबर 10 अंकों का होना चाहिए');
+        return '';
     };
 
-    // FIXED: Navigate to UserDetails with stored data
-    const proceedToUserDetails = async (): Promise<void> => {
+    const proceed = async () => {
         if (isLoading) return;
-
-        setErrorMessage("");
-
-        if (!validateForm()) return;
-
-        if (!signupData) {
-            setErrorMessage("Signup data not found. Please start from signup page.");
-            setTimeout(() => {
-                navigation.navigate('SignUp');
-            }, 2000);
+        const e = validateForm();
+        if (e) {
+            setErrorMessage(e);
             return;
         }
-
+        if (!signupData) return;
         setIsLoading(true);
-
         try {
-            const occupationLabel = occupations.find(occ => occ.value === selectedOccupation)?.label || selectedOccupation;
-
-            const completeData: RegistrationData = {
-                email: signupData.email,
-                password: signupData.password,
-                referral_code: signupData.referral_code,
-                user_role: signupData.user_role,
-                status: signupData.status,
-                username: username.trim(),
-                aadharnumber: aadharNumber.trim(),
-                age: age.trim(),
-                gender: gender.trim(),
-                occupation: occupationLabel,
-                phone_number: phoneNumber.trim()
+            const occLabel =
+                occupations.find(o => o.value === selectedOccupation)?.label ||
+                selectedOccupation;
+            const data: RegistrationData = {
+                ...signupData,
+                username,
+                aadharnumber: aadharNumber,
+                age,
+                gender,
+                occupation: occLabel,
+                phone_number: phoneNumber,
             };
-
-            await AsyncStorage.setItem('@registration_data', JSON.stringify(completeData));
-            setHasLoadedSessionData(true);
-            console.log('KYC - Stored complete data:', completeData);
-
-            // FIXED: Navigate to UserDetails directly
+            await AsyncStorage.setItem('@registration_data', JSON.stringify(data));
             navigation.navigate('UserDetails');
-
-        } catch (error) {
-            console.error('KYC - Error storing data:', error);
-            setErrorMessage("Error saving data. Please try again.");
+        } catch {
+            setErrorMessage(
+                isHi ? 'डेटा सेव करने में त्रुटि।' : 'Error saving data.'
+            );
         } finally {
             setIsLoading(false);
         }
     };
 
-    // FIXED: Handle back navigation
-    const handleBackPress = (): void => {
-        if (!isLoading) {
-            navigation.goBack();
-        }
-    };
+    const filteredOccupations = occupations.filter(o =>
+        o.label.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    const filteredGender = genderOptions.filter(g =>
+        g.label.toLowerCase().includes(genderSearchQuery.toLowerCase())
+    );
 
     return (
-        <View className="flex items-center ">
+        <ScrollView className="flex-1" contentContainerStyle={{ minHeight: height }}>
+            <View className="flex-1 items-center">
+                <View style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: '#000', // Fallback color
+                }}>
+                    <Image
+                        source={bg}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            minWidth: width,
+                            minHeight: height,
+                        }}
+                        resizeMode="cover"
+                    />
+                </View>
 
-            {/* =================== BACKGROUND IMAGE =================== */}
-            <Image
-                source={bg}
-                resizeMode="cover"
-                className="w-full h-full"
-            />
-
-            {/* =================== HEADER SECTION WITH LOGO =================== */}
-            <View className="absolute  flex  items-center w-full" >
-                {/* FIXED: Back button */}
+                {/* Back */}
                 <TouchableOpacity
-                    className="absolute flex left-[10px] top-[105px]"
-                    onPress={handleBackPress}
-                    disabled={isLoading}
+                    style={{
+                        position: 'absolute',
+                        left: width * 0.04,
+                        top: height * 0.09,
+                        width: width * 0.12,
+                        height: height * 0.06,
+                    }}
+                    onPress={() => navigation.goBack()}
                 >
-                    {icons && (
-                        <Image
-                            source={icons.back}
-                            className="w-[25px] h-[30px] mx-4"
-                            style={{ opacity: isLoading ? 0.5 : 1 }}
-                        />
-                    )}
+                    <Image
+                        source={icons.back}
+                        style={{ width: width * 0.06, height: width * 0.07 }}
+                    />
                 </TouchableOpacity>
 
-                {/* Miragio logo */}
+                {/* Logo */}
                 <Image
                     source={logo}
-                    className=" top-[80px] w-[100px] h-[80px] " />
-            </View >
+                    style={{
+                        position: 'absolute',
+                        top: height * 0.08,
+                        width: width * 0.25,
+                        height: width * 0.22,
+                    }}
+                />
 
-            {/* =================== PAGE TITLE =================== */}
-            <Text style={{ color: Colors.light.whiteFfffff }} className="absolute top-[220px] font-medium text-3xl" > Fill KYC Details</Text >
+                {/* Title */}
+                <TranslatedText
+                    className="font-bold text-center"
+                    style={{
+                        position: 'absolute',
+                        top: height * 0.23,
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.075,
+                    }}
+                >
+                    {isHi ? 'केवाईसी विवरण भरें' : 'Fill KYC Details'}
+                </TranslatedText>
 
-            {/* =================== INPUT FIELDS SECTION =================== */}
-            <View className="  absolute top-[280px] " >
-
-                {/* Aadhar number input - Enhanced with numeric validation */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center  w-[370px] h-[56px] rounded-[15px] mb-5">
-                    <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="ml-5 w-[280px] h-[56px]"
-                        placeholder="Enter Aadhar Number*"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={aadharNumber}
-                        onChangeText={handleAadharChange}
-                        keyboardType="numeric"
-                        maxLength={12}
-                        editable={!isLoading}
-                    />
-
-                </View>
-
-                {/* Name input */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-5">
-                    <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="w-[300px] h-[56px] ml-5"
-                        placeholder="Enter Username*"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={username}
-                        onChangeText={(text) => handleInputChange(setUsername, text)}
-                        autoCapitalize="words"
-                        editable={!isLoading}
-                    />
-                </View>
-
-                {/* Age input - Enhanced with numeric validation */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-5">
-                    <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="w-[300px] h-[56px] ml-5"
-                        placeholder="Enter Age*"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={age}
-                        onChangeText={handleAgeChange}
-                        keyboardType="numeric"
-                        maxLength={3}
-                        editable={!isLoading}
-                    />
-                </View>
-
-                {/* =================== GENDER DROPDOWN SECTION =================== */}
-                <View className="w-[370px] mb-5 relative">
-                    {/* Dropdown trigger button */}
-                    <TouchableOpacity
-                        style={{ backgroundColor: Colors.light.whiteFfffff }}
-                        className="flex flex-row items-center justify-between w-[370px] h-[56px] rounded-[15px] px-5"
-                        onPress={handleGenderDropdownToggle}
-                        disabled={isLoading}
+                {/* Input Fields */}
+                <View
+                    className="absolute items-center"
+                    style={{
+                        top: height * 0.31,
+                        width: '100%',
+                        paddingHorizontal: width * 0.05,
+                    }}
+                >
+                    {/* Aadhar Number */}
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.whiteFfffff,
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15,
+                            marginBottom: height * 0.022,
+                        }}
+                        className="flex flex-row items-center"
                     >
-                        <Text style={{ color: gender ? Colors.light.blackPrimary : Colors.light.placeholderColor }} className="text-base">
-                            {gender ? gender : "Select Gender*"}
-                        </Text>
-                        <Image
-                            source={isGenderDropdownOpen ? icons.dropdownicon : icons.upicon}
-                            className="w-3 h-3"
-                            style={{ opacity: isLoading ? 0.5 : 1 }}
+                        <TextInput
+                            style={{
+                                flex: 1,
+                                paddingHorizontal: width * 0.04,
+                                color: Colors.light.blackPrimary,
+                                fontSize: Math.min(16, width * 0.035),
+                            }}
+                            placeholder={isHi ? 'आधार नंबर दर्ज करें*' : 'Enter Aadhar Number*'}
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            value={aadharNumber}
+                            onChangeText={(t) => { setAadharNumber(t.replace(/[^0-9]/g, '')); if (errorMessage) setErrorMessage(''); }}
+                            keyboardType="numeric"
+                            maxLength={12}
                         />
-                    </TouchableOpacity>
+                    </View>
 
-                    {/* Dropdown options container */}
-                    {isGenderDropdownOpen && (
-                        <View
+                    {/* Username */}
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.whiteFfffff,
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15,
+                            marginBottom: height * 0.022,
+                        }}
+                        className="flex flex-row items-center"
+                    >
+                        <TextInput
+                            style={{
+                                flex: 1,
+                                paddingHorizontal: width * 0.04,
+                                color: Colors.light.blackPrimary,
+                                fontSize: Math.min(16, width * 0.035),
+                            }}
+                            placeholder={isHi ? 'यूज़रनेम दर्ज करें*' : 'Enter Username*'}
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            value={username}
+                            onChangeText={(t) => { setUsername(t); if (errorMessage) setErrorMessage(''); }}
+                        />
+                    </View>
+
+                    {/* Age */}
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.whiteFfffff,
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15,
+                            marginBottom: height * 0.022,
+                        }}
+                        className="flex flex-row items-center"
+                    >
+                        <TextInput
+                            style={{
+                                flex: 1,
+                                paddingHorizontal: width * 0.04,
+                                color: Colors.light.blackPrimary,
+                                fontSize: Math.min(16, width * 0.035),
+                            }}
+                            placeholder={isHi ? 'उम्र दर्ज करें*' : 'Enter Age*'}
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            value={age}
+                            onChangeText={(t) => { setAge(t.replace(/[^0-9]/g, '')); if (errorMessage) setErrorMessage(''); }}
+                            keyboardType="numeric"
+                            maxLength={3}
+                        />
+                    </View>
+
+                    {/* Phone Number */}
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.whiteFfffff,
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            height: Math.max(48, height * 0.06),
+                            borderRadius: 15,
+                            marginBottom: height * 0.022,
+                        }}
+                        className="flex flex-row items-center"
+                    >
+                        <TextInput
+                            style={{
+                                flex: 1,
+                                paddingHorizontal: width * 0.04,
+                                color: Colors.light.blackPrimary,
+                                fontSize: Math.min(16, width * 0.035),
+                            }}
+                            placeholder={isHi ? 'फ़ोन नंबर दर्ज करें*' : 'Enter Phone Number*'}
+                            placeholderTextColor={Colors.light.placeholderColor}
+                            value={phoneNumber}
+                            onChangeText={(t) => { setPhoneNumber(t.replace(/[^0-9]/g, '')); if (errorMessage) setErrorMessage(''); }}
+                            keyboardType="numeric"
+                            maxLength={10}
+                        />
+                    </View>
+
+                    {/* Gender Dropdown */}
+                    <View
+                        className="relative"
+                        style={{
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            marginBottom: height * 0.022,
+                        }}
+                    >
+                        <TouchableOpacity
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
-                                borderColor: Colors.light.secondaryText,
-                                position: 'absolute',
-                                top: 56,
-                                width: '100%',
-                                zIndex: 1000,
-                                maxHeight: 150
+                                height: Math.max(48, height * 0.06),
+                                borderRadius: 15,
                             }}
-                            className="rounded-[10px] border"
+                            className="flex flex-row items-center justify-between px-4"
+                            onPress={() => {
+                                setIsGenderDropdownOpen(!isGenderDropdownOpen);
+                                setGenderSearchQuery('');
+                            }}
                         >
-                            {/* Search input for filtering gender */}
-                            <View style={{ borderColor: Colors.light.secondaryText }} className="px-4 py-1 border-b">
+                            <Text
+                                style={{
+                                    color: gender ? Colors.light.blackPrimary : Colors.light.placeholderColor,
+                                    fontSize: Math.min(16, width * 0.035),
+                                }}
+                            >
+                                {gender || (isHi ? 'लिंग चुनें*' : 'Select Gender*')}
+                            </Text>
+                            <Image
+                                source={isGenderDropdownOpen ? icons.dropdownicon : icons.upicon}
+                                style={{ width: width * 0.03, height: width * 0.03 }}
+                            />
+                        </TouchableOpacity>
+                        {isGenderDropdownOpen && (
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderWidth: 1,
+                                    borderColor: Colors.light.secondaryText,
+                                    position: 'absolute',
+                                    top: Math.max(48, height * 0.06),
+                                    width: '100%',
+                                    zIndex: 1000,
+                                    borderRadius: 10,
+                                    maxHeight: height * 0.25,
+                                }}
+                            >
                                 <TextInput
-                                    style={{ backgroundColor: Colors.light.whiteFefefe, color: Colors.light.blackPrimary }}
-                                    className="h-[40px] px-3 rounded-[8px]"
-                                    placeholder="Search gender..."
+                                    style={{
+                                        backgroundColor: Colors.light.whiteFefefe,
+                                        color: Colors.light.blackPrimary,
+                                        paddingHorizontal: width * 0.03,
+                                        height: height * 0.05,
+                                    }}
+                                    placeholder={isHi ? 'लिंग खोजें...' : 'Search gender...'}
                                     placeholderTextColor={Colors.light.placeholderColor}
                                     value={genderSearchQuery}
                                     onChangeText={setGenderSearchQuery}
-                                    autoFocus={false}
-                                    editable={!isLoading}
                                 />
-                            </View>
-
-                            {/* Scrollable gender options list */}
-                            <ScrollView
-                                style={{ maxHeight: 100 }}
-                                nestedScrollEnabled={true}
-                                showsVerticalScrollIndicator={true}
-                            >
-                                {filteredGenderOptions.length > 0 ? (
-                                    filteredGenderOptions.map((option, index) => (
-                                        <TouchableOpacity
-                                            key={index}
-                                            style={{ borderColor: Colors.light.secondaryText }}
-                                            className="px-5 py-4 h-[56px] justify-center border-b last:border-b-0"
-                                            onPress={() => handleGenderSelect(option)}
-                                            disabled={isLoading}
-                                        >
-                                            <Text style={{ color: Colors.light.blackPrimary }} className="text-base">
-                                                {option.label}
+                                <ScrollView style={{ maxHeight: height * 0.18 }}>
+                                    {filteredGender.length > 0 ? (
+                                        filteredGender.map((g, i) => (
+                                            <TouchableOpacity
+                                                key={i}
+                                                style={{
+                                                    paddingHorizontal: width * 0.04,
+                                                    height: Math.max(48, height * 0.06),
+                                                    borderBottomWidth: i < filteredGender.length - 1 ? 1 : 0,
+                                                    borderColor: Colors.light.secondaryText,
+                                                }}
+                                                className="justify-center"
+                                                onPress={() => {
+                                                    setGender(g.label);
+                                                    setIsGenderDropdownOpen(false);
+                                                    setGenderSearchQuery('');
+                                                    if (errorMessage) setErrorMessage('');
+                                                }}
+                                            >
+                                                <Text
+                                                    style={{
+                                                        color: Colors.light.blackPrimary,
+                                                        fontSize: Math.min(16, width * 0.04),
+                                                    }}
+                                                >
+                                                    {g.label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))
+                                    ) : (
+                                        <View style={{ padding: width * 0.04 }}>
+                                            <Text style={{ color: Colors.light.placeholderColor }}>
+                                                {isHi ? 'कोई विकल्प नहीं' : 'No options'}
                                             </Text>
-                                        </TouchableOpacity>
-                                    ))
-                                ) : (
-                                    <View className="px-5 py-4 h-[56px] justify-center">
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-base">
-                                            No gender found
-                                        </Text>
-                                    </View>
-                                )}
-                            </ScrollView>
-                        </View>
-                    )}
-                </View>
+                                        </View>
+                                    )}
+                                </ScrollView>
+                            </View>
+                        )}
+                    </View>
 
-
-                {/* Phone Number input - Enhanced with numeric validation */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] mb-5">
-                    <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="w-[280px] h-[56px] ml-5"
-                        placeholder="Enter Phone Number*"
-                        placeholderTextColor={Colors.light.placeholderColor}
-                        value={phoneNumber}
-                        onChangeText={handlePhoneChange}
-                        keyboardType="numeric"
-                        maxLength={10}
-                        editable={!isLoading}
-                    />
-
-                </View>
-
-                {/* =================== OCCUPATION DROPDOWN SECTION =================== */}
-                <View className="w-[370px] mb-2 relative">
-                    {/* Dropdown trigger button */}
-                    <TouchableOpacity
-                        style={{ backgroundColor: Colors.light.whiteFfffff }}
-                        className="flex flex-row items-center justify-between w-[370px] h-[56px] rounded-[15px] px-5"
-                        onPress={handleDropdownToggle}
-                        disabled={isLoading}
+                    {/* Occupation Dropdown */}
+                    <View
+                        className="relative"
+                        style={{
+                            width: '100%',
+                            maxWidth: width * 0.9,
+                            marginBottom: height * 0.01,
+                        }}
                     >
-                        <Text style={{ color: selectedOccupation ? Colors.light.blackPrimary : Colors.light.placeholderColor }} className="text-base">
-                            {selectedOccupation ? occupations.find(occ => occ.value === selectedOccupation)?.label : "Select Occupation*"}
-                        </Text>
-                        <Image
-                            source={isDropdownOpen ? icons.dropdownicon : icons.upicon}
-                            className="w-3 h-3"
-                            style={{ opacity: isLoading ? 0.5 : 1 }}
-                        />
-                    </TouchableOpacity>
-
-                    {/* Dropdown options container */}
-                    {isDropdownOpen && (
-                        <View
+                        <TouchableOpacity
                             style={{
                                 backgroundColor: Colors.light.whiteFfffff,
-                                borderColor: Colors.light.secondaryText,
-                                position: 'absolute',
-                                top: 56, // Height of the trigger button
-                                width: '100%',
-                                zIndex: 1000,
-                                maxHeight: 150
+                                height: Math.max(48, height * 0.06),
+                                borderRadius: 15,
                             }}
-                            className="rounded-[10px] border"
+                            className="flex flex-row items-center justify-between px-4"
+                            onPress={() => {
+                                setIsDropdownOpen(!isDropdownOpen);
+                                setSearchQuery('');
+                            }}
                         >
-                            {/* Search input */}
-                            <View style={{ borderColor: Colors.light.secondaryText }} className="px-4 py-1 border-b">
+                            <Text
+                                style={{
+                                    color: selectedOccupation
+                                        ? Colors.light.blackPrimary
+                                        : Colors.light.placeholderColor,
+                                    fontSize: Math.min(16, width * 0.035),
+                                }}
+                            >
+                                {selectedOccupation
+                                    ? occupations.find(o => o.value === selectedOccupation)?.label ?? ''
+                                    : isHi
+                                        ? 'व्यवसाय चुनें*'
+                                        : 'Select Occupation*'}
+                            </Text>
+                            <Image
+                                source={isDropdownOpen ? icons.dropdownicon : icons.upicon}
+                                style={{ width: width * 0.03, height: width * 0.03 }}
+                            />
+                        </TouchableOpacity>
+                        {isDropdownOpen && (
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderWidth: 1,
+                                    borderColor: Colors.light.secondaryText,
+                                    position: 'absolute',
+                                    top: Math.max(48, height * 0.06),
+                                    width: '100%',
+                                    zIndex: 1000,
+                                    borderRadius: 10,
+                                    maxHeight: height * 0.25,
+                                }}
+                            >
                                 <TextInput
-                                    style={{ backgroundColor: Colors.light.whiteFefefe, color: Colors.light.blackPrimary }}
-                                    className="h-[40px] px-3 rounded-[8px]"
-                                    placeholder="Search occupation..."
+                                    style={{
+                                        backgroundColor: Colors.light.whiteFefefe,
+                                        color: Colors.light.blackPrimary,
+                                        paddingHorizontal: width * 0.03,
+                                        height: height * 0.05,
+                                    }}
+                                    placeholder={isHi ? 'व्यवसाय खोजें...' : 'Search occupation...'}
                                     placeholderTextColor={Colors.light.placeholderColor}
                                     value={searchQuery}
                                     onChangeText={setSearchQuery}
-                                    autoFocus={false}
-                                    editable={!isLoading}
                                 />
-                            </View>
-
-                            {/* Scrollable occupation list */}
-                            <ScrollView
-                                style={{ maxHeight: 100 }}
-                                nestedScrollEnabled={true}
-                                showsVerticalScrollIndicator={true}
-                            >
-                                {filteredOccupations.length > 0 ? (
-                                    filteredOccupations.map((occupation, index) => (
-                                        <TouchableOpacity
-                                            key={index}
-                                            style={{ borderColor: Colors.light.secondaryText }}
-                                            className="px-5 py-4 h-[56px] justify-center border-b last:border-b-0"
-                                            onPress={() => handleOccupationSelect(occupation)}
-                                            disabled={isLoading}
-                                        >
-                                            <Text style={{ color: Colors.light.blackPrimary }} className="text-base">
-                                                {occupation.label}
+                                <ScrollView style={{ maxHeight: height * 0.18 }}>
+                                    {filteredOccupations.length > 0 ? (
+                                        filteredOccupations.map((o, i) => (
+                                            <TouchableOpacity
+                                                key={i}
+                                                style={{
+                                                    paddingHorizontal: width * 0.04,
+                                                    height: Math.max(48, height * 0.06),
+                                                    borderBottomWidth: i < filteredOccupations.length - 1 ? 1 : 0,
+                                                    borderColor: Colors.light.secondaryText,
+                                                }}
+                                                className="justify-center"
+                                                onPress={() => {
+                                                    setSelectedOccupation(o.value);
+                                                    setIsDropdownOpen(false);
+                                                    setSearchQuery('');
+                                                    if (errorMessage) setErrorMessage('');
+                                                }}
+                                            >
+                                                <Text
+                                                    style={{
+                                                        color: Colors.light.blackPrimary,
+                                                        fontSize: Math.min(16, width * 0.04),
+                                                    }}
+                                                >
+                                                    {o.label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))
+                                    ) : (
+                                        <View style={{ padding: width * 0.04 }}>
+                                            <Text style={{ color: Colors.light.placeholderColor }}>
+                                                {isHi ? 'कोई व्यवसाय नहीं' : 'No occupations'}
                                             </Text>
-                                        </TouchableOpacity>
-                                    ))
-                                ) : (
-                                    <View className="px-5 py-4 h-[56px] justify-center">
-                                        <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-base">
-                                            No occupations found
-                                        </Text>
-                                    </View>
-                                )}
-                            </ScrollView>
-                        </View>
-                    )}
-                </View>
+                                        </View>
+                                    )}
+                                </ScrollView>
+                            </View>
+                        )}
+                    </View>
 
-
-                {/* Error message display */}
-                {errorMessage ? (
-                    <View className="w-[350px] px-4">
-                        <Text style={{ color: '#EF4444' }} className="text-center text-sm font-medium">
+                    {errorMessage ? (
+                        <Text style={{ color: '#EF4444', textAlign: 'center' }}>
                             {errorMessage}
                         </Text>
-                    </View>
-                ) : null}
+                    ) : null}
+                </View>
 
-            </View >
+                {/* Next Button */}
+                <View
+                    className="absolute items-center"
+                    style={{ top: height * 0.82, width: '100%' }}
+                >
+                    <CustomGradientButton
+                        text={
+                            isLoading
+                                ? (isHi ? 'सेव हो रहा है...' : 'Saving...')
+                                : (isHi ? 'अगला' : 'Next')
+                        }
+                        width={Math.min(width * 0.9, 500)}
+                        height={Math.max(48, height * 0.06)}
+                        borderRadius={100}
+                        fontSize={Math.min(18, width * 0.045)}
+                        textColor={Colors.light.whiteFfffff}
+                        onPress={proceed}
+                        disabled={isLoading}
+                    />
+                </View>
 
-            {/* =================== NEXT BUTTON SECTION =================== */}
-            <View className="absolute top-[750px]" >
-                <CustomGradientButton
-                    text={isLoading ? "Saving..." : "Next"}
-                    width={370}
-                    height={56}
-                    borderRadius={100}
-                    fontSize={18}
-                    fontWeight="600"
-                    textColor={Colors.light.whiteFfffff}
-                    onPress={proceedToUserDetails}
-                    disabled={isLoading}
-                    style={{
-                        opacity: isLoading ? 0.6 : 1,
-                    }}
-                />
+                {/* Footer */}
+                <View
+                    className="absolute items-center"
+                    style={{ bottom: height * 0.04 }}
+                >
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFfffff,
+                            fontSize: width * 0.07,
+                        }}
+                        className="font-bold"
+                    >
+                        MIRAGIO
+                    </Text>
+                </View>
             </View>
-
-            {/* =================== FOOTER BRAND NAME =================== */}
-            <View className="absolute bottom-8">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">MIRAGIO</Text>
-            </View>
-
-        </View >
-    )
+        </ScrollView>
+    );
 };
 
 export default KYC;

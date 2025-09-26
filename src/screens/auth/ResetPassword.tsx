@@ -1,4 +1,4 @@
-import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, Text, TextInput, TouchableOpacity, View, Dimensions } from "react-native";
 import { useState } from "react";
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg from "../../assets/images/bg.png";
@@ -9,15 +9,25 @@ import CustomGradientButton from "../../components/CustomGradientButton";
 import EmailSentModal from "../../components/EmailSentModal";
 import { Colors } from "../../constants/Colors";
 import type { AuthStackParamList } from '../../navigation/types';
+// Translation imports - USING OUR CUSTOM COMPONENTS
+import { TranslatedText } from '../../components/TranslatedText';
+import { useTranslation } from '../../context/TranslationContext';
+import { usePlaceholder } from '../../hooks/useTranslatedText';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
 
+const { width, height } = Dimensions.get('window');
+
 const ResetPassword = ({ navigation }: Props) => {
+    const { currentLanguage } = useTranslation();
 
     const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
     const [email, setEmail] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>("");
+
+    // Using our custom placeholder hook
+    const emailPlaceholder = usePlaceholder('Email', 'ईमेल');
 
     // Email validation function
     const isValidEmail = (email: string): boolean => {
@@ -25,39 +35,12 @@ const ResetPassword = ({ navigation }: Props) => {
         return emailRegex.test(email);
     };
 
-    // FIXED: Send reset code function - using the parameter to avoid warning
+    // Send reset code function
     const sendResetCode = async (userEmail: string) => {
         try {
-            // Simulate API call delay
             await new Promise<void>(resolve => setTimeout(() => resolve(), 2000));
-
-            // TODO: Replace with actual API call when ready
-            console.log('Sending reset code to:', userEmail); // Using userEmail parameter
+            console.log('Sending reset code to:', userEmail);
             return { success: true, message: 'Verification code sent successfully' };
-
-            /* 
-            // UNCOMMENT WHEN YOU HAVE REAL API:
-            const response = await fetch('https://netinnovatus.tech/miragio_task/api/api.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "reset_password_request",
-                    email: userEmail  // This uses the parameter when API is active
-                }),
-            });
-
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                return { success: true, message: 'Verification code sent successfully' };
-            } else {
-                return { success: false, message: result.message || 'Failed to send verification code' };
-            }
-            */
-
         } catch (error) {
             console.error('Reset password API error:', error);
             return { success: false, message: 'Network error. Please try again.' };
@@ -66,52 +49,44 @@ const ResetPassword = ({ navigation }: Props) => {
 
     // Handle request button press
     const handleRequestLoginLink = async () => {
-        // Clear previous error
         setErrorMessage("");
 
-        // Validate email input
+        // Validate email input - using conditional for error messages
         if (!email.trim()) {
-            setErrorMessage('Please enter your email address');
+            setErrorMessage(currentLanguage === 'hi' ? 'कृपया अपना ईमेल पता दर्ज करें' : 'Please enter your email address');
             return;
         }
 
         if (!isValidEmail(email.trim())) {
-            setErrorMessage('Please enter a valid email address');
+            setErrorMessage(currentLanguage === 'hi' ? 'कृपया वैध ईमेल पता दर्ज करें' : 'Please enter a valid email address');
             return;
         }
 
         setIsLoading(true);
 
         try {
-            // Call the API function
             const result = await sendResetCode(email.trim());
 
             if (result.success) {
-                // Show success modal
                 setShowEmailModal(true);
             } else {
-                // Show error message
                 setErrorMessage(result.message);
             }
         } catch (error) {
             console.error('Unexpected error:', error);
-            setErrorMessage('Something went wrong. Please try again.');
+            setErrorMessage(currentLanguage === 'hi' ? 'कुछ गलत हुआ। कृपया फिर से कोशिश करें।' : 'Something went wrong. Please try again.');
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Handle modal close and navigation
     const handleModalClose = () => {
         setShowEmailModal(false);
-
-        // Navigate to verify code screen
         setTimeout(() => {
             navigation.navigate('VerifyCode', { email: email.trim() });
         }, 100);
     };
 
-    // Back button handler
     const handleBackPress = (): void => {
         if (!isLoading) {
             navigation.navigate('SignIn');
@@ -119,57 +94,142 @@ const ResetPassword = ({ navigation }: Props) => {
     };
 
     return (
-        <View className="flex items-center ">
+        <View className="flex-1 items-center">
+            {/* Background Image */}
+            <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#000', // Fallback color
+            }}>
+                <Image
+                    source={bg}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        minWidth: width,
+                        minHeight: height,
+                    }}
+                    resizeMode="cover"
+                />
+            </View>
 
-            {/* =================== BACKGROUND IMAGE =================== */}
+            {/* Back Button */}
+            <TouchableOpacity
+                className="absolute flex items-center justify-center"
+                style={{
+                    left: width * 0.04,
+                    top: height * 0.09,
+                    width: width * 0.12,
+                    height: height * 0.06,
+                    zIndex: 10
+                }}
+                onPress={handleBackPress}
+            >
+                {icons && (
+                    <Image
+                        source={icons.back}
+                        style={{
+                            width: width * 0.06,
+                            height: width * 0.07,
+                            opacity: isLoading ? 0.5 : 1
+                        }}
+                    />
+                )}
+            </TouchableOpacity>
+
+            {/* Logo */}
             <Image
-                source={bg}
-                resizeMode="cover"
-                className="w-full h-full"
+                source={logo}
+                style={{
+                    position: 'absolute',
+                    top: height * 0.08,
+                    width: width * 0.25,
+                    height: width * 0.22
+                }}
             />
 
-            {/* =================== HEADER SECTION WITH LOGO =================== */}
-            <View className="absolute  flex  items-center w-full" >
-                {/* Back button */}
-                <TouchableOpacity
-                    className="absolute flex left-[10px] top-[105px]"
-                    onPress={handleBackPress}
-                    disabled={isLoading}
-                >
-                    {icons && (
-                        <Image
-                            source={icons.back}
-                            className="w-[25px] h-[30px] mx-4"
-                            style={{ opacity: isLoading ? 0.5 : 1 }}
-                        />
-                    )}
-                </TouchableOpacity>
-
-                {/* Miragio logo */}
+            {/* Illustration */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.30
+                }}
+            >
                 <Image
-                    source={logo}
-                    className=" top-[80px] w-[100px] h-[85px]" />
-            </View >
-
-            {/* =================== ILLUSTRATION SECTION =================== */}
-            <View className="absolute top-[280px]">
-                <Image source={resetpassimg}
-                    className="h-[170px] w-[142px]" />
+                    source={resetpassimg}
+                    style={{
+                        height: height * 0.2,
+                        width: width * 0.36,
+                        resizeMode: 'contain'
+                    }}
+                />
             </View>
 
-            {/* =================== RESET PASSWORD INSTRUCTIONS SECTION =================== */}
-            <View className="absolute top-[490px] flex flex-col justify-center items-center w-[300px]">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">Reset Password</Text>
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-xl mt-5 text-center ">We'll send a verification code to your email address.</Text>
+            {/* Reset Password Instructions - USING TranslatedText */}
+            <View
+                className="absolute flex flex-col justify-center items-center"
+                style={{
+                    top: height * 0.54,
+                    width: width * 0.8,
+                    paddingHorizontal: width * 0.04
+                }}
+            >
+                <TranslatedText
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07,
+                        lineHeight: width * 0.09,
+                        width: width * 0.9
+                    }}
+                    className="font-bold text-center"
+                >
+                    Reset Password
+                </TranslatedText>
+                <TranslatedText
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.045,
+                        lineHeight: width * 0.07,
+                        marginTop: height * 0.02
+                    }}
+                    className="text-center"
+                >
+                    We'll send a verification code to your email address.
+                </TranslatedText>
             </View>
 
-            {/* =================== EMAIL INPUT SECTION =================== */}
-            <View className="absolute top-[610px]"> {/* FIXED: Changed from top-[60px] to top-[610px] */}
-                <View style={{ backgroundColor: Colors.light.whiteFfffff }} className="flex flex-row items-center w-[370px] h-[56px] rounded-[15px] ">
+            {/* Email Input Section - using our placeholder hook */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.69,
+                    width: '100%',
+                    paddingHorizontal: width * 0.05
+                }}
+            >
+                <View
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        width: '100%',
+                        maxWidth: width * 0.9,
+                        height: Math.max(48, height * 0.06),
+                        borderRadius: 15
+                    }}
+                    className="flex flex-row items-center"
+                >
                     <TextInput
-                        style={{ backgroundColor: Colors.light.whiteFfffff, color: Colors.light.blackPrimary }}
-                        className="w-[320px] h-[56px] ml-6"
-                        placeholder="Email"
+                        style={{
+                            backgroundColor: 'transparent',
+                            color: Colors.light.blackPrimary,
+                            flex: 1,
+                            fontSize: Math.min(16, width * 0.035),
+                            paddingHorizontal: width * 0.04,
+                            paddingVertical: 0
+                        }}
+                        placeholder={emailPlaceholder}
                         placeholderTextColor={Colors.light.placeholderColor}
                         value={email}
                         onChangeText={(text) => {
@@ -187,10 +247,12 @@ const ResetPassword = ({ navigation }: Props) => {
                     <Text
                         style={{
                             color: '#FF4444',
-                            fontSize: 14,
+                            fontSize: width * 0.03,
                             textAlign: 'center',
-                            marginTop: 8,
+                            marginTop: height * 0.01,
                             fontWeight: '500',
+                            width: '100%',
+                            maxWidth: width * 0.85
                         }}
                     >
                         {errorMessage}
@@ -198,14 +260,21 @@ const ResetPassword = ({ navigation }: Props) => {
                 )}
             </View>
 
-            {/* =================== SUBMIT BUTTON SECTION =================== */}
-            <View className="absolute top-[720px]" >
+            {/* Submit Button - USING conditional for button text only */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.8,
+                    width: '100%',
+                    paddingHorizontal: width * 0.02
+                }}
+            >
                 <CustomGradientButton
-                    text={isLoading ? "Sending..." : "Send Verification Code"}
-                    width={370}
-                    height={56}
+                    text={isLoading ? (currentLanguage === 'hi' ? "भेज रहे हैं..." : "Sending...") : (currentLanguage === 'hi' ? "सत्यापन कोड भेजें" : "Send Verification Code")}
+                    width={Math.min(width * 0.9, 500)}
+                    height={Math.max(48, height * 0.06)}
                     borderRadius={15}
-                    fontSize={18}
+                    fontSize={Math.min(18, width * 0.045)}
                     fontWeight="600"
                     textColor={Colors.light.whiteFfffff}
                     onPress={handleRequestLoginLink}
@@ -216,20 +285,32 @@ const ResetPassword = ({ navigation }: Props) => {
                 />
             </View>
 
-            {/* =================== FOOTER BRAND NAME =================== */}
-            <View className="absolute bottom-8">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">MIRAGIO</Text>
+            {/* Footer */}
+            <View
+                className="absolute items-center"
+                style={{
+                    bottom: height * 0.034
+                }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07
+                    }}
+                    className="font-bold"
+                >
+                    MIRAGIO
+                </Text>
             </View>
 
-            {/* =================== EMAIL SENT MODAL =================== */}
+            {/* Email Sent Modal */}
             <EmailSentModal
                 visible={showEmailModal}
                 onClose={handleModalClose}
                 email={email || "k*******9@gmail.com"}
             />
-
-        </View >
-    )
-}
+        </View>
+    );
+};
 
 export default ResetPassword;

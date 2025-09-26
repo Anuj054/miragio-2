@@ -1,64 +1,143 @@
-import { Image, Text, View } from "react-native";
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React from "react";
+import { Image, Text, View, Dimensions } from "react-native";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import bg from "../../assets/images/bg.png";
 import tick from "../../assets/images/tick.png";
-import CustomGradientButton from "../../components/CustomGradientButton"; // Updated import
+import CustomGradientButton from "../../components/CustomGradientButton";
 import { Colors } from "../../constants/Colors";
-import type { AuthStackParamList } from '../../navigation/types';
+import type { AuthStackParamList } from "../../navigation/types";
 
-// FIXED: Proper TypeScript props for React Native CLI
-type Props = NativeStackScreenProps<AuthStackParamList, 'ResetSuccess'>;
+// ✅ Translation
+import { useTranslation } from "../../context/TranslationContext";
+import { TranslatedText } from "../../components/TranslatedText";
 
-const ResetSuccess = ({ navigation }: Props) => { // Changed component name
+type Props = NativeStackScreenProps<AuthStackParamList, "ResetSuccess">;
 
-    // FIXED: Handle login button press for React Native CLI
+const { width, height } = Dimensions.get("window");
+
+const ResetSuccess = ({ navigation }: Props) => {
+    const { currentLanguage } = useTranslation();
+    const isHi = currentLanguage === "hi";
+
     const handleLoginPress = () => {
-        // Navigate to SignIn screen
-        navigation.navigate('SignIn');
+        navigation.navigate("SignIn");
     };
 
     return (
-        <View className="flex items-center ">
-
-            {/* =================== BACKGROUND IMAGE =================== */}
-            <Image
-                source={bg}
-                resizeMode="cover"
-                className="w-full h-full"
-            />
-
-            {/* =================== SUCCESS ICON SECTION =================== */}
-            <View className=" absolute top-[200px]">
-                <Image source={tick} className="w-[360px] h-[360px]" />
-            </View>
-
-            {/* =================== SUCCESS MESSAGE SECTION =================== */}
-            <View className=" absolute top-[600px] w-[300px] flex justify-center items-center">
-                <Text style={{ color: Colors.light.whiteFefefe }} className="text-3xl font-bold flex justify-center text-center ">Password Successful Changed</Text>
-                <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl pt-5">You'll redirect to Login Page</Text>
-            </View>
-
-            {/* =================== LOGIN BUTTON SECTION =================== */}
-            <View className="absolute top-[780px]" >
-                <CustomGradientButton
-                    text="Login"
-                    width={370}
-                    height={56}
-                    fontWeight={600}
-                    borderRadius={15}
-                    fontSize={18}
-                    textColor={Colors.light.whiteFfffff}
-                    onPress={handleLoginPress} // FIXED: Only the navigation function changed
+        <View className="flex-1 items-center">
+            {/* Background Image */}
+            <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#000', // Fallback color
+            }}>
+                <Image
+                    source={bg}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        minWidth: width,
+                        minHeight: height,
+                    }}
+                    resizeMode="cover"
                 />
             </View>
 
-            {/* =================== FOOTER BRAND NAME =================== */}
-            <View className="absolute bottom-8">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-3xl font-bold">MIRAGIO</Text>
+            {/* Success Icon Section */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.19,
+                }}
+            >
+                <Image
+                    source={tick}
+                    style={{
+                        width: Math.min(width * 0.9, 350),
+                        height: Math.min(width * 0.9, 350),
+                        resizeMode: "contain",
+                    }}
+                />
             </View>
 
-        </View >
-    )
+            {/* Success Message Section */}
+            <View
+                className="absolute flex justify-center items-center"
+                style={{
+                    top: height * 0.66,
+                    width: width * 0.85,
+                    paddingHorizontal: width * 0.04,
+                }}
+            >
+                <TranslatedText
+                    className="font-bold text-center"
+                    style={{
+                        color: Colors.light.whiteFefefe,
+                        fontSize: width * 0.069,
+                        lineHeight: width * 0.09,
+                    }}
+                >
+                    {isHi ? "पासवर्ड सफलतापूर्वक बदला गया" : "Password Successfully Changed"}
+                </TranslatedText>
+
+                <TranslatedText
+                    className="text-center"
+                    style={{
+                        color: Colors.light.whiteFefefe,
+                        fontSize: width * 0.049,
+                        lineHeight: width * 0.06,
+                        marginTop: height * 0.02,
+                    }}
+                >
+                    {isHi
+                        ? "आप लॉगिन पेज पर रीडायरेक्ट हो जाएंगे"
+                        : "You'll redirect to Login Page"}
+                </TranslatedText>
+            </View>
+
+            {/* Login Button */}
+            <View
+                className="absolute items-center"
+                style={{
+                    top: height * 0.84,
+                    width: "100%",
+                    paddingHorizontal: width * 0.02,
+                }}
+            >
+                <CustomGradientButton
+                    text={isHi ? "लॉगिन" : "Login"}
+                    width={Math.min(width * 0.9, 500)}
+                    height={Math.max(48, height * 0.06)}
+                    fontWeight={600}
+                    borderRadius={15}
+                    fontSize={Math.min(18, width * 0.045)}
+                    textColor={Colors.light.whiteFfffff}
+                    onPress={handleLoginPress}
+                />
+            </View>
+
+            {/* Footer Brand Name */}
+            <View
+                className="absolute items-center"
+                style={{
+                    bottom: height * 0.034,
+                }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07,
+                    }}
+                    className="font-bold"
+                >
+                    MIRAGIO
+                </Text>
+            </View>
+        </View>
+    );
 };
 
-export default ResetSuccess; // FIXED: Component name matches navigator registration
+export default ResetSuccess;

@@ -1,10 +1,10 @@
-// src/context/UserContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import messaging from '@react-native-firebase/messaging';
 
-// Types for user data
-interface UserData {
+// ---------- Types ----------
+export interface UserData {
     id: string;
     username: string;
     email: string;
@@ -28,8 +28,7 @@ interface LoginResponse {
     data: UserData;
 }
 
-// ADDED: Signup/Registration related interfaces
-interface SignupData {
+export interface SignupData {
     username: string;
     email: string;
     password: string;
@@ -46,493 +45,364 @@ interface SignupData {
 interface SignupResponse {
     status: string;
     message: string;
-    data?: {
-        user_id: string;
-        otp_token?: string;
-    };
+    data?: { user_id: string; otp_token?: string };
 }
 
-interface OTPVerificationResponse {
-    status: string;
-    message: string;
-    data?: UserData;
-}
-
-interface UserContextType {
-    // User state
+export interface UserContextType {
     user: UserData | null;
     isLoggedIn: boolean;
     isAuthenticated: boolean;
     isLoading: boolean;
 
-    // ADDED: Signup state
     pendingSignupData: SignupData | null;
     pendingUserId: string | null;
 
-    // Authentication methods
     login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
     logout: () => Promise<void>;
-
-    // ADDED: Signup methods
     registerUser: (signupData: SignupData) => Promise<{ success: boolean; message: string; userId?: string }>;
-    verifyOTP: (otp: string, userId: string) => Promise<{ success: boolean; message: string }>;
-    resendOTP: (userId: string) => Promise<{ success: boolean; message: string }>;
 
-    // User data methods
-    refreshUserData: () => Promise<void>;
+    refreshUserData: (userId?: string) => Promise<void>;
     updateUserData: (userData: Partial<UserData>) => void;
 
-    // ADDED: Signup data management
     storePendingSignupData: (signupData: SignupData, userId: string) => void;
     clearPendingSignupData: () => void;
 
-    // Utility methods
     getUserId: () => string | null;
     getUserEmail: () => string | null;
     getUserName: () => string | null;
     getUserWallet: () => string | null;
+
+    // ➕ FCM token functionality
+    storeFcmToken: (userId: string) => Promise<{ success: boolean; message: string }>;
 }
 
-// Create the context
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-// Storage keys
+// ---------- Constants ----------
 const STORAGE_KEYS = {
     USER_DATA: '@user_data',
     USER_ID: '@user_id',
     IS_LOGGED_IN: '@is_logged_in',
-    PENDING_SIGNUP_DATA: '@pending_signup_data', // ADDED
-    PENDING_USER_ID: '@pending_user_id' // ADDED
+    PENDING_SIGNUP_DATA: '@pending_signup_data',
+    PENDING_USER_ID: '@pending_user_id',
+    FCM_TOKEN: '@fcm_token',
 };
 
-// API configuration
-const API_BASE_URL = 'https://netinnovatus.tech/miragio_task/api/api.php';
+const API_BASE_URL = 'https://miragiofintech.org/api/api.php';
 
-// Helper function to normalize user data and ensure all values are strings
-const normalizeUserData = (userData: any): UserData => {
-    return {
-        id: String(userData.id || ''),
-        username: String(userData.username || ''),
-        email: String(userData.email || ''),
-        age: String(userData.age || ''),
-        gender: String(userData.gender || ''),
-        occupation: String(userData.occupation || ''),
-        aadharnumber: String(userData.aadharnumber || ''),
-        phone_number: String(userData.phone_number || ''),
-        user_role: String(userData.user_role || ''),
-        wallet: String(userData.wallet || '0'),
-        status: String(userData.status || ''),
-        created_at: String(userData.created_at || ''),
-        instagram_username: userData.instagram_username || '',
-        upi: userData.upi || '',
-        pan_number: userData.pan_number || ''
-    };
-};
+// Normalize user data so all values are strings
+const normalizeUserData = (data: any): UserData => ({
+    id: String(data.id || ''),
+    username: String(data.username || ''),
+    email: String(data.email || ''),
+    age: String(data.age || ''),
+    gender: String(data.gender || ''),
+    occupation: String(data.occupation || ''),
+    aadharnumber: String(data.aadharnumber || ''),
+    phone_number: String(data.phone_number || ''),
+    user_role: String(data.user_role || ''),
+    wallet: String(data.wallet || '0'),
+    status: String(data.status || ''),
+    created_at: String(data.created_at || ''),
+    instagram_username: data.instagram_username || '',
+    upi: data.upi || '',
+    pan_number: data.pan_number || '',
+});
 
-// Provider component
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<UserData | null>(null);
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // ADDED: Signup state
     const [pendingSignupData, setPendingSignupData] = useState<SignupData | null>(null);
     const [pendingUserId, setPendingUserId] = useState<string | null>(null);
 
-    // Initialize user data on app start
     useEffect(() => {
         initializeUser();
+        initializeFCMToken();
     }, []);
 
-    // Initialize user from storage
+    // Initialize FCM token on app start
+    const initializeFCMToken = async () => {
+        try {
+            const token = await messaging().getToken();
+            if (token) {
+                await AsyncStorage.setItem(STORAGE_KEYS.FCM_TOKEN, token);
+                console.log('📱 FCM Token initialized:', token);
+            }
+        } catch (error) {
+            console.error('❌ Error initializing FCM token:', error);
+        }
+    };
+
     const initializeUser = async () => {
         try {
             setIsLoading(true);
+            const [storedUserData, storedLoginStatus, storedSignupData, storedPendingUserId] =
+                await Promise.all([
+                    AsyncStorage.getItem(STORAGE_KEYS.USER_DATA),
+                    AsyncStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN),
+                    AsyncStorage.getItem(STORAGE_KEYS.PENDING_SIGNUP_DATA),
+                    AsyncStorage.getItem(STORAGE_KEYS.PENDING_USER_ID),
+                ]);
 
-            const [storedUserData, storedLoginStatus, storedSignupData, storedPendingUserId] = await Promise.all([
-                AsyncStorage.getItem(STORAGE_KEYS.USER_DATA),
-                AsyncStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN),
-                AsyncStorage.getItem(STORAGE_KEYS.PENDING_SIGNUP_DATA), // ADDED
-                AsyncStorage.getItem(STORAGE_KEYS.PENDING_USER_ID) // ADDED
-            ]);
-
-            // Restore pending signup data if exists
             if (storedSignupData && storedPendingUserId) {
                 setPendingSignupData(JSON.parse(storedSignupData));
                 setPendingUserId(storedPendingUserId);
             }
 
             if (storedUserData && storedLoginStatus === 'true') {
-                const userData = JSON.parse(storedUserData);
-                const normalizedUserData = normalizeUserData(userData);
+                const normalizedUserData = normalizeUserData(JSON.parse(storedUserData));
                 setUser(normalizedUserData);
                 setIsLoggedIn(true);
-
-                // Refresh user data to ensure it's current
                 await refreshUserData(normalizedUserData.id);
             }
-        } catch (error) {
-            console.error('Error initializing user:', error);
-            // Clear potentially corrupted data
+        } catch (err) {
+            console.error('❌ Error initializing user:', err);
             await clearUserData();
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Login function
-    const login = async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
+    // ---------- Auth Methods ----------
+    const login = async (email: string, password: string) => {
         try {
             setIsLoading(true);
-
-            const response = await fetch(API_BASE_URL, {
+            const res = await fetch(API_BASE_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "user_login",
-                    email: email.trim(),
-                    password: password.trim()
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'user_login', email: email.trim(), password: password.trim() }),
             });
-
-            const data: LoginResponse = await response.json();
+            const data: LoginResponse = await res.json();
 
             if (data.status === 'success' && data.data) {
-                // Normalize user data to ensure all values are strings
                 const normalizedUserData = normalizeUserData(data.data);
-
-                // Store user data
                 await storeUserData(normalizedUserData);
                 setUser(normalizedUserData);
                 setIsLoggedIn(true);
-
-                // Clear any pending signup data after successful login
                 await clearPendingSignupData();
 
                 return { success: true, message: data.message || 'Login successful!' };
-            } else {
-                return { success: false, message: data.message || 'Login failed. Please try again.' };
             }
-
-        } catch (error) {
-            console.error('Login error:', error);
+            return { success: false, message: data.message || 'Login failed. Please try again.' };
+        } catch (err) {
+            console.error('❌ Login error:', err);
             return { success: false, message: 'Network error. Please check your internet connection.' };
         } finally {
             setIsLoading(false);
         }
     };
 
-    // ADDED: Register user function
-    const registerUser = async (signupData: SignupData): Promise<{ success: boolean; message: string; userId?: string }> => {
+    const registerUser = async (signupData: SignupData) => {
         try {
             setIsLoading(true);
+            console.log('🔄 Registering user...');
 
-            const response = await fetch(API_BASE_URL, {
+            const res = await fetch(API_BASE_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "user_register", // Adjust action name as per your API
-                    ...signupData
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'user_register', ...signupData }),
             });
-
-            const data: SignupResponse = await response.json();
+            const data: SignupResponse = await res.json();
 
             if (data.status === 'success' && data.data?.user_id) {
-                // Store pending signup data for later use during OTP verification
+                console.log('✅ User registered successfully, User ID:', data.data.user_id);
                 await storePendingSignupData(signupData, data.data.user_id);
-
                 return {
                     success: true,
                     message: data.message || 'Registration successful! Please verify OTP.',
-                    userId: data.data.user_id
+                    userId: data.data.user_id,
                 };
-            } else {
-                return { success: false, message: data.message || 'Registration failed. Please try again.' };
             }
-
-        } catch (error) {
-            console.error('Registration error:', error);
+            return { success: false, message: data.message || 'Registration failed. Please try again.' };
+        } catch (err) {
+            console.error('❌ Registration error:', err);
             return { success: false, message: 'Network error. Please check your internet connection.' };
         } finally {
             setIsLoading(false);
         }
     };
 
-    // ADDED: Verify OTP and automatically login user
-    const verifyOTP = async (otp: string, userId: string): Promise<{ success: boolean; message: string }> => {
+    const logout = async () => {
         try {
             setIsLoading(true);
-
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "verify_otp", // Adjust action name as per your API
-                    otp: otp.trim(),
-                    user_id: userId
-                })
-            });
-
-            const data: OTPVerificationResponse = await response.json();
-
-            if (data.status === 'success') {
-                // OTP verified successfully - automatically login the user
-                if (data.data) {
-                    // User data returned from API
-                    const normalizedUserData = normalizeUserData(data.data);
-                    await storeUserData(normalizedUserData);
-                    setUser(normalizedUserData);
-                    setIsLoggedIn(true);
-                } else {
-                    // No user data returned, fetch it using the user ID
-                    await refreshUserData(userId);
-                    setIsLoggedIn(true);
-                }
-
-                // Clear pending signup data after successful verification
-                await clearPendingSignupData();
-
-                return {
-                    success: true,
-                    message: data.message || 'OTP verified successfully! Welcome to Miragio!'
-                };
-            } else {
-                return { success: false, message: data.message || 'Invalid OTP. Please try again.' };
-            }
-
-        } catch (error) {
-            console.error('OTP verification error:', error);
-            return { success: false, message: 'Network error. Please check your internet connection.' };
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // ADDED: Resend OTP function
-    const resendOTP = async (userId: string): Promise<{ success: boolean; message: string }> => {
-        try {
-            setIsLoading(true);
-
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "resend_otp", // Adjust action name as per your API
-                    user_id: userId
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.status === 'success') {
-                return { success: true, message: data.message || 'OTP sent successfully!' };
-            } else {
-                return { success: false, message: data.message || 'Failed to resend OTP. Please try again.' };
-            }
-
-        } catch (error) {
-            console.error('Resend OTP error:', error);
-            return { success: false, message: 'Network error. Please check your internet connection.' };
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Logout function
-    const logout = async (): Promise<void> => {
-        try {
-            setIsLoading(true);
+            console.log('🔄 Logging out user...');
             await clearUserData();
-            await clearPendingSignupData(); // Also clear pending data on logout
+            await clearPendingSignupData();
             setUser(null);
             setIsLoggedIn(false);
-        } catch (error) {
-            console.error('Logout error:', error);
+            console.log('✅ User logged out successfully');
+        } catch (err) {
+            console.error('❌ Logout error:', err);
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Refresh user data by ID
-    const refreshUserData = async (userId?: string): Promise<void> => {
+    // ---------- User Data ----------
+    const refreshUserData = async (userId?: string) => {
         try {
-            const userIdToUse = userId || user?.id;
-            if (!userIdToUse) {
-                throw new Error('No user ID available');
-            }
+            const id = userId || user?.id;
+            if (!id) return;
 
-            const response = await fetch(API_BASE_URL, {
+            console.log('🔄 Refreshing user data for:', id);
+            const res = await fetch(API_BASE_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "get_userdetails",
-                    id: userIdToUse
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'get_userdetails', id }),
             });
-
-            const data = await response.json();
+            const data = await res.json();
 
             if (data.status === 'success' && data.data) {
                 const normalizedUserData = normalizeUserData(data.data);
                 await storeUserData(normalizedUserData);
                 setUser(normalizedUserData);
-            } else {
-                console.error('Failed to refresh user data:', data.message);
+                console.log('✅ User data refreshed successfully');
+            }
+        } catch (err) {
+            console.error('❌ Error refreshing user data:', err);
+        }
+    };
+
+    const updateUserData = (userData: Partial<UserData>) => {
+        if (!user) return;
+        const updatedUser = normalizeUserData({ ...user, ...userData });
+        setUser(updatedUser);
+        storeUserData(updatedUser);
+        console.log('✅ User data updated locally');
+    };
+
+    const storeUserData = async (userData: UserData) => {
+        await Promise.all([
+            AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData)),
+            AsyncStorage.setItem(STORAGE_KEYS.USER_ID, userData.id),
+            AsyncStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'true'),
+        ]);
+    };
+
+    const clearUserData = async () => {
+        await Promise.all([
+            AsyncStorage.removeItem(STORAGE_KEYS.USER_DATA),
+            AsyncStorage.removeItem(STORAGE_KEYS.USER_ID),
+            AsyncStorage.removeItem(STORAGE_KEYS.IS_LOGGED_IN),
+        ]);
+    };
+
+    const storePendingSignupData = async (signupData: SignupData, userId: string) => {
+        setPendingSignupData(signupData);
+        setPendingUserId(userId);
+        await Promise.all([
+            AsyncStorage.setItem(STORAGE_KEYS.PENDING_SIGNUP_DATA, JSON.stringify(signupData)),
+            AsyncStorage.setItem(STORAGE_KEYS.PENDING_USER_ID, userId),
+        ]);
+        console.log('📝 Pending signup data stored for user:', userId);
+    };
+
+    const clearPendingSignupData = async () => {
+        setPendingSignupData(null);
+        setPendingUserId(null);
+        await Promise.all([
+            AsyncStorage.removeItem(STORAGE_KEYS.PENDING_SIGNUP_DATA),
+            AsyncStorage.removeItem(STORAGE_KEYS.PENDING_USER_ID),
+        ]);
+        console.log('🗑️ Pending signup data cleared');
+    };
+
+    // ---------- FCM Token Management ----------
+    const storeFcmToken = async (userId: string): Promise<{ success: boolean; message: string }> => {
+        try {
+            if (!userId) {
+                console.warn('❌ No user ID provided. Cannot store FCM token.');
+                return { success: false, message: 'No user ID provided.' };
             }
 
-        } catch (error) {
-            console.error('Error refreshing user data:', error);
+            console.log(`🔄 Getting FCM token for user ID: ${userId}`);
+
+            // Try to get fresh token first
+            let token = await messaging().getToken();
+
+            // Fallback to stored token if fresh token fails
+            if (!token) {
+                console.log('🔄 Fresh token not available, trying stored token...');
+                const storedToken = await AsyncStorage.getItem(STORAGE_KEYS.FCM_TOKEN);
+                token = storedToken || '';
+            }
+
+            if (!token) {
+                console.warn('❌ No FCM token available.');
+                return { success: false, message: 'No FCM token available.' };
+            }
+
+            console.log(`📱 FCM token found: ${token.substring(0, 20)}...`);
+            console.log(`🔄 Storing FCM token in database for user: ${userId}`);
+
+            const res = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'add_fcmtoken',
+                    user_id: userId,
+                    token: token
+                }),
+            });
+
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                console.log('✅ FCM token stored successfully in database:', data.message);
+                if (data.data) {
+                    console.log('📊 Token data:', {
+                        id: data.data.id,
+                        user_id: data.data.user_id,
+                        created_at: data.data.created_at
+                    });
+                }
+                // Store token locally for future reference
+                await AsyncStorage.setItem(STORAGE_KEYS.FCM_TOKEN, token);
+                return { success: true, message: data.message || 'FCM token stored successfully!' };
+            } else {
+                console.warn('⚠️ Failed to store FCM token in database:', data.message);
+                return { success: false, message: data.message || 'Failed to store FCM token.' };
+            }
+        } catch (err) {
+            console.error('❌ Error storing FCM token:', err);
+            return { success: false, message: 'Error storing FCM token.' };
         }
     };
 
-    // Update user data locally
-    const updateUserData = (userData: Partial<UserData>): void => {
-        if (user) {
-            const updatedUser = { ...user, ...userData };
-            const normalizedUpdatedUser = normalizeUserData(updatedUser);
-            setUser(normalizedUpdatedUser);
-            storeUserData(normalizedUpdatedUser);
-        }
-    };
+    // ---------- Utilities ----------
+    const getUserId = () => user?.id || null;
+    const getUserEmail = () => user?.email || null;
+    const getUserName = () => user?.username || null;
+    const getUserWallet = () => user?.wallet || null;
 
-    // Store user data in AsyncStorage
-    const storeUserData = async (userData: UserData): Promise<void> => {
-        try {
-            const normalizedUserData = normalizeUserData(userData);
-
-            await Promise.all([
-                AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(normalizedUserData)),
-                AsyncStorage.setItem(STORAGE_KEYS.USER_ID, normalizedUserData.id),
-                AsyncStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'true')
-            ]);
-        } catch (error) {
-            console.error('Error storing user data:', error);
-            throw error;
-        }
-    };
-
-    // Clear user data from AsyncStorage
-    const clearUserData = async (): Promise<void> => {
-        try {
-            await Promise.all([
-                AsyncStorage.removeItem(STORAGE_KEYS.USER_DATA),
-                AsyncStorage.removeItem(STORAGE_KEYS.USER_ID),
-                AsyncStorage.removeItem(STORAGE_KEYS.IS_LOGGED_IN)
-            ]);
-        } catch (error) {
-            console.error('Error clearing user data:', error);
-        }
-    };
-
-    // ADDED: Store pending signup data
-    const storePendingSignupData = async (signupData: SignupData, userId: string): Promise<void> => {
-        try {
-            setPendingSignupData(signupData);
-            setPendingUserId(userId);
-
-            await Promise.all([
-                AsyncStorage.setItem(STORAGE_KEYS.PENDING_SIGNUP_DATA, JSON.stringify(signupData)),
-                AsyncStorage.setItem(STORAGE_KEYS.PENDING_USER_ID, userId)
-            ]);
-        } catch (error) {
-            console.error('Error storing pending signup data:', error);
-        }
-    };
-
-    // ADDED: Clear pending signup data
-    const clearPendingSignupData = async (): Promise<void> => {
-        try {
-            setPendingSignupData(null);
-            setPendingUserId(null);
-
-            await Promise.all([
-                AsyncStorage.removeItem(STORAGE_KEYS.PENDING_SIGNUP_DATA),
-                AsyncStorage.removeItem(STORAGE_KEYS.PENDING_USER_ID)
-            ]);
-        } catch (error) {
-            console.error('Error clearing pending signup data:', error);
-        }
-    };
-
-    // Utility functions
-    const getUserId = (): string | null => {
-        return user?.id || null;
-    };
-
-    const getUserEmail = (): string | null => {
-        return user?.email || null;
-    };
-
-    const getUserName = (): string | null => {
-        return user?.username || null;
-    };
-
-    const getUserWallet = (): string | null => {
-        return user?.wallet || null;
-    };
-
-    // Context value
     const value: UserContextType = {
-        // State
         user,
         isLoggedIn,
         isAuthenticated: isLoggedIn,
         isLoading,
-
-        // ADDED: Signup state
         pendingSignupData,
         pendingUserId,
-
-        // Methods
         login,
         logout,
-
-        // ADDED: Signup methods
         registerUser,
-        verifyOTP,
-        resendOTP,
-
-        // User data methods
         refreshUserData,
         updateUserData,
-
-        // ADDED: Signup data management
         storePendingSignupData,
         clearPendingSignupData,
-
-        // Utilities
         getUserId,
         getUserEmail,
         getUserName,
-        getUserWallet
+        getUserWallet,
+        storeFcmToken,
     };
 
-    return (
-        <UserContext.Provider value={value}>
-            {children}
-        </UserContext.Provider>
-    );
+    return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
 
-// Custom hook to use the UserContext
 export const useUser = (): UserContextType => {
-    const context = useContext(UserContext);
-    if (context === undefined) {
-        throw new Error('useUser must be used within a UserProvider');
-    }
-    return context;
+    const ctx = useContext(UserContext);
+    if (!ctx) throw new Error('useUser must be used within a UserProvider');
+    return ctx;
 };
-
-// Export types for use in other components
-export type { UserData, UserContextType, SignupData };

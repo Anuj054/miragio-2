@@ -2,8 +2,7 @@
 
 // Onboarding images
 import first from "../assets/images/first.png";
-import second from "../assets/images/second.png";
-import third from "../assets/images/third.png";
+
 import download from "../assets/images/download.png";
 
 // Authentication icons
@@ -69,8 +68,7 @@ import house from "../assets/images/house.png";
 // Collections
 export const images = {
     first,
-    second,
-    third,
+
 };
 
 export const icons = {
@@ -122,8 +120,6 @@ export const icons = {
 
 export const onboarding = [
     { id: 1, image: images.first },
-    { id: 2, image: images.second },
-    { id: 3, image: images.third },
 ];
 
 export const data = {

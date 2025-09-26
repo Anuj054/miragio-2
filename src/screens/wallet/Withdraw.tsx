@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View, StatusBar } from "react-native";
+import { Image, ScrollView, Text, TextInput, TouchableOpacity, View, StatusBar, Dimensions } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
@@ -11,6 +11,13 @@ import CustomGradientButton from "../../components/CustomGradientButton";
 import { useUser } from "../../context/UserContext";
 import PaymentMethodModal from "../../components/PaymentMethodModal";
 import WithdrawalSuccessModal from "../../components/WithdrawlSuccessModal";
+
+// Translation imports - USING CUSTOM COMPONENTS
+import { TranslatedText } from '../../components/TranslatedText';
+import { useTranslation } from '../../context/TranslationContext';
+
+// Get screen dimensions
+const { width, height } = Dimensions.get('window');
 
 // Navigation types
 type NavigationProp = any;
@@ -32,9 +39,11 @@ interface UserDetails {
 }
 
 const WithdrawAmountPage = () => {
+    const { currentLanguage } = useTranslation();
+
     const [amount, setAmount] = useState<string>("");
     const [selectedMethod, setSelectedMethod] = useState<string>("");
-    const [coinValue, setCoinValue] = useState<number>(0.1);
+    const [coinValue, setCoinValue] = useState<number>(1); // Changed from 1 to 1
     const [userBalance, setUserBalance] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
     const [withdrawalMethods, setWithdrawalMethods] = useState<WithdrawalMethod[]>([]);
@@ -76,7 +85,7 @@ const WithdrawAmountPage = () => {
             const methods: WithdrawalMethod[] = [];
 
             // Fetch UPI details
-            const upiResponse = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
+            const upiResponse = await fetch("https://miragiofintech.org/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -106,7 +115,7 @@ const WithdrawAmountPage = () => {
             }
 
             // Fetch Bank details
-            const bankResponse = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
+            const bankResponse = await fetch("https://miragiofintech.org/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -135,7 +144,7 @@ const WithdrawAmountPage = () => {
 
                     methods.push({
                         id: `bank_${bankItem.id}`,
-                        name: "Online Banking",
+                        name: currentLanguage === 'hi' ? "ऑनलाइन बैंकिंग" : "Online Banking",
                         icon: "🏦",
                         details: `${bankItem.bank_name} - ${maskedAccount}`,
                         verified: bankItem.pan_number ? true : false,
@@ -148,7 +157,9 @@ const WithdrawAmountPage = () => {
 
         } catch (error) {
             console.error("Error fetching payment methods:", error);
-            setErrorMessage("Failed to load payment methods. Please try again.");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "पेमेंट मेथड लोड करने में असफल। कृपया फिर से कोशिश करें।" :
+                "Failed to load payment methods. Please try again.");
         }
     };
 
@@ -166,9 +177,9 @@ const WithdrawAmountPage = () => {
                 return;
             }
 
-            setCoinValue(0.1);
+            setCoinValue(1); // Changed from 0.1 to 1
 
-            const userResponse = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
+            const userResponse = await fetch("https://miragiofintech.org/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -188,14 +199,18 @@ const WithdrawAmountPage = () => {
                 await refreshUserData();
             } else {
                 console.error("Failed to fetch user details:", userData.message);
-                setErrorMessage("Failed to load user data. Please refresh and try again.");
+                setErrorMessage(currentLanguage === 'hi' ?
+                    "यूजर डेटा लोड करने में असफल। कृपया रिफ्रेश करें और फिर से कोशिश करें।" :
+                    "Failed to load user data. Please refresh and try again.");
             }
 
             await fetchPaymentMethods(userId);
 
         } catch (error) {
             console.error("Error fetching user data:", error);
-            setErrorMessage("Failed to load user data. Please check your connection and try again.");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "यूजर डेटा लोड करने में असफल। कृपया अपना कनेक्शन जांचें और फिर से कोशिश करें।" :
+                "Failed to load user data. Please check your connection and try again.");
         } finally {
             setLoading(false);
         }
@@ -226,7 +241,9 @@ const WithdrawAmountPage = () => {
             setAmount(quickAmount.toString());
             setErrorMessage("");
         } else {
-            setErrorMessage(`You don't have enough coins. Available: ${userBalance} coins`);
+            setErrorMessage(currentLanguage === 'hi' ?
+                `आपके पास पर्याप्त सिक्के नहीं हैं। उपलब्ध: ${userBalance} सिक्के` :
+                `You don't have enough coins. Available: ${userBalance} coins`);
         }
     };
 
@@ -234,38 +251,46 @@ const WithdrawAmountPage = () => {
         setErrorMessage("");
 
         if (!amount || parseFloat(amount) <= 0) {
-            setErrorMessage("Please enter a valid withdrawal amount");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "कृपया वैध निकासी राशि दर्ज करें" :
+                "Please enter a valid withdrawal amount");
             return;
         }
 
         if (parseFloat(amount) < minWithdrawal) {
-            setErrorMessage(`Minimum withdrawal amount is ${minWithdrawal} coins (₹${(minWithdrawal * coinValue).toFixed(2)})`);
+            setErrorMessage(currentLanguage === 'hi' ?
+                `न्यूनतम निकासी राशि ${minWithdrawal} सिक्के है (₹${(minWithdrawal * coinValue).toFixed(2)})` :
+                `Minimum withdrawal amount is ${minWithdrawal} coins (₹${(minWithdrawal * coinValue).toFixed(2)})`);
             return;
         }
 
         if (parseFloat(amount) > userBalance) {
-            setErrorMessage(`You don't have enough coins. Available: ${userBalance} coins`);
+            setErrorMessage(currentLanguage === 'hi' ?
+                `आपके पास पर्याप्त सिक्के नहीं हैं। उपलब्ध: ${userBalance} सिक्के` :
+                `You don't have enough coins. Available: ${userBalance} coins`);
             return;
         }
 
         if (!selectedMethod) {
-            setErrorMessage("Please select a withdrawal method");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "कृपया निकासी मेथड चुनें" :
+                "Please select a withdrawal method");
             return;
         }
 
         const selectedMethodData = withdrawalMethods.find(m => m.id === selectedMethod);
 
         if (!selectedMethodData?.verified) {
-            setErrorMessage("Please verify your payment method to proceed with withdrawal");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "निकासी के लिए कृपया अपना पेमेंट मेथड वेरीफाई करें" :
+                "Please verify your payment method to proceed with withdrawal");
             setShowPaymentModal(true);
             return;
         }
 
         const totalAmountINR = (parseFloat(amount) * coinValue).toFixed(2);
-        // Pass coins as first parameter, method as second, INR amount as third
         processWithdrawal(amount, selectedMethod, totalAmountINR);
     };
-
 
     const processWithdrawal = async (coins: string, method: string, amount: string) => {
         try {
@@ -281,8 +306,7 @@ const WithdrawAmountPage = () => {
                 paymentMethodString = "bank_transfer";
             }
 
-            // Send the number of coins instead of INR amount
-            const response = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
+            const response = await fetch("https://miragiofintech.org/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -290,7 +314,7 @@ const WithdrawAmountPage = () => {
                 body: JSON.stringify({
                     action: "addWithdrawal",
                     user_id: getUserId() || "0",
-                    withdraw_amount: coins, // Send coins instead of INR amount
+                    withdraw_amount: coins,
                     payment_method: paymentMethodString,
                     remarks: `Withdrawal of ${coins} Miragio Coins (₹${amount}) via ${selectedMethodData?.name || 'Unknown Method'}`
                 }),
@@ -305,8 +329,8 @@ const WithdrawAmountPage = () => {
 
                 setTransactionData({
                     transaction_id: data.message.transaction_id,
-                    amount: amount, // INR amount for display
-                    coins: coins,   // Number of coins for display
+                    amount: amount,
+                    coins: coins,
                     status: data.message.status,
                     payment_method: paymentMethodString
                 });
@@ -315,16 +339,19 @@ const WithdrawAmountPage = () => {
                 setSelectedMethod("");
                 setShowSuccessModal(true);
             } else {
-                setErrorMessage(data.message || "Failed to create withdrawal request. Please try again.");
+                setErrorMessage(currentLanguage === 'hi' ?
+                    data.message || "निकासी अनुरोध बनाने में असफल। कृपया फिर से कोशिश करें।" :
+                    data.message || "Failed to create withdrawal request. Please try again.");
             }
         } catch (error) {
             console.error("Withdrawal error:", error);
-            setErrorMessage("Failed to process withdrawal request. Please check your internet connection and try again.");
+            setErrorMessage(currentLanguage === 'hi' ?
+                "निकासी अनुरोध प्रोसेस करने में असफल। कृपया अपना इंटरनेट कनेक्शन जांचें और फिर से कोशिश करें।" :
+                "Failed to process withdrawal request. Please check your internet connection and try again.");
         } finally {
             setLoading(false);
         }
     };
-
 
     const formatAmount = (value: string) => {
         const numericValue = value.replace(/[^0-9.]/g, '');
@@ -351,9 +378,17 @@ const WithdrawAmountPage = () => {
 
     if (loading && !userBalance) {
         return (
-            <View className="flex-1 justify-center items-center bg-black">
-                <Text style={{ color: Colors.light.whiteFfffff }} className="text-lg">
-                    Loading...
+            <View
+                className="flex-1 justify-center items-center"
+                style={{ backgroundColor: Colors.light.blackPrimary }}
+            >
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.045
+                    }}
+                >
+                    {currentLanguage === 'hi' ? 'लोड हो रहा है...' : 'Loading...'}
                 </Text>
             </View>
         );
@@ -364,77 +399,135 @@ const WithdrawAmountPage = () => {
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
             {/* Header */}
-            {/* Header */}
-            <View className="relative h-32">
-                <Image source={bg2} resizeMode="cover" className="w-full h-full absolute" />
-                <View className="flex-1 pt-12 pb-4 px-4">
-                    {/* Header row with proper spacing */}
-                    <View className="flex-row items-center justify-between h-16">
+            <View style={{ height: height * 0.14 }}>
+                <Image
+                    source={bg2}
+                    resizeMode="cover"
+                    className="w-full h-full absolute"
+                />
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
                         {/* Back button */}
                         <TouchableOpacity
                             onPress={handleBackPress}
-                            className="w-10 h-10 items-center justify-center"
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
                         >
                             <Image
                                 source={icons.back}
-                                className="w-4 h-6"
+                                style={{
+                                    width: width * 0.04,
+                                    height: width * 0.06
+                                }}
                             />
                         </TouchableOpacity>
 
-                        {/* Centered title - Use flex-1 and center alignment */}
+                        {/* Centered title with translation */}
                         <View className="flex-1 items-center">
-                            <Text
-                                style={{ color: Colors.light.whiteFfffff }}
-                                className="text-3xl font-medium pt-1"
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.075
+                                }}
+                                className="font-medium"
                             >
                                 Withdraw
-                            </Text>
+                            </TranslatedText>
                         </View>
 
-                        {/* Right spacer to balance the back button */}
-                        <View className="w-10 h-10" />
+                        {/* Right spacer */}
+                        <View style={{ width: width * 0.1, height: width * 0.1 }} />
                     </View>
                 </View>
 
                 <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                    className="absolute bottom-0 w-full"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        height: 1
+                    }}
                 />
             </View>
-
 
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 20 }}
+                contentContainerStyle={{
+                    paddingBottom: height * 0.12,
+                    paddingHorizontal: width * 0.05
+                }}
             >
                 {/* Error Message */}
                 {errorMessage ? (
                     <View
-                        className="mt-4 rounded-lg p-3 mb-4"
-                        style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                        style={{
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 1,
+                            borderColor: 'rgba(239, 68, 68, 0.3)',
+                            borderRadius: 8,
+                            padding: width * 0.03,
+                            marginTop: height * 0.02,
+                            marginBottom: height * 0.02
+                        }}
                     >
-                        <Text className="text-red-400 text-sm leading-5">
+                        <Text
+                            style={{
+                                color: '#EF4444',
+                                fontSize: width * 0.035,
+                                lineHeight: width * 0.05
+                            }}
+                        >
                             ⚠️ {errorMessage}
                         </Text>
                     </View>
                 ) : null}
 
                 {/* Balance Info */}
-                <View className="mt-4 rounded-lg p-3 mb-4">
-                    <View className="flex-row items-center justify-between mb-2">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-base font-medium">
+                <View
+                    style={{
+                        borderRadius: 8,
+                        padding: width * 0.03,
+                        marginTop: height * 0.02,
+                        marginBottom: height * 0.02
+                    }}
+                >
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ marginBottom: height * 0.01 }}
+                    >
+                        <TranslatedText
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.04
+                            }}
+                            className="font-medium"
+                        >
                             Available Balance
-                        </Text>
+                        </TranslatedText>
                         <TouchableOpacity
                             onPress={refreshBalance}
-                            className="p-1"
+                            style={{ padding: width * 0.01 }}
                             disabled={loading}
                         >
                             <Image
                                 source={icons.go}
-                                className="w-[16px] h-[16px]"
                                 style={{
+                                    width: width * 0.04,
+                                    height: width * 0.04,
                                     opacity: loading ? 0.5 : 1,
                                     transform: [{ rotate: loading ? '180deg' : '0deg' }]
                                 }}
@@ -442,28 +535,73 @@ const WithdrawAmountPage = () => {
                         </TouchableOpacity>
                     </View>
                     <View className="flex-row items-center">
-                        <Image source={icons.maincoin} className="w-[20px] h-[20px] mr-2" />
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-xl font-bold">
-                            {loading ? "Loading..." : userBalance.toLocaleString()} Coins
+                        <Image
+                            source={icons.maincoin}
+                            style={{
+                                width: width * 0.05,
+                                height: width * 0.05,
+                                marginRight: width * 0.02
+                            }}
+                        />
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.05
+                            }}
+                            className="font-bold"
+                        >
+                            {loading ? (currentLanguage === 'hi' ? "लोड हो रहा है..." : "Loading...") : userBalance.toLocaleString()} {currentLanguage === 'hi' ? 'सिक्के' : 'Coins'}
                         </Text>
                     </View>
-                    <Text className="text-gray-400 text-xs mt-1">
+                    <Text
+                        style={{
+                            color: '#9CA3AF',
+                            fontSize: width * 0.03,
+                            marginTop: height * 0.005
+                        }}
+                    >
                         ≈ ₹{loading ? "..." : (userBalance * coinValue).toFixed(2)} INR
                     </Text>
-                    <Text className="text-gray-400 text-xs mt-1">
-                        Rate: 10 Coins = ₹1
+                    <Text
+                        style={{
+                            color: '#9CA3AF',
+                            fontSize: width * 0.03,
+                            marginTop: height * 0.005
+                        }}
+                    >
+                        {currentLanguage === 'hi' ? 'दर: 1 सिक्के = ₹1' : 'Rate: 1 Coins = ₹1'}
                     </Text>
                 </View>
 
                 {/* Amount Input */}
-                <View className="mt-2">
-                    <Text style={{ color: Colors.light.whiteFfffff }} className="text-lg font-medium mb-3">
+                <View style={{ marginTop: height * 0.01 }}>
+                    <TranslatedText
+                        style={{
+                            color: Colors.light.whiteFfffff,
+                            fontSize: width * 0.045,
+                            marginBottom: height * 0.015
+                        }}
+                        className="font-medium"
+                    >
                         Enter Withdrawal Amount
-                    </Text>
+                    </TranslatedText>
 
-                    <View className="bg-gray-800 rounded-lg p-3 mb-4">
+                    <View
+                        className="bg-gray-800 rounded-lg"
+                        style={{
+                            padding: width * 0.03,
+                            marginBottom: height * 0.02
+                        }}
+                    >
                         <View className="flex-row items-center">
-                            <Image source={icons.maincoin} className="w-[24px] h-[24px] mr-2" />
+                            <Image
+                                source={icons.maincoin}
+                                style={{
+                                    width: width * 0.06,
+                                    height: width * 0.06,
+                                    marginRight: width * 0.02
+                                }}
+                            />
                             <TextInput
                                 value={amount}
                                 onChangeText={(text) => {
@@ -475,42 +613,97 @@ const WithdrawAmountPage = () => {
                                 }}
                                 placeholder="0"
                                 placeholderTextColor="#666"
-                                style={{ color: Colors.light.whiteFfffff, fontSize: 20 }}
-                                className="font-bold flex-1"
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.05,
+                                    flex: 1
+                                }}
+                                className="font-bold"
                                 keyboardType="numeric"
                                 maxLength={10}
                             />
-                            <Text style={{ color: Colors.light.whiteFfffff }} className="text-base ml-2">
-                                Coins
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.04,
+                                    marginLeft: width * 0.02
+                                }}
+                            >
+                                {currentLanguage === 'hi' ? 'सिक्के' : 'Coins'}
                             </Text>
                         </View>
                         {amount && parseFloat(amount) > 0 && (
-                            <Text className="text-gray-400 text-xs mt-2">
+                            <Text
+                                style={{
+                                    color: '#9CA3AF',
+                                    fontSize: width * 0.03,
+                                    marginTop: height * 0.01
+                                }}
+                            >
                                 ≈ ₹{(parseFloat(amount) * coinValue).toFixed(2)} INR
                             </Text>
                         )}
-                        <Text className="text-yellow-500 text-xs mt-2">
-                            Minimum withdrawal: {minWithdrawal} coins (₹{(minWithdrawal * coinValue).toFixed(2)})
+                        <Text
+                            style={{
+                                color: '#F59E0B',
+                                fontSize: width * 0.03,
+                                marginTop: height * 0.01
+                            }}
+                        >
+                            {currentLanguage === 'hi' ?
+                                `न्यूनतम निकासी: ${minWithdrawal} सिक्के (₹${(minWithdrawal * coinValue).toFixed(2)})` :
+                                `Minimum withdrawal: ${minWithdrawal} coins (₹${(minWithdrawal * coinValue).toFixed(2)})`}
                         </Text>
                     </View>
 
                     {/* Quick Amount Buttons */}
-                    <Text style={{ color: Colors.light.whiteFfffff }} className="text-base font-medium mb-2">
+                    <TranslatedText
+                        style={{
+                            color: Colors.light.whiteFfffff,
+                            fontSize: width * 0.04,
+                            marginBottom: height * 0.01
+                        }}
+                        className="font-medium"
+                    >
                         Quick Amount
-                    </Text>
-                    <View className="flex-row flex-wrap justify-between mb-6">
+                    </TranslatedText>
+                    <View
+                        className="flex-row flex-wrap justify-between"
+                        style={{ marginBottom: height * 0.03 }}
+                    >
                         {quickAmounts.map((quickAmount) => (
                             <TouchableOpacity
                                 key={quickAmount}
                                 onPress={() => handleQuickAmount(quickAmount)}
                                 disabled={quickAmount > userBalance}
-                                className={`bg-gray-800 rounded-md px-2 py-2 mb-2 flex-row items-center justify-center ${amount === quickAmount.toString() ? 'border border-blue-500' : ''
-                                    } ${quickAmount > userBalance ? 'opacity-50' : ''}`}
-                                style={{ width: '30%' }}
+                                style={{
+                                    borderRadius: 8,
+                                    paddingHorizontal: width * 0.02,
+                                    paddingVertical: height * 0.01,
+                                    marginBottom: height * 0.01,
+                                    width: '30%',
+                                    borderWidth: amount === quickAmount.toString() ? 1 : 0,
+                                    borderColor: amount === quickAmount.toString() ? '#3B82F6' : 'transparent',
+                                    opacity: quickAmount > userBalance ? 0.5 : 1
+                                }}
+                                className="flex-row items-center justify-center bg-gray-800"
                             >
-                                <Image source={icons.maincoin} className="w-[12px] h-[12px] mr-1" />
+                                <Image
+                                    source={icons.maincoin}
+                                    style={{
+                                        width: width * 0.03,
+                                        height: width * 0.03,
+                                        marginRight: width * 0.01
+                                    }}
+                                />
                                 <View className="items-center">
-                                    <Text style={{ color: Colors.light.whiteFfffff }} className="text-center font-medium text-xs">
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.03
+                                        }}
+                                        className="text-center font-medium"
+                                    >
                                         {quickAmount}
                                     </Text>
                                 </View>
@@ -520,34 +713,80 @@ const WithdrawAmountPage = () => {
                 </View>
 
                 {/* Withdrawal Methods */}
-                <View className="mb-6">
-                    <View className="flex-row items-center justify-between mb-3">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-lg font-medium">
+                <View style={{ marginBottom: height * 0.03 }}>
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ marginBottom: height * 0.015 }}
+                    >
+                        <TranslatedText
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.045
+                            }}
+                            className="font-medium"
+                        >
                             Withdrawal Method
-                        </Text>
+                        </TranslatedText>
                         <TouchableOpacity onPress={handleAddPaymentMethod}>
-                            <Text className="text-blue-500 text-xs font-medium">
-                                + Add Method
+                            <Text
+                                style={{
+                                    color: '#3B82F6',
+                                    fontSize: width * 0.03
+                                }}
+                                className="font-medium"
+                            >
+                                {currentLanguage === 'hi' ? '+ मेथड जोड़ें' : '+ Add Method'}
                             </Text>
                         </TouchableOpacity>
                     </View>
 
                     {withdrawalMethods.length === 0 ? (
-                        <View className="bg-gray-800 rounded-lg p-4 items-center">
-                            <Text className="text-4xl mb-3">🏦</Text>
-                            <Text style={{ color: Colors.light.whiteFfffff }} className="text-base font-medium mb-2">
+                        <View
+                            style={{
+                                borderRadius: 8,
+                                padding: width * 0.04
+                            }}
+                            className="items-center bg-gray-800"
+                        >
+                            <Text style={{ fontSize: width * 0.1, marginBottom: height * 0.015 }}>🏦</Text>
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.04,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
+                            >
                                 No Payment Methods
-                            </Text>
-                            <Text className="text-gray-400 text-center text-xs mb-3">
+                            </TranslatedText>
+                            <TranslatedText
+                                style={{
+                                    color: '#9CA3AF',
+                                    fontSize: width * 0.03,
+                                    textAlign: 'center',
+                                    marginBottom: height * 0.015
+                                }}
+                            >
                                 Add a UPI ID or bank account to withdraw your earnings
-                            </Text>
+                            </TranslatedText>
                             <TouchableOpacity
                                 onPress={handleAddPaymentMethod}
-                                className="bg-blue-600 rounded-md px-4 py-2"
+                                style={{
+                                    borderRadius: 8,
+                                    paddingHorizontal: width * 0.04,
+                                    paddingVertical: height * 0.01
+                                }}
+                                className='bg-gray-800'
                             >
-                                <Text style={{ color: Colors.light.whiteFfffff }} className="font-medium text-sm">
+                                <TranslatedText
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.035
+                                    }}
+                                    className="font-medium"
+                                >
                                     Add Payment Method
-                                </Text>
+                                </TranslatedText>
                             </TouchableOpacity>
                         </View>
                     ) : (
@@ -559,36 +798,80 @@ const WithdrawAmountPage = () => {
                                         setSelectedMethod(method.id);
                                         if (errorMessage) setErrorMessage("");
                                     } else {
-                                        setErrorMessage(`Please verify your ${method.type === 'bank' ? 'PAN number' : 'payment method'} to use this withdrawal method`);
+                                        setErrorMessage(currentLanguage === 'hi' ?
+                                            `इस निकासी मेथड का उपयोग करने के लिए कृपया अपना ${method.type === 'bank' ? 'PAN नंबर' : 'पेमेंट मेथड'} वेरीफाई करें` :
+                                            `Please verify your ${method.type === 'bank' ? 'PAN number' : 'payment method'} to use this withdrawal method`);
                                         setShowPaymentModal(true);
                                     }
                                 }}
                                 disabled={!method.verified}
-                                className={`bg-gray-800 rounded-lg p-3 mb-2 flex-row items-center justify-between ${selectedMethod === method.id && method.verified ? 'border border-blue-500' : ''
-                                    } ${!method.verified ? 'opacity-60' : ''}`}
+                                style={{
+                                    borderRadius: 8,
+                                    padding: width * 0.03,
+                                    marginBottom: height * 0.01,
+                                    borderWidth: selectedMethod === method.id && method.verified ? 1 : 0,
+                                    borderColor: selectedMethod === method.id && method.verified ? '#3B82F6' : 'transparent',
+                                    opacity: !method.verified ? 0.6 : 1
+                                }}
+                                className="flex-row items-center justify-between bg-gray-800"
                             >
                                 <View className="flex-row items-center flex-1">
-                                    <Text className="text-lg mr-3">{method.icon}</Text>
+                                    <Text style={{ fontSize: width * 0.045, marginRight: width * 0.03 }}>
+                                        {method.icon}
+                                    </Text>
                                     <View className="flex-1">
-                                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-base font-medium">
+                                        <Text
+                                            style={{
+                                                color: Colors.light.whiteFfffff,
+                                                fontSize: width * 0.04
+                                            }}
+                                            className="font-medium"
+                                        >
                                             {method.name}
                                         </Text>
-                                        <Text className={`text-xs ${method.verified ? 'text-gray-400' : 'text-red-400'}`}>
-                                            {method.verified ? method.details : 'Verification required'}
+                                        <Text
+                                            style={{
+                                                color: method.verified ? '#9CA3AF' : '#EF4444',
+                                                fontSize: width * 0.03
+                                            }}
+                                        >
+                                            {method.verified ? method.details : (currentLanguage === 'hi' ? 'सत्यापन आवश्यक' : 'Verification required')}
                                         </Text>
                                         {!method.verified && (
-                                            <Text className="text-red-400 text-xs mt-1">
-                                                {method.type === "bank" ? "Verify PAN to enable" : "Verification required"}
+                                            <Text
+                                                style={{
+                                                    color: '#EF4444',
+                                                    fontSize: width * 0.03,
+                                                    marginTop: height * 0.005
+                                                }}
+                                            >
+                                                {method.type === "bank" ?
+                                                    (currentLanguage === 'hi' ? "सक्षम करने के लिए PAN वेरीफाई करें" : "Verify PAN to enable") :
+                                                    (currentLanguage === 'hi' ? "सत्यापन आवश्यक" : "Verification required")}
                                             </Text>
                                         )}
                                     </View>
                                 </View>
-                                <View className={`w-5 h-5 rounded-full border ${selectedMethod === method.id && method.verified
-                                    ? 'border-blue-500 bg-blue-500'
-                                    : 'border-gray-400'
-                                    } flex items-center justify-center`}>
+                                <View
+                                    style={{
+                                        width: width * 0.05,
+                                        height: width * 0.05,
+                                        borderRadius: (width * 0.05) / 2,
+                                        borderWidth: 1,
+                                        borderColor: selectedMethod === method.id && method.verified ? '#3B82F6' : '#9CA3AF',
+                                        backgroundColor: selectedMethod === method.id && method.verified ? '#3B82F6' : 'transparent'
+                                    }}
+                                    className="items-center justify-center"
+                                >
                                     {selectedMethod === method.id && method.verified && (
-                                        <View className="w-2 h-2 rounded-full bg-white" />
+                                        <View
+                                            style={{
+                                                width: width * 0.02,
+                                                height: width * 0.02,
+                                                borderRadius: (width * 0.02) / 2,
+                                                backgroundColor: 'white'
+                                            }}
+                                        />
                                     )}
                                 </View>
                             </TouchableOpacity>
@@ -598,43 +881,123 @@ const WithdrawAmountPage = () => {
 
                 {/* Withdrawal Summary */}
                 {amount && parseFloat(amount) > 0 && (
-                    <View className="bg-gray-800 rounded-lg p-3 mb-6">
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-base font-medium mb-2">
+                    <View
+                        style={{
+                            borderRadius: 8,
+                            padding: width * 0.03,
+                            marginBottom: height * 0.03
+                        }}
+                        className='bg-gray-800'
+                    >
+                        <TranslatedText
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.04,
+                                marginBottom: height * 0.01
+                            }}
+                            className="font-medium"
+                        >
                             Withdrawal Summary
-                        </Text>
-                        <View className="flex-row justify-between mb-1">
-                            <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm">
+                        </TranslatedText>
+                        <View
+                            className="flex-row justify-between"
+                            style={{ marginBottom: height * 0.005 }}
+                        >
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035
+                                }}
+                            >
                                 Coins to withdraw:
-                            </Text>
+                            </TranslatedText>
                             <View className="flex-row items-center">
-                                <Image source={icons.maincoin} className="w-[16px] h-[16px] mr-1" />
-                                <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium">
+                                <Image
+                                    source={icons.maincoin}
+                                    style={{
+                                        width: width * 0.04,
+                                        height: width * 0.04,
+                                        marginRight: width * 0.01
+                                    }}
+                                />
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.035
+                                    }}
+                                    className="font-medium"
+                                >
                                     {amount}
                                 </Text>
                             </View>
                         </View>
-                        <View className="flex-row justify-between mb-1">
-                            <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm">
+                        <View
+                            className="flex-row justify-between"
+                            style={{ marginBottom: height * 0.005 }}
+                        >
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035
+                                }}
+                            >
                                 Rate:
-                            </Text>
-                            <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm">
-                                10 Coins = ₹1
+                            </TranslatedText>
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035
+                                }}
+                            >
+                                {currentLanguage === 'hi' ? '1 सिक्के = ₹1' : '1 Coins = ₹1'}
                             </Text>
                         </View>
-                        <View className="flex-row justify-between mb-1">
-                            <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm">
+                        <View
+                            className="flex-row justify-between"
+                            style={{ marginBottom: height * 0.005 }}
+                        >
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035
+                                }}
+                            >
                                 Processing Fee:
-                            </Text>
-                            <Text className="text-green-500 text-sm">
-                                Free
+                            </TranslatedText>
+                            <Text
+                                style={{
+                                    color: '#10B981',
+                                    fontSize: width * 0.035
+                                }}
+                            >
+                                {currentLanguage === 'hi' ? 'मुफ्त' : 'Free'}
                             </Text>
                         </View>
-                        <View className="border-t border-gray-600 pt-2 mt-2">
+                        <View
+                            style={{
+                                borderTopWidth: 1,
+                                borderTopColor: '#6B7280',
+                                paddingTop: height * 0.01,
+                                marginTop: height * 0.01
+                            }}
+                        >
                             <View className="flex-row justify-between">
-                                <Text style={{ color: Colors.light.whiteFfffff }} className="text-base font-bold">
+                                <TranslatedText
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.04
+                                    }}
+                                    className="font-bold"
+                                >
                                     You will receive:
-                                </Text>
-                                <Text className="text-green-500 text-base font-bold">
+                                </TranslatedText>
+                                <Text
+                                    style={{
+                                        color: '#10B981',
+                                        fontSize: width * 0.04
+                                    }}
+                                    className="font-bold"
+                                >
                                     ₹{(parseFloat(amount) * coinValue).toFixed(2)}
                                 </Text>
                             </View>
@@ -643,12 +1006,17 @@ const WithdrawAmountPage = () => {
                 )}
 
                 {/* Withdraw Button */}
-                <View className="items-center mb-4">
+                <View
+                    className="items-center"
+                    style={{ marginBottom: height * 0.02 }}
+                >
                     <CustomGradientButton
                         borderRadius={12}
-                        height={48}
-                        width={350}
-                        text={`WITHDRAW ${amount || '0'} COINS`}
+                        height={height * 0.06}
+                        width={width * 0.9}
+                        text={currentLanguage === 'hi' ?
+                            `${amount || '0'} सिक्के निकालें` :
+                            `WITHDRAW ${amount || '0'} COINS`}
                         onPress={handleWithdraw}
                         disabled={
                             !amount ||
@@ -674,38 +1042,127 @@ const WithdrawAmountPage = () => {
                 </View>
 
                 {/* Info Sections */}
-                <View className="mt-4 bg-gray-800 rounded-lg p-3 mb-3">
-                    <View className="flex-row items-center mb-2">
-                        <Text className="text-blue-500 text-base mr-2">ℹ️</Text>
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium">
-                            Withdrawal Information
+                <View
+                    style={{
+                        borderRadius: 8,
+                        padding: width * 0.03,
+                        marginTop: height * 0.02,
+                        marginBottom: height * 0.015
+                    }}
+                    className='bg-gray-800'
+                >
+                    <View
+                        className="flex-row items-center"
+                        style={{ marginBottom: height * 0.01 }}
+                    >
+                        <Text
+                            style={{
+                                color: '#60A5FA',
+                                fontSize: width * 0.04,
+                                marginRight: width * 0.02
+                            }}
+                        >
+                            ℹ️
                         </Text>
+                        <TranslatedText
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035
+                            }}
+                            className="font-medium"
+                        >
+                            Withdrawal Information
+                        </TranslatedText>
                     </View>
-                    <Text className="text-gray-400 text-xs leading-4 mb-1">
-                        • Withdrawals are processed within 24-48 hours
+                    <Text
+                        style={{
+                            color: '#9CA3AF',
+                            fontSize: width * 0.03,
+                            lineHeight: width * 0.04,
+                            marginBottom: height * 0.005
+                        }}
+                    >
+                        {currentLanguage === 'hi' ?
+                            '• निकासी 24-48 घंटों के भीतर प्रोसेस होती है' :
+                            '• Withdrawals are processed within 24-48 hours'}
                     </Text>
-                    <Text className="text-gray-400 text-xs leading-4 mb-1">
-                        • Minimum withdrawal amount: {minWithdrawal} coins (₹{(minWithdrawal * coinValue).toFixed(2)})
+                    <Text
+                        style={{
+                            color: '#9CA3AF',
+                            fontSize: width * 0.03,
+                            lineHeight: width * 0.04,
+                            marginBottom: height * 0.005
+                        }}
+                    >
+                        {currentLanguage === 'hi' ?
+                            `• न्यूनतम निकासी राशि: ${minWithdrawal} सिक्के (₹${(minWithdrawal * coinValue).toFixed(2)})` :
+                            `• Minimum withdrawal amount: ${minWithdrawal} coins (₹${(minWithdrawal * coinValue).toFixed(2)})`}
                     </Text>
-                    <Text className="text-gray-400 text-xs leading-4 mb-1">
-                        • PAN verification required for bank transfers
+                    <Text
+                        style={{
+                            color: '#9CA3AF',
+                            fontSize: width * 0.03,
+                            lineHeight: width * 0.04,
+                            marginBottom: height * 0.005
+                        }}
+                    >
+                        {currentLanguage === 'hi' ?
+                            '• बैंक ट्रांसफर के लिए PAN सत्यापन आवश्यक' :
+                            '• PAN verification required for bank transfers'}
                     </Text>
-                    <Text className="text-gray-400 text-xs leading-4">
-                        • No processing fees on withdrawals
+                    <Text
+                        style={{
+                            color: '#9CA3AF',
+                            fontSize: width * 0.03,
+                            lineHeight: width * 0.04
+                        }}
+                    >
+                        {currentLanguage === 'hi' ?
+                            '• निकासी पर कोई प्रोसेसिंग फीस नहीं' :
+                            '• No processing fees on withdrawals'}
                     </Text>
                 </View>
 
-                <View className="bg-gray-800 rounded-lg p-3">
-                    <View className="flex-row items-center mb-2">
-                        <Text className="text-green-500 text-base mr-2">🔒</Text>
-                        <Text style={{ color: Colors.light.whiteFfffff }} className="text-sm font-medium">
-                            Secure Withdrawal
+                <View
+                    style={{
+                        borderRadius: 8,
+                        padding: width * 0.03
+                    }}
+                    className='bg-gray-800'
+                >
+                    <View
+                        className="flex-row items-center"
+                        style={{ marginBottom: height * 0.01 }}
+                    >
+                        <Text
+                            style={{
+                                color: '#10B981',
+                                fontSize: width * 0.04,
+                                marginRight: width * 0.02
+                            }}
+                        >
+                            🔒
                         </Text>
+                        <TranslatedText
+                            style={{
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.035
+                            }}
+                            className="font-medium"
+                        >
+                            Secure Withdrawal
+                        </TranslatedText>
                     </View>
-                    <Text className="text-gray-400 text-xs leading-4">
-                        All withdrawals are processed securely through encrypted channels.
-                        Your financial information is protected and never stored on our servers.
-                        Current rate: 10 Miragio Coins = ₹1
+                    <Text
+                        style={{
+                            color: '#9CA3AF',
+                            fontSize: width * 0.03,
+                            lineHeight: width * 0.04
+                        }}
+                    >
+                        {currentLanguage === 'hi' ?
+                            'सभी निकासी सुरक्षित एन्क्रिप्टेड चैनलों के माध्यम से प्रोसेस की जाती हैं। आपकी वित्तीय जानकारी सुरक्षित है और हमारे सर्वर पर कभी संग्रहीत नहीं की जाती। वर्तमान दर: 1 मिराजियो सिक्के = ₹1' :
+                            'All withdrawals are processed securely through encrypted channels. Your financial information is protected and never stored on our servers. Current rate: 1 Miragio Coins = ₹1'}
                     </Text>
                 </View>
             </ScrollView>

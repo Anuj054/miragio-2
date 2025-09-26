@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import messaging from '@react-native-firebase/messaging';
 
 import { UserProvider, useUser } from './src/context/UserContext';
+import { TranslationProvider } from './src/context/TranslationContext'; // NEW: Translation context
 import SplashScreen from './src/components/SplashScreen';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import MainNavigator from './src/navigation/MainNavigator';
@@ -37,7 +38,7 @@ const AppContent = () => {
         console.log('🔥 FCM Token:', token);
 
         // Show token in an alert popup for easy copying during dev
-        Alert.alert('FCM Token', token);
+
       })
       .catch(error => {
         console.error('❌ Error fetching FCM token:', error);
@@ -79,9 +80,12 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <UserProvider>
-      <AppContent />
-    </UserProvider>
+
+    < TranslationProvider >
+      <UserProvider>
+        <AppContent />
+      </UserProvider>
+    </TranslationProvider>
   );
 };
 

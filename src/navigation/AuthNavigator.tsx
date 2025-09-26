@@ -9,10 +9,9 @@ import SignUpScreen from '../screens/auth/SignUp';
 import KycScreen from '../screens/auth/KYC';
 import UserDetailsScreen from '../screens/auth/UserDetails';
 import OtpScreen from '../screens/auth/OTP';
-import KycSuccessScreen from '../screens/auth/KYCSuccess';
+
 import ResetPasswordScreen from '../screens/auth/ResetPassword';
 import VerifyCodeScreen from '../screens/auth/VerifyCode';
-
 import ResetSuccessScreen from '../screens/auth/ResetSuccess';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -40,11 +39,7 @@ const AuthNavigator = () => {
             <Stack.Screen name="KYC" component={KycScreen} />
             <Stack.Screen name="UserDetails" component={UserDetailsScreen} />
             <Stack.Screen name="Otp" component={OtpScreen} />
-            <Stack.Screen
-                name="KycSuccess"
-                component={KycSuccessScreen}
-                options={{ gestureEnabled: false }}
-            />
+
 
             {/* Password Reset Flow */}
             <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Image,
     ScrollView,
@@ -8,34 +8,36 @@ import {
     ImageBackground,
     Alert,
     RefreshControl,
-    StatusBar
-} from "react-native";
-import { useState, useEffect, useCallback } from "react";
+    StatusBar,
+    Dimensions,
+} from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-// Import your assets
-import bg2 from "../../assets/images/bg2.png";
-import patternbg from "../../assets/images/patternbg.png";
-import { icons } from "../../constants/index";
-import profilephoto from "../../assets/images/profilephoto.png";
-import task1 from "../../assets/images/task1.png";
-import task2 from "../../assets/images/task2.png";
-import task3 from "../../assets/images/task3.png";
-import task4 from "../../assets/images/task4.png";
+import bg2 from '../../assets/images/bg2.png';
+import patternbg from '../../assets/images/patternbg.png';
+import { icons } from '../../constants/index';
+import profilephoto from '../../assets/images/profilephoto.png';
+import task1 from '../../assets/images/task1.png';
+import task2 from '../../assets/images/task2.png';
+import task3 from '../../assets/images/task3.png';
+import task4 from '../../assets/images/task4.png';
 
-import { Colors } from "../../constants/Colors";
-import CustomGradientButton from "../../components/CustomGradientButton";
-import CustomRedGradientButton from "../../components/CustomRedGradientButton";
-import CustomOrangeGradientButton from "../../components/CustomOrangeGradientButton";
-import CustomGreenGradientButton from "../../components/CustomGreenGradientButton";
-import { useUser } from "../../context/UserContext";
+import { Colors } from '../../constants/Colors';
+import CustomGradientButton from '../../components/CustomGradientButton';
+import CustomRedGradientButton from '../../components/CustomRedGradientButton';
+import CustomOrangeGradientButton from '../../components/CustomOrangeGradientButton';
+import CustomGreenGradientButton from '../../components/CustomGreenGradientButton';
+import { useUser } from '../../context/UserContext';
 
-// FIXED: Navigation types
-import type { TaskStackParamList } from "../../navigation/types";
+// ✅ Translation
+import { useTranslation } from '../../context/TranslationContext';
+
+import type { TaskStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<TaskStackParamList, 'TaskPage'>;
 
-// Type definitions
+const { width, height } = Dimensions.get('window');
+
 interface AssignedUser {
     id: string;
     username: string;
@@ -48,7 +50,7 @@ interface Task {
     title: string;
     description: string;
     reward: number;
-    status: 'upcoming' | 'completed' | 'pending' | 'rejected';
+    status: 'upcoming' | 'completed' | 'pending' | 'rejected' | 'active' | 'expired';
     icon: any;
     hasCheckmarks: boolean;
     completedSteps: number;
@@ -83,266 +85,259 @@ interface GroupedTasks {
     [monthYear: string]: Task[];
 }
 
-type FilterOption = 'All' | 'Upcoming' | 'Completed' | 'Pending' | 'Rejected';
+type MainTab = 'pending' | 'completed';
+type PendingFilter = 'active' | 'expired';
+type CompletedFilter = 'completed' | 'pendingReview';
 
-const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
-    const [activeFilter, setActiveFilter] = useState<FilterOption>("All");
+const TaskPage = ({ navigation }: Props) => {
+    const { currentLanguage } = useTranslation();
+    const isHi = currentLanguage === 'hi';
+
+    const [activeMainTab, setActiveMainTab] = useState<MainTab>('pending');
+    const [activePendingFilter, setActivePendingFilter] = useState<PendingFilter>('active');
+    const [activeCompletedFilter, setActiveCompletedFilter] = useState<CompletedFilter>('completed');
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [refreshing, setRefreshing] = useState<boolean>(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     const { getUserId } = useUser();
     const USER_ID = getUserId();
 
     const taskIcons = [task1, task2, task3, task4];
-    const filterOptions: FilterOption[] = ['All', 'Upcoming', 'Completed', 'Pending', 'Rejected'];
 
-    // Utility functions
     const getUserTaskStatus = (assignedUsers: AssignedUser[], userId: string): string | null => {
-        if (!assignedUsers || !userId) return null;
         const currentUser = assignedUsers.find(user => String(user.id) === String(userId));
         return currentUser?.task_status || null;
     };
 
-    const mapUserTaskStatus = (userStatus: string | null): 'upcoming' | 'completed' | 'pending' | 'rejected' => {
-        if (!userStatus) return 'upcoming';
-        const normalizedStatus = userStatus.toLowerCase().trim();
-        switch (normalizedStatus) {
+    const isTaskExpired = (deadlineString: string): boolean => {
+        if (!deadlineString) return false;
+        const deadline = new Date(deadlineString);
+        const now = new Date();
+        return deadline < now;
+    };
+
+    const mapUserTaskStatus = (userStatus: string | null, deadline?: string): Task['status'] => {
+        if (!userStatus) {
+            // Check if task is expired for upcoming tasks
+            if (deadline && isTaskExpired(deadline)) {
+                return 'expired';
+            }
+            return 'active'; // Changed from 'upcoming' to 'active'
+        }
+
+        const normalized = userStatus.toLowerCase().trim();
+        switch (normalized) {
             case 'approved': return 'completed';
             case 'rejected': return 'rejected';
             case 'pending': return 'pending';
-            default: return 'upcoming';
+            default:
+                if (deadline && isTaskExpired(deadline)) {
+                    return 'expired';
+                }
+                return 'active';
         }
     };
 
     const formatMonthYear = (dateString: string): string => {
         try {
             const date = new Date(dateString);
-            if (isNaN(date.getTime())) return 'Unknown Date';
-            return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        } catch (error) {
-            return 'Unknown Date';
-        }
-    };
-
-    const getMonthYearKey = (dateString: string): string => {
-        try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return '9999-12';
-            const year = date.getFullYear();
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            return `${year}-${month}`;
-        } catch (error) {
-            return '9999-12';
+            if (isNaN(date.getTime())) return isHi ? 'अज्ञात तिथि' : 'Unknown Date';
+            return date.toLocaleDateString(isHi ? 'hi-IN' : 'en-US', { month: 'long', year: 'numeric' });
+        } catch {
+            return isHi ? 'अज्ञात तिथि' : 'Unknown Date';
         }
     };
 
     const groupTasksByMonth = (tasksToGroup: Task[]): GroupedTasks => {
         const grouped: GroupedTasks = {};
         tasksToGroup.forEach(task => {
-            const dateForGrouping = task.created_at || new Date().toISOString();
-            const monthYear = formatMonthYear(dateForGrouping);
-            if (!grouped[monthYear]) {
-                grouped[monthYear] = [];
-            }
+            const monthYear = formatMonthYear(task.created_at || new Date().toISOString());
+            if (!grouped[monthYear]) grouped[monthYear] = [];
             grouped[monthYear].push(task);
-        });
-        Object.keys(grouped).forEach(monthYear => {
-            grouped[monthYear].sort((a, b) => {
-                const dateA = new Date(a.created_at || '').getTime();
-                const dateB = new Date(b.created_at || '').getTime();
-                return dateB - dateA;
-            });
         });
         return grouped;
     };
 
-    const getSortedMonthKeys = (groupedTasks: GroupedTasks): string[] => {
-        return Object.keys(groupedTasks).sort((a, b) => {
-            const firstTaskA = groupedTasks[a][0];
-            const firstTaskB = groupedTasks[b][0];
-            const keyA = getMonthYearKey(firstTaskA?.created_at || '');
-            const keyB = getMonthYearKey(firstTaskB?.created_at || '');
-            return keyB.localeCompare(keyA);
-        });
-    };
-
-    // API fetch function
     const fetchUserTasks = async (showLoader = true) => {
         try {
             if (showLoader) setLoading(true);
             setError(null);
-
             if (!USER_ID) {
-                setError('User not logged in. Please login again.');
+                setError(isHi ? 'उपयोगकर्ता लॉग इन नहीं है।' : 'User not logged in. Please login again.');
                 return;
             }
-
-            const response = await fetch('https://netinnovatus.tech/miragio_task/api/api.php', {
+            const response = await fetch('https://miragiofintech.org/api/api.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: "get_tasks" })
+                body: JSON.stringify({ action: 'get_tasks' }),
             });
-
             const data: ApiResponse = await response.json();
-
-            if (data.status === 'success' && data.data) {
+            if (data.status === 'success') {
                 const userTasks: Task[] = data.data
-                    .filter(task => task.assigned_users.some(user => String(user.id) === String(USER_ID)))
-                    .map((task: ApiTask, index: number) => {
-                        const userStatus = getUserTaskStatus(task.assigned_users, USER_ID);
+                    .filter(t => t.assigned_users.some(u => String(u.id) === String(USER_ID)))
+                    .map((t, i) => {
+                        const userStatus = getUserTaskStatus(t.assigned_users, USER_ID);
+                        const mappedStatus = mapUserTaskStatus(userStatus, t.task_endtime);
+
                         return {
-                            id: task.task_id || task.id,
-                            title: task.task_name,
-                            description: task.task_description,
-                            reward: parseInt(task.task_reward) || 0,
-                            status: mapUserTaskStatus(userStatus),
-                            icon: taskIcons[index % taskIcons.length],
+                            id: t.task_id || t.id,
+                            title: t.task_name,
+                            description: t.task_description,
+                            reward: parseInt(t.task_reward) || 0,
+                            status: mappedStatus,
+                            icon: taskIcons[i % taskIcons.length],
                             hasCheckmarks: false,
-                            completedSteps: userStatus === 'approved' ? 1 : 0,
+                            completedSteps: ['completed', 'rejected'].includes(mappedStatus) ? 1 : 0,
                             totalSteps: 1,
                             type: 'general',
-                            created_at: task.created_at,
-                            deadline: task.task_endtime
+                            created_at: t.created_at,
+                            deadline: t.task_endtime,
                         };
                     });
+
                 setTasks(userTasks);
             } else {
-                setError(data.message || 'Failed to fetch tasks');
-                setTasks([]);
+                setError(data.message || (isHi ? 'कार्य प्राप्त करने में विफल' : 'Failed to fetch tasks'));
             }
-        } catch (err) {
-            console.error('Error fetching tasks:', err);
-            setError('Network error. Please check your connection.');
-            setTasks([]);
+        } catch {
+            setError(isHi ? 'नेटवर्क त्रुटि। कृपया पुनः प्रयास करें।' : 'Network error. Please check your connection.');
         } finally {
             if (showLoader) setLoading(false);
             setRefreshing(false);
         }
     };
 
-    useEffect(() => {
-        fetchUserTasks();
-    }, [USER_ID]);
+    useEffect(() => { fetchUserTasks(); }, [USER_ID]);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         fetchUserTasks(false);
     }, []);
 
-    const getFilteredTasks = () => {
-        switch (activeFilter) {
-            case 'All': return tasks;
-            case 'Upcoming': return tasks.filter(task => task.status === 'upcoming');
-            case 'Completed': return tasks.filter(task => task.status === 'completed');
-            case 'Pending': return tasks.filter(task => task.status === 'pending');
-            case 'Rejected': return tasks.filter(task => task.status === 'rejected');
-            default: return tasks;
+    // Filter tasks based on active tab and sub-filters
+    const getFilteredTasks = (): Task[] => {
+        if (activeMainTab === 'pending') {
+            const pendingTasks = tasks.filter(task => ['active', 'expired'].includes(task.status));
+            return pendingTasks.filter(task => task.status === activePendingFilter);
+        } else {
+            // Completed tab
+            const completedTasks = tasks.filter(task => ['completed', 'rejected', 'pending'].includes(task.status));
+            if (activeCompletedFilter === 'completed') {
+                return completedTasks.filter(task => ['completed', 'rejected'].includes(task.status));
+            } else {
+                // pendingReview
+                return completedTasks.filter(task => task.status === 'pending');
+            }
         }
     };
 
     const filteredTasks = getFilteredTasks();
     const groupedTasks = groupTasksByMonth(filteredTasks);
-    const sortedMonthKeys = getSortedMonthKeys(groupedTasks);
-    const hasTasks = filteredTasks.length > 0 && !loading;
-
-    const refreshTasks = () => fetchUserTasks();
+    const monthKeys = Object.keys(groupedTasks).sort((a, b) => {
+        const aDate = new Date(groupedTasks[a][0]?.created_at || 0).getTime();
+        const bDate = new Date(groupedTasks[b][0]?.created_at || 0).getTime();
+        return bDate - aDate;
+    });
 
     const getBorderColor = (status: Task['status']) => {
         switch (status) {
             case 'completed': return '#48BB78';
             case 'rejected': return '#FF6B6B';
             case 'pending': return '#FFA726';
-            default: return Colors.light.bgBlueBtn;
+            case 'expired': return '#757575';
+            default: return Colors.light.bgBlueBtn; // active
         }
     };
 
-    // FIXED: Navigation handlers
     const handleTaskNavigation = (task: Task) => {
         if (task.status === 'completed') {
-            // FIXED: Use type assertion if needed
-            (navigation as any).navigate('TaskSuccessful');
+            navigation.navigate('TaskSuccessful', {});
             return;
         }
-
         if (task.status === 'rejected') {
             Alert.alert(
-                "Task Rejected",
-                "This task has been rejected. Please contact support for more information.",
-                [{ text: "OK" }]
+                isHi ? 'कार्य अस्वीकृत' : 'Task Rejected',
+                isHi
+                    ? 'यह कार्य अस्वीकृत कर दिया गया है। अधिक जानकारी के लिए सहायता से संपर्क करें।'
+                    : 'This task has been rejected. Please contact support for more information.',
+                [{ text: isHi ? 'ठीक है' : 'OK' }],
             );
             return;
         }
-
-        navigation.getParent()?.navigate('UserProfile', { from: 'taskpage' });
+        if (task.status === 'expired') {
+            Alert.alert(
+                isHi ? 'कार्य समाप्त' : 'Task Expired',
+                isHi
+                    ? 'यह कार्य की समयसीमा समाप्त हो गई है।'
+                    : 'This task has expired and is no longer available.',
+                [{ text: isHi ? 'ठीक है' : 'OK' }],
+            );
+            return;
+        }
+        navigation.navigate('TaskDetails', { taskId: String(task.id) });
     };
-
 
     const handleProfilePress = () => {
-        // FIXED: Navigate to UserProfile in Main Stack
         navigation.getParent()?.navigate('UserProfile', { from: 'taskpage' });
     };
 
-    // Render functions
-    const renderFilterButton = (option: FilterOption, index: number) => (
+    const renderMainTabButton = (tab: MainTab, label: string) => (
         <TouchableOpacity
-            key={option}
-            onPress={() => {
-                setActiveFilter(option);
-            }}
-            className={`px-4 py-2 rounded-full ${index < filterOptions.length - 1 ? 'mr-3' : ''
-                } ${activeFilter === option ? 'border-0' : 'border'}`}
+            onPress={() => setActiveMainTab(tab)}
             style={{
-                backgroundColor: activeFilter === option ? Colors.light.bgBlueBtn : 'transparent',
-                borderColor: activeFilter === option ? 'transparent' : Colors.light.secondaryText,
-                minWidth: 80,
+                flex: 1,
+                backgroundColor: activeMainTab === tab ? Colors.light.bgBlueBtn : 'transparent',
+                borderColor: activeMainTab === tab ? 'transparent' : Colors.light.secondaryText,
+                borderWidth: activeMainTab === tab ? 0 : 1,
+                borderRadius: 20,
+                paddingVertical: height * 0.012,
+                marginHorizontal: width * 0.01,
             }}
         >
             <Text
-                className={`text-center text-sm ${activeFilter === option ? 'font-bold' : 'font-normal'
-                    }`}
                 style={{
                     color: Colors.light.whiteFefefe,
+                    fontSize: width * 0.04,
+                    fontWeight: activeMainTab === tab ? 'bold' : 'normal',
+                    textAlign: 'center',
                 }}
             >
-                {option}
+                {label}
             </Text>
         </TouchableOpacity>
     );
 
-    const renderLoadingState = () => (
-        <View className="items-center justify-center py-10">
+    const renderSubFilterButton = (
+        _filter: PendingFilter | CompletedFilter,
+        label: string,
+        isActive: boolean,
+        onPress: () => void
+    ) => (
+        <TouchableOpacity
+            onPress={onPress}
+            style={{
+                backgroundColor: isActive ? Colors.light.bgBlueBtn : 'transparent',
+                borderColor: isActive ? 'transparent' : Colors.light.secondaryText,
+                borderWidth: isActive ? 0 : 1,
+                borderRadius: 15,
+                paddingHorizontal: width * 0.04,
+                paddingVertical: height * 0.008,
+                marginRight: width * 0.03,
+            }}
+        >
             <Text
-                className="text-xl font-medium"
-                style={{ color: Colors.light.placeholderColorOp70 }}
+                style={{
+                    color: Colors.light.whiteFefefe,
+                    fontSize: width * 0.035,
+                    fontWeight: isActive ? 'bold' : 'normal',
+                    textAlign: 'center',
+                }}
             >
-                Loading tasks...
+                {label}
             </Text>
-        </View>
-    );
-
-    const renderErrorState = () => (
-        <View className="items-center justify-center py-10 px-4">
-            <Text
-                className="text-xl font-medium text-center mb-4"
-                style={{ color: Colors.light.placeholderColorOp70 }}
-            >
-                {error}
-            </Text>
-            <TouchableOpacity
-                onPress={refreshTasks}
-                className="px-6 py-3 rounded-lg"
-                style={{ backgroundColor: Colors.light.bgBlueBtn }}
-            >
-                <Text
-                    className="text-base font-semibold"
-                    style={{ color: Colors.light.whiteFefefe }}
-                >
-                    Retry
-                </Text>
-            </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
     );
 
     const renderTaskItem = (task: Task) => (
@@ -352,128 +347,137 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
             resizeMode="stretch"
             style={{
                 borderLeftColor: getBorderColor(task.status),
-                marginHorizontal: 16,
-                marginBottom: 16
+                borderLeftWidth: 4,
+                borderRadius: 12,
+                marginHorizontal: width * 0.04,
+                marginBottom: height * 0.02,
+                padding: width * 0.04,
             }}
-            className="w-auto rounded-xl p-4 border-l-4 "
         >
-            {/* Header section with icon, title and arrow */}
-            <View className="flex-row items-center mb-3">
-                {/* Task Icon */}
-                <View className="mr-4">
-                    <Image
-                        source={task.icon}
-                        className="h-12 w-12"
-                        resizeMode="contain"
-                        style={{ opacity: task.status === 'rejected' ? 0.5 : 1 }}
-                    />
-                </View>
-
-                {/* Title and Description Container */}
-                <View className="flex-1 mr-3">
+            <View className="flex-row items-center" style={{ marginBottom: height * 0.015 }}>
+                <Image
+                    source={task.icon}
+                    style={{
+                        height: width * 0.12,
+                        width: width * 0.12,
+                        opacity: ['rejected', 'expired'].includes(task.status) ? 0.5 : 1
+                    }}
+                    resizeMode="contain"
+                />
+                <View className="flex-1" style={{ marginHorizontal: width * 0.03 }}>
                     <Text
                         style={{
-                            color: task.status === 'rejected'
+                            color: ['rejected', 'expired'].includes(task.status)
                                 ? Colors.light.placeholderColorOp70
-                                : Colors.light.whiteFefefe
+                                : Colors.light.whiteFefefe,
+                            fontSize: width * 0.045,
                         }}
-                        className="text-lg mb-1 font-normal"
                     >
                         {task.title}
                     </Text>
                     <Text
-                        style={{ color: Colors.light.placeholderColorOp70 }}
-                        className="text-sm leading-5"
+                        style={{
+                            color: Colors.light.placeholderColorOp70,
+                            fontSize: width * 0.035,
+                            lineHeight: width * 0.05,
+                        }}
                     >
                         {task.description}
                     </Text>
                 </View>
-
-                {/* Arrow Icon */}
                 <TouchableOpacity onPress={() => handleTaskNavigation(task)}>
                     <Image
                         source={icons.go}
-                        className="w-[12px] h-[12px] mt-1"
                         style={{
-                            opacity: task.status === 'rejected' ? 0.5 : 1
+                            width: width * 0.03,
+                            height: width * 0.03,
+                            opacity: ['rejected', 'expired'].includes(task.status) ? 0.5 : 1
                         }}
                     />
                 </TouchableOpacity>
             </View>
 
-            {/* Button and Coin Section */}
             <View className="flex-row items-center justify-between">
-                {/* Status Button Container */}
-                <View className="flex-1 mr-4">
+                <View className="flex-1" style={{ marginRight: width * 0.04 }}>
                     {task.status === 'rejected' && (
                         <CustomRedGradientButton
-                            text="Rejected"
-                            width={260}
-                            height={35}
+                            text={isHi ? 'अस्वीकृत' : 'Rejected'}
+                            width={width * 0.63}
+                            height={height * 0.038}
                             fontWeight={600}
                             borderRadius={10}
-                            fontSize={16}
+                            fontSize={width * 0.04}
                             textColor="white"
-                            onPress={() => handleTaskNavigation(task)}
-                            disabled={true}
+                            disabled
                         />
                     )}
-
                     {task.status === 'pending' && (
                         <CustomOrangeGradientButton
-                            text="Pending Review"
-                            width={260}
-                            height={35}
+                            text={isHi ? 'समीक्षा लंबित' : 'Pending Review'}
+                            width={width * 0.63}
+                            height={height * 0.038}
                             fontWeight={600}
                             borderRadius={10}
-                            fontSize={16}
+                            fontSize={width * 0.04}
                             textColor="white"
-                            onPress={() => handleTaskNavigation(task)}
-                            disabled={true}
+                            disabled
                         />
                     )}
-
                     {task.status === 'completed' && (
                         <CustomGreenGradientButton
-                            text="Completed"
-                            width={260}
-                            height={35}
+                            text={isHi ? 'पूर्ण' : 'Completed'}
+                            width={width * 0.63}
+                            height={height * 0.038}
                             fontWeight={600}
                             borderRadius={10}
-                            fontSize={16}
+                            fontSize={width * 0.04}
                             textColor="white"
                             onPress={() => handleTaskNavigation(task)}
                         />
                     )}
-
-                    {task.status === 'upcoming' && (
+                    {task.status === 'active' && (
                         <CustomGradientButton
-                            text="Do It Now"
-                            width={260}
-                            height={35}
+                            text={isHi ? 'अब करें' : 'Do It Now'}
+                            width={width * 0.63}
+                            height={height * 0.038}
                             fontWeight={600}
                             borderRadius={10}
-                            fontSize={16}
+                            fontSize={width * 0.04}
                             textColor="white"
                             onPress={() => handleTaskNavigation(task)}
+                        />
+                    )}
+                    {task.status === 'expired' && (
+                        <CustomRedGradientButton
+                            text={isHi ? 'समाप्त' : 'Expired'}
+                            width={width * 0.63}
+                            height={height * 0.038}
+                            fontWeight={600}
+                            borderRadius={10}
+                            fontSize={width * 0.04}
+                            textColor="white"
+                            disabled
                         />
                     )}
                 </View>
 
-                {/* Coin and Reward Display */}
-                <View className=" flex flex-row items-center ml-3">
+                <View className="flex flex-row items-center" style={{ marginLeft: width * 0.03 }}>
                     <Image
                         source={icons.maincoin}
-                        className="w-[25px] h-[25px] "
-                        style={{ opacity: task.status === 'rejected' ? 0.5 : 1 }}
+                        style={{
+                            width: width * 0.06,
+                            height: width * 0.06,
+                            opacity: ['rejected', 'expired'].includes(task.status) ? 0.5 : 1
+                        }}
                     />
                     <Text
                         style={{
-                            color: task.status === 'rejected'
+                            color: ['rejected', 'expired'].includes(task.status)
                                 ? Colors.light.placeholderColorOp70
-                                : Colors.light.whiteFefefe
+                                : Colors.light.whiteFefefe,
+                            fontSize: width * 0.04,
+                            paddingLeft: width * 0.01,
                         }}
-                        className="text-base font-semibold pl-1"
                     >
                         {task.reward}
                     </Text>
@@ -482,65 +486,71 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
         </ImageBackground>
     );
 
+    const getEmptyStateMessage = () => {
+        if (activeMainTab === 'pending') {
+            if (activePendingFilter === 'active') {
+                return {
+                    title: isHi ? 'कोई सक्रिय कार्य नहीं' : 'No Active Tasks',
+                    subtitle: isHi ? 'नए कार्यों के लिए बाद में जाँच करें!' : 'Check back later for new tasks!'
+                };
+            } else {
+                return {
+                    title: isHi ? 'कोई समाप्त कार्य नहीं' : 'No Expired Tasks',
+                    subtitle: isHi ? 'कोई समाप्त कार्य नहीं मिला।' : 'No expired tasks found.'
+                };
+            }
+        } else {
+            if (activeCompletedFilter === 'completed') {
+                return {
+                    title: isHi ? 'कोई पूर्ण कार्य नहीं' : 'No Completed Tasks',
+                    subtitle: isHi ? 'कोई पूर्ण या अस्वीकृत कार्य नहीं मिला।' : 'No completed or rejected tasks found.'
+                };
+            } else {
+                return {
+                    title: isHi ? 'कोई समीक्षाधीन कार्य नहीं' : 'No Pending Review Tasks',
+                    subtitle: isHi ? 'कोई समीक्षाधीन कार्य नहीं मिला।' : 'No tasks pending review found.'
+                };
+            }
+        }
+    };
+
     return (
         <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-            {/* =================== FIXED HEADER SECTION =================== */}
-            <View className="relative h-32">
-                {/* Background image */}
-                <Image
-                    source={bg2}
-                    resizeMode="cover"
-                    className="w-full h-full absolute"
-                />
-
-                {/* Header Content with proper flexbox layout */}
-                <View className="flex-1 pt-12 pb-4 px-4">
-                    {/* Header row with proper spacing */}
-                    <View className="flex-row items-center justify-between h-16">
-                        {/* Back button */}
-                        <TouchableOpacity
-
-                            className="w-10 h-10 items-center justify-center"
-                        >
-
-                        </TouchableOpacity>
-
-                        {/* Centered title */}
-                        <Text
-                            style={{ color: Colors.light.whiteFfffff }}
-                            className="text-3xl font-medium pt-1"
-                        >
-                            Tasks
+            {/* Header */}
+            <View style={{ height: height * 0.14 }}>
+                <Image source={bg2} resizeMode="cover" className="w-full h-full absolute" />
+                <View className="flex-1" style={{ paddingTop: height * 0.05, paddingBottom: height * 0.02, paddingHorizontal: width * 0.04 }}>
+                    <View className="flex-row items-center justify-between" style={{ height: height * 0.08 }}>
+                        <View style={{ width: width * 0.1, height: width * 0.1 }} />
+                        <Text style={{ color: Colors.light.whiteFfffff, fontSize: width * 0.075 }} className="font-medium">
+                            {isHi ? 'कार्य' : 'Tasks'}
                         </Text>
-
-                        {/* Profile photo */}
                         <TouchableOpacity
                             onPress={handleProfilePress}
-                            style={{ backgroundColor: Colors.light.whiteFfffff }}
-                            className="w-11 h-11 rounded-full items-center justify-center"
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                width: width * 0.11,
+                                height: width * 0.11,
+                                borderRadius: (width * 0.11) / 2,
+                            }}
+                            className="items-center justify-center"
                         >
                             <Image
                                 source={profilephoto}
-                                className="h-11 w-11 rounded-full"
+                                style={{ height: width * 0.11, width: width * 0.11, borderRadius: (width * 0.11) / 2 }}
                             />
                         </TouchableOpacity>
                     </View>
                 </View>
-
-                {/* Bottom border */}
-                <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
-                />
+                <View className="absolute bottom-0 w-full" style={{ backgroundColor: Colors.light.whiteFfffff, height: 1 }} />
             </View>
 
-            {/* =================== SCROLLABLE CONTENT SECTION =================== */}
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: height * 0.12 }}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -550,66 +560,154 @@ const TaskPage = ({ navigation }: Props) => { // FIXED: Added navigation prop
                     />
                 }
             >
-                {/* Filter Buttons */}
+                {/* Main Tabs */}
+                <View style={{
+                    paddingHorizontal: width * 0.04,
+                    paddingTop: height * 0.025,
+                    paddingBottom: height * 0.02,
+                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                    borderRadius: 30,
+                    marginHorizontal: width * 0.03,
+                    marginTop: height * 0.01,
+                }}>
+                    <View className="flex-row" style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        borderRadius: 28,
+                        padding: 4,
+                    }}>
+                        {renderMainTabButton('pending', isHi ? 'लंबित कार्य' : 'Pending Tasks')}
+                        {renderMainTabButton('completed', isHi ? 'पूर्ण कार्य' : 'Completed Tasks')}
+                    </View>
+                </View>
+
+                {/* Sub Filters */}
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{
-                        paddingHorizontal: 16,
-                        paddingVertical: 16,
-                        paddingTop: 20,
+                        paddingHorizontal: width * 0.04,
+                        paddingBottom: height * 0.025,
+                        paddingTop: height * 0.01,
                     }}
                     className="flex-grow-0"
                 >
-                    <View className="flex-row">
-                        {filterOptions.map((option, index) => renderFilterButton(option, index))}
+                    <View className="flex-row" style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                        borderRadius: 22,
+                        paddingHorizontal: width * 0.03,
+                        paddingVertical: height * 0.01,
+                    }}>
+                        {activeMainTab === 'pending' ? (
+                            <>
+                                {renderSubFilterButton(
+                                    'active',
+                                    isHi ? 'सक्रिय' : 'Active',
+                                    activePendingFilter === 'active',
+                                    () => setActivePendingFilter('active')
+                                )}
+                                {renderSubFilterButton(
+                                    'expired',
+                                    isHi ? 'समाप्त' : 'Expired',
+                                    activePendingFilter === 'expired',
+                                    () => setActivePendingFilter('expired')
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                {renderSubFilterButton(
+                                    'completed',
+                                    isHi ? 'पूर्ण' : 'Completed',
+                                    activeCompletedFilter === 'completed',
+                                    () => setActiveCompletedFilter('completed')
+                                )}
+                                {renderSubFilterButton(
+                                    'pendingReview',
+                                    isHi ? 'समीक्षाधीन' : 'Pending Review',
+                                    activeCompletedFilter === 'pendingReview',
+                                    () => setActiveCompletedFilter('pendingReview')
+                                )}
+                            </>
+                        )}
                     </View>
                 </ScrollView>
 
-                {/* Content Section */}
+                {/* Main Content */}
                 {loading ? (
-                    renderLoadingState()
+                    <View className="items-center justify-center" style={{ paddingVertical: height * 0.1 }}>
+                        <Text style={{ color: Colors.light.placeholderColorOp70, fontSize: width * 0.05 }}>
+                            {isHi ? 'कार्य लोड हो रहे हैं...' : 'Loading tasks...'}
+                        </Text>
+                    </View>
                 ) : error ? (
-                    renderErrorState()
-                ) : hasTasks ? (
+                    <View className="items-center justify-center" style={{ paddingVertical: height * 0.1, paddingHorizontal: width * 0.04 }}>
+                        <Text style={{ color: Colors.light.placeholderColorOp70, fontSize: width * 0.05, marginBottom: height * 0.02 }} className="text-center">
+                            {error}
+                        </Text>
+                        <TouchableOpacity
+                            onPress={() => fetchUserTasks()}
+                            style={{ backgroundColor: Colors.light.bgBlueBtn, paddingHorizontal: width * 0.06, paddingVertical: height * 0.015, borderRadius: 8 }}
+                        >
+                            <Text style={{ color: Colors.light.whiteFefefe, fontSize: width * 0.04 }} className="font-semibold">
+                                {isHi ? 'पुनः प्रयास करें' : 'Retry'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : filteredTasks.length > 0 ? (
                     <View>
-                        {sortedMonthKeys.map((monthYear) => (
-                            <View key={monthYear} className="mb-6">
-                                <View className="px-4 pb-4">
+                        {monthKeys.map(monthYear => (
+                            <View key={monthYear} style={{ marginBottom: height * 0.03 }}>
+                                <View
+                                    style={{
+                                        paddingHorizontal: width * 0.04,
+                                        paddingBottom: height * 0.02,
+                                    }}
+                                >
                                     <Text
-                                        className="text-xl font-semibold"
-                                        style={{ color: Colors.light.whiteFfffff }}
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            fontSize: width * 0.05,
+                                        }}
+                                        className="font-semibold"
                                     >
                                         {monthYear}
                                     </Text>
                                     <View
-                                        className="mt-2 h-[1px] w-full"
                                         style={{
+                                            marginTop: height * 0.01,
+                                            height: 1,
+                                            width: '100%',
                                             backgroundColor: Colors.light.placeholderColorOp70,
-                                            opacity: 0.3
+                                            opacity: 0.3,
                                         }}
                                     />
                                 </View>
-                                {groupedTasks[monthYear].map((task) => renderTaskItem(task))}
+                                {groupedTasks[monthYear].map(task => renderTaskItem(task))}
                             </View>
                         ))}
                     </View>
                 ) : (
-                    <View className="items-center justify-center py-10">
+                    <View
+                        className="items-center justify-center"
+                        style={{ paddingVertical: height * 0.1 }}
+                    >
                         <Text
-                            className="text-2xl font-medium text-center"
-                            style={{ color: Colors.light.placeholderColorOp70 }}
+                            style={{
+                                color: Colors.light.placeholderColorOp70,
+                                fontSize: width * 0.055,
+                            }}
+                            className="font-medium text-center"
                         >
-                            No Tasks Available
+                            {getEmptyStateMessage().title}
                         </Text>
                         <Text
-                            className="text-base mt-2 text-center"
-                            style={{ color: Colors.light.placeholderColorOp70 }}
+                            style={{
+                                color: Colors.light.placeholderColorOp70,
+                                fontSize: width * 0.04,
+                                marginTop: height * 0.01,
+                            }}
+                            className="text-center"
                         >
-                            {activeFilter === 'All'
-                                ? 'Check back later for new tasks!'
-                                : `No ${activeFilter.toLowerCase()} tasks found.`
-                            }
+                            {getEmptyStateMessage().subtitle}
                         </Text>
                     </View>
                 )}

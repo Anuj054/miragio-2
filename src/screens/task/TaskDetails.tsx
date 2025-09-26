@@ -10,21 +10,33 @@ import {
     Modal,
     Linking,
     StatusBar,
-    ImageBackground
-} from "react-native";
+    ImageBackground,
+    Dimensions
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
-import type { ImagePickerResponse, MediaType, ImageLibraryOptions, CameraOptions } from 'react-native-image-picker'
+import type {
+    ImagePickerResponse,
+    MediaType,
+    ImageLibraryOptions,
+    CameraOptions
+} from 'react-native-image-picker';
 
-// Import your assets
-import bg2 from "../../assets/images/bg2.png";
-import { icons } from "../../constants/index";
-import profilephoto from "../../assets/images/profilephoto.png";
-import taskicon from "../../assets/images/taskicon.gif";
-import howtodoit from "../../assets/images/howtodoiticon.gif";
+// ✅ Add translation context
+import { useTranslation } from '../../context/TranslationContext';
+
+// Assets
+import bg2 from '../../assets/images/bg2.png';
+import { icons } from '../../constants/index';
+import profilephoto from '../../assets/images/profilephoto.png';
+import taskicon from '../../assets/images/taskicon.gif';
+import howtodoit from '../../assets/images/howtodoiticon.gif';
 import VerificationModal from '../../components/VerficationModal';
 import { Colors } from '../../constants/Colors';
-import { useUser } from "../../context/UserContext";
+import { useUser } from '../../context/UserContext';
+
+// Screen dimensions
+const { width, height } = Dimensions.get('window');
 
 // Navigation types
 type NavigationProp = any;
@@ -49,11 +61,8 @@ interface ApiTask {
     task_endtime: string;
     created_at: string;
     status: string;
+    documents: string | null;
     assigned_users: AssignedUser[];
-    // Add fields for downloadable content
-    task_video?: string;
-    task_image?: string;
-    downloadable_file?: string;
 }
 
 interface ApiResponse {
@@ -75,6 +84,13 @@ interface SubmissionResponse {
     };
 }
 
+// ✅ Usage example inside your component
+// const { currentLanguage } = useTranslation();
+// const isHi = currentLanguage === 'hi';
+// Then wrap UI strings like:
+// Alert.alert(isHi ? 'त्रुटि' : 'Error', isHi ? 'नेटवर्क समस्या' : 'Network issue');
+
+
 const TaskDetails = () => {
     // Get navigation and route
     const navigation = useNavigation<NavigationProp>();
@@ -95,49 +111,49 @@ const TaskDetails = () => {
     const [showUrlModal, setShowUrlModal] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    // inside your component, add these hooks near the top
+    const { currentLanguage } = useTranslation();   // <-- from your TranslationContext
+    const isHi = currentLanguage === 'hi';
 
     // Get user ID from context
     const { getUserId } = useUser();
     const USER_ID = getUserId();
 
-    // Get user-specific task status from assigned_users array
+    // User-specific task status
     const getUserTaskStatus = useMemo(() => {
         if (!taskDetail || !taskDetail.assigned_users || !USER_ID) return null;
-
-        const currentUser = taskDetail.assigned_users.find(user =>
-            String(user.id) === String(USER_ID)
+        const currentUser = taskDetail.assigned_users.find(
+            user => String(user.id) === String(USER_ID)
         );
-
         return currentUser?.task_status || null;
     }, [taskDetail, USER_ID]);
 
-    // Fetch task details by ID using get_tasks API
+    // Fetch task details by ID
     const fetchTaskDetails = async () => {
         try {
             setLoading(true);
             setError(null);
 
             if (!USER_ID) {
-                setError('User not logged in. Please login again.');
+                setError(isHi ? 'उपयोगकर्ता लॉगिन नहीं है। कृपया दोबारा लॉगिन करें।'
+                    : 'User not logged in. Please login again.');
                 return;
             }
 
             if (!taskId) {
-                setError('Task ID not provided.');
+                setError(isHi ? 'टास्क आईडी उपलब्ध नहीं है।'
+                    : 'Task ID not provided.');
                 return;
             }
 
-            const requestBody = {
-                action: "get_tasks"
-            };
-
-            const response = await fetch('https://netinnovatus.tech/miragio_task/api/api.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody)
-            });
+            const response = await fetch(
+                'https://miragiofintech.org/api/api.php',
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'get_tasks' })
+                }
+            );
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -146,93 +162,140 @@ const TaskDetails = () => {
             const data: ApiResponse = await response.json();
 
             if (data.status === 'success' && data.data) {
-                // Find the specific task by ID
-                const foundTask = data.data.find(task =>
-                    String(task.id) === String(taskId) ||
-                    String(task.task_id) === String(taskId)
+                const foundTask = data.data.find(
+                    task => String(task.id) === String(taskId) || String(task.task_id) === String(taskId)
                 );
 
                 if (foundTask) {
-                    // Check if current user is assigned to this task
-                    const isUserAssigned = foundTask.assigned_users.some(user =>
-                        String(user.id) === String(USER_ID)
+                    const isUserAssigned = foundTask.assigned_users.some(
+                        user => String(user.id) === String(USER_ID)
                     );
-
                     if (isUserAssigned) {
                         setTaskDetail(foundTask);
                     } else {
-                        setError('You are not assigned to this task');
+                        setError(isHi ? 'आप इस कार्य के लिए असाइन नहीं हैं।'
+                            : 'You are not assigned to this task');
                     }
                 } else {
-                    setError('Task not found');
+                    setError(isHi ? 'कार्य नहीं मिला।'
+                        : 'Task not found');
                 }
             } else {
-                setError(data.message || 'Failed to fetch task details');
+                setError(data.message || (isHi ? 'कार्य विवरण लोड करने में असफल।'
+                    : 'Failed to fetch task details'));
             }
         } catch (err) {
             console.error('Error fetching task details:', err);
-            setError('Network error. Please check your connection.');
+            setError(isHi ? 'नेटवर्क त्रुटि। कृपया अपना कनेक्शन जाँचें।'
+                : 'Network error. Please check your connection.');
         } finally {
             setLoading(false);
         }
     };
 
-    // Download function for task materials
+    // Check if downloadable content exists
+    const hasDownloadableContent = useMemo(() => {
+        if (!taskDetail) return false;
+        const docs = taskDetail.documents?.trim() || '';
+        return docs && docs.toLowerCase() !== 'null';
+    }, [taskDetail]);
+
+    // Download handler with translations
     const downloadTaskFile = async () => {
         try {
             setIsDownloading(true);
 
             if (!taskDetail) {
-                Alert.alert('Error', 'Task details not available');
+                Alert.alert(isHi ? 'त्रुटि' : 'Error',
+                    isHi ? 'कार्य विवरण उपलब्ध नहीं है।' : 'Task details not available');
                 return;
             }
 
-            // Check if there's a downloadable file
-            const downloadUrl = taskDetail.task_video || taskDetail.task_image || taskDetail.downloadable_file;
-
-            if (!downloadUrl) {
-                Alert.alert('No Download Available', 'This task does not have any downloadable materials.');
+            if (!hasDownloadableContent) {
+                Alert.alert(isHi ? 'डाउनलोड उपलब्ध नहीं' : 'No Download Available',
+                    isHi ? 'इस कार्य के लिए कोई डाउनलोड करने योग्य सामग्री नहीं है।'
+                        : 'This task does not have any downloadable materials.');
                 return;
             }
 
-            // For now, we'll open the URL in browser/external app
+            let downloadUrl = taskDetail.documents!.trim();
+            if (!downloadUrl.startsWith('http')) {
+                downloadUrl = `https://netinnovatus.tech/miragio_task/api/${downloadUrl}`;
+            }
+
             const supported = await Linking.canOpenURL(downloadUrl);
-
             if (supported) {
-                await Linking.openURL(downloadUrl);
-                Alert.alert('Download Started', 'The file download has been initiated in your browser.');
+                Alert.alert(
+                    isHi ? 'दस्तावेज़ डाउनलोड' : 'Download Document',
+                    isHi
+                        ? `क्या आप कार्य दस्तावेज़ डाउनलोड करना चाहते हैं?\n\nफ़ाइल: ${getDownloadFileType()}`
+                        : `Do you want to download the task document?\n\nFile: ${getDownloadFileType()}`,
+                    [
+                        { text: isHi ? 'रद्द करें' : 'Cancel', style: 'cancel' },
+                        {
+                            text: isHi ? 'डाउनलोड' : 'Download',
+                            onPress: async () => {
+                                try {
+                                    await Linking.openURL(downloadUrl);
+                                    Alert.alert(
+                                        isHi ? 'डाउनलोड प्रारंभ' : 'Download Started',
+                                        isHi
+                                            ? 'दस्तावेज़ का डाउनलोड आपके ब्राउज़र में शुरू हो गया है।'
+                                            : 'The document download has been initiated in your browser.'
+                                    );
+                                } catch (e) {
+                                    console.error('Download error:', e);
+                                    Alert.alert(
+                                        isHi ? 'डाउनलोड विफल' : 'Download Failed',
+                                        isHi
+                                            ? 'डाउनलोड लिंक खोलने में असफल। कृपया पुनः प्रयास करें।'
+                                            : 'Failed to open the download link. Please try again.'
+                                    );
+                                }
+                            }
+                        }
+                    ]
+                );
             } else {
-                Alert.alert('Error', 'Unable to open the download link.');
+                Alert.alert(isHi ? 'त्रुटि' : 'Error',
+                    isHi
+                        ? 'डाउनलोड लिंक नहीं खोला जा सका। कृपया जांचें कि ब्राउज़र स्थापित है।'
+                        : 'Unable to open the download link. Please check if you have a browser installed.');
             }
-
         } catch (error) {
             console.error('Download error:', error);
-            Alert.alert('Download Failed', 'Failed to download the file. Please try again.');
+            Alert.alert(
+                isHi ? 'डाउनलोड विफल' : 'Download Failed',
+                isHi
+                    ? 'डाउनलोड प्रक्रिया विफल हुई। कृपया पुनः प्रयास करें।'
+                    : 'Failed to process the download. Please try again.'
+            );
         } finally {
             setIsDownloading(false);
         }
     };
 
-    // Check if downloadable content is available
-    const hasDownloadableContent = useMemo(() => {
-        if (!taskDetail) return false;
-        return !!(taskDetail.task_video || taskDetail.task_image || taskDetail.downloadable_file);
-    }, [taskDetail]);
-
-    // Get download file type for display
+    // Updated function to get download file type for display
+    // Updated function to get download file type for display
     const getDownloadFileType = () => {
-        if (!taskDetail) return 'File';
+        if (!taskDetail || !taskDetail.documents) return isHi ? 'दस्तावेज़' : 'Document';
 
-        if (taskDetail.task_video) return 'Video';
-        if (taskDetail.task_image) return 'Image';
-        if (taskDetail.downloadable_file) {
-            const url = taskDetail.downloadable_file.toLowerCase();
-            if (url.includes('.pdf')) return 'PDF';
-            if (url.includes('.doc') || url.includes('.docx')) return 'Document';
-            if (url.includes('.zip') || url.includes('.rar')) return 'Archive';
-            return 'File';
-        }
-        return 'File';
+        const url = taskDetail.documents.toLowerCase();
+
+        if (url.includes('.pdf')) return isHi ? 'PDF दस्तावेज़' : 'PDF Document';
+        if (url.includes('.doc') || url.includes('.docx')) return isHi ? 'वर्ड दस्तावेज़' : 'Word Document';
+        if (url.includes('.xls') || url.includes('.xlsx')) return isHi ? 'एक्सेल दस्तावेज़' : 'Excel Document';
+        if (url.includes('.ppt') || url.includes('.pptx')) return isHi ? 'पावरपॉइंट' : 'PowerPoint';
+        if (url.includes('.zip') || url.includes('.rar')) return isHi ? 'आर्काइव फ़ाइल' : 'Archive File';
+        if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif'))
+            return isHi ? 'चित्र फ़ाइल' : 'Image File';
+        if (url.includes('.mp4') || url.includes('.avi') || url.includes('.mov'))
+            return isHi ? 'वीडियो फ़ाइल' : 'Video File';
+        if (url.includes('.mp3') || url.includes('.wav'))
+            return isHi ? 'ऑडियो फ़ाइल' : 'Audio File';
+        if (url.includes('.txt')) return isHi ? 'पाठ फ़ाइल' : 'Text File';
+
+        return isHi ? 'दस्तावेज़' : 'Document';
     };
 
     const submitTask = async () => {
@@ -241,12 +304,18 @@ const TaskDetails = () => {
             setSubmitError(null);
 
             if (!USER_ID || !taskId) {
-                setSubmitError('Missing user or task information');
+                setSubmitError(
+                    isHi ? 'उपयोगकर्ता या कार्य जानकारी गायब है' : 'Missing user or task information'
+                );
                 return;
             }
 
             if (!taskUrl && !taskImage) {
-                setSubmitError('Please provide either a URL or upload an image');
+                setSubmitError(
+                    isHi
+                        ? 'कृपया एक URL दें या एक छवि अपलोड करें'
+                        : 'Please provide either a URL or upload an image'
+                );
                 return;
             }
 
@@ -267,7 +336,9 @@ const TaskDetails = () => {
 
                 const timestamp = Math.floor(Date.now() / 1000);
                 const extension = getFileExtension(selectedImageName);
-                const originalName = selectedImageName ? selectedImageName.replace(/\.[^/.]+$/, "") : "image";
+                const originalName = selectedImageName
+                    ? selectedImageName.replace(/\.[^/.]+$/, '')
+                    : 'image';
                 const fileName = `${timestamp}_${originalName}.${extension}`;
 
                 const getMimeType = (ext: string): string => {
@@ -290,13 +361,16 @@ const TaskDetails = () => {
                 console.log('Uploading file:', fileName);
             }
 
-            const response = await fetch('https://netinnovatus.tech/miragio_task/api/api.php', {
-                method: 'POST',
-                headers: {
-                    // Don't set Content-Type manually for FormData
-                },
-                body: formData
-            });
+            const response = await fetch(
+                'https://miragiofintech.org/api/api.php',
+                {
+                    method: 'POST',
+                    headers: {
+                        // Do not set Content-Type manually for FormData
+                    },
+                    body: formData
+                }
+            );
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -310,7 +384,7 @@ const TaskDetails = () => {
                 data = JSON.parse(responseText);
             } catch (parseError) {
                 console.error('Response text:', responseText);
-                throw new Error('Invalid JSON response from server');
+                throw new Error(isHi ? 'सर्वर से अमान्य JSON उत्तर' : 'Invalid JSON response from server');
             }
 
             if (data.status === 'success') {
@@ -327,17 +401,24 @@ const TaskDetails = () => {
                 // Open verification modal
                 setIsModalVisible(true);
             } else {
-                setSubmitError(data.message || 'Failed to submit task');
+                setSubmitError(
+                    data.message || (isHi ? 'कार्य सबमिट करने में विफल' : 'Failed to submit task')
+                );
                 console.error('Server error:', data);
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error';
             console.error('Error submitting task:', err);
-            setSubmitError(`Upload failed: ${errorMessage}`);
+            setSubmitError(
+                isHi
+                    ? `अपलोड विफल: ${errorMessage}`
+                    : `Upload failed: ${errorMessage}`
+            );
         } finally {
             setIsSubmitting(false);
         }
     };
+
 
     // Updated image picker to handle file info properly
     const pickImage = () => {
@@ -353,7 +434,7 @@ const TaskDetails = () => {
         launchImageLibrary(options, (response: ImagePickerResponse) => {
             if (response.didCancel || response.errorMessage) {
                 if (response.errorMessage) {
-                    Alert.alert('Error', response.errorMessage);
+                    Alert.alert(isHi ? 'त्रुटि' : 'Error', response.errorMessage);
                 }
                 return;
             }
@@ -364,9 +445,12 @@ const TaskDetails = () => {
                 if (asset.uri) {
                     setTaskImage(asset.uri);
                     setSelectedImageName(asset.fileName || `image_${Date.now()}.jpg`);
-                    Alert.alert('Success', 'Image selected successfully!');
+                    Alert.alert(isHi ? 'सफलता' : 'Success',
+                        isHi ? 'छवि सफलतापूर्वक चुनी गई!' : 'Image selected successfully!');
                 } else {
-                    Alert.alert('Error', 'Failed to select image. Please try again.');
+                    Alert.alert(isHi ? 'त्रुटि' : 'Error',
+                        isHi ? 'छवि चुनने में विफल। कृपया पुनः प्रयास करें।'
+                            : 'Failed to select image. Please try again.');
                 }
             }
         });
@@ -386,7 +470,7 @@ const TaskDetails = () => {
         launchCamera(options, (response: ImagePickerResponse) => {
             if (response.didCancel || response.errorMessage) {
                 if (response.errorMessage) {
-                    Alert.alert('Error', response.errorMessage);
+                    Alert.alert(isHi ? 'त्रुटि' : 'Error', response.errorMessage);
                 }
                 return;
             }
@@ -397,9 +481,12 @@ const TaskDetails = () => {
                 if (asset.uri) {
                     setTaskImage(asset.uri);
                     setSelectedImageName(asset.fileName || `photo_${Date.now()}.jpg`);
-                    Alert.alert('Success', 'Photo captured successfully!');
+                    Alert.alert(isHi ? 'सफलता' : 'Success',
+                        isHi ? 'फोटो सफलतापूर्वक कैप्चर हुआ!' : 'Photo captured successfully!');
                 } else {
-                    Alert.alert('Error', 'Failed to capture photo. Please try again.');
+                    Alert.alert(isHi ? 'त्रुटि' : 'Error',
+                        isHi ? 'फोटो कैप्चर करने में विफल। कृपया पुनः प्रयास करें।'
+                            : 'Failed to capture photo. Please try again.');
                 }
             }
         });
@@ -408,21 +495,12 @@ const TaskDetails = () => {
     // Show camera/gallery options
     const showImagePickerOptions = () => {
         Alert.alert(
-            'Select Image',
-            'Choose an option',
+            isHi ? 'छवि चुनें' : 'Select Image',
+            isHi ? 'एक विकल्प चुनें' : 'Choose an option',
             [
-                {
-                    text: 'Camera',
-                    onPress: () => openCamera()
-                },
-                {
-                    text: 'Gallery',
-                    onPress: () => pickImage()
-                },
-                {
-                    text: 'Cancel',
-                    style: 'cancel'
-                }
+                { text: isHi ? 'कैमरा' : 'Camera', onPress: () => openCamera() },
+                { text: isHi ? 'गैलरी' : 'Gallery', onPress: () => pickImage() },
+                { text: isHi ? 'रद्द करें' : 'Cancel', style: 'cancel' }
             ]
         );
     };
@@ -431,7 +509,7 @@ const TaskDetails = () => {
     const formatDate = (dateString: string) => {
         try {
             const date = new Date(dateString);
-            return date.toLocaleDateString('en-GB', {
+            return date.toLocaleDateString(isHi ? 'hi-IN' : 'en-GB', {
                 day: '2-digit',
                 month: 'long',
                 year: 'numeric'
@@ -449,13 +527,17 @@ const TaskDetails = () => {
     // Handler to mark task as complete
     const handleMarkComplete = () => {
         if (!taskUrl && !taskImage) {
-            setSubmitError('Please provide either a URL or upload an image before marking as complete');
+            setSubmitError(
+                isHi
+                    ? 'कृपया पूर्ण करने से पहले URL जोड़ें या छवि अपलोड करें'
+                    : 'Please provide either a URL or upload an image before marking as complete'
+            );
             return;
         }
-
         setSubmitError(null);
         submitTask();
     };
+
 
     // Handler to close verification modal
     const handleCloseModal = () => {
@@ -508,8 +590,8 @@ const TaskDetails = () => {
             <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
                 <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
                 <View className="flex-1 items-center justify-center">
-                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl">
-                        Loading task details...
+                    <Text style={{ color: Colors.light.whiteFefefe, fontSize: width * 0.05 }}>
+                        {isHi ? 'कार्य विवरण लोड हो रहा है...' : 'Loading task details...'}
                     </Text>
                 </View>
             </View>
@@ -521,64 +603,113 @@ const TaskDetails = () => {
         return (
             <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
                 <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-                <View className="flex-1 items-center justify-center px-4">
-                    <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-xl text-center mb-4">
-                        {error || 'Task not found'}
+                <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: width * 0.04 }}>
+                    <Text
+                        style={{
+                            color: Colors.light.placeholderColorOp70,
+                            fontSize: width * 0.05,
+                            marginBottom: height * 0.02
+                        }}
+                        className="text-center"
+                    >
+                        {error || (isHi ? 'कार्य नहीं मिला' : 'Task not found')}
                     </Text>
                     <TouchableOpacity
                         onPress={handleBackPress}
-                        className="px-6 py-3 rounded-lg"
-                        style={{ backgroundColor: Colors.light.bgBlueBtn }}
+                        style={{
+                            backgroundColor: Colors.light.bgBlueBtn,
+                            paddingHorizontal: width * 0.06,
+                            paddingVertical: height * 0.015,
+                            borderRadius: 8
+                        }}
                     >
-                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-base font-semibold">
-                            Go Back
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.04
+                            }}
+                            className="font-semibold"
+                        >
+                            {isHi ? 'वापस जाएं' : 'Go Back'}
                         </Text>
                     </TouchableOpacity>
                 </View>
             </View>
         );
     }
-
     return (
         <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
             <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
             {/* =================== HEADER WITH BACKGROUND IMAGE =================== */}
-            <ImageBackground
-                source={bg2}
-                resizeMode="cover"
-                className="h-32"
-                style={{ position: 'relative' }}
-            >
-                <View className="flex-1 pt-12 pb-4 px-4">
-                    <View className="flex-row items-center justify-between h-16">
+            <View style={{ height: height * 0.14 }}>
+                <ImageBackground
+                    source={bg2}
+                    resizeMode="cover"
+                    className="w-full h-full absolute"
+                />
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
                         {/* Back button */}
                         <TouchableOpacity
                             onPress={handleBackPress}
-                            className="w-10 h-10 items-center justify-center"
+                            style={{
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
                         >
-                            <Image source={icons.back} className="w-4 h-6" />
+                            <Image
+                                source={icons.back}
+                                style={{
+                                    width: width * 0.04,
+                                    height: width * 0.06
+                                }}
+                            />
                         </TouchableOpacity>
 
-                        {/* Centered title */}
+                        {/* Centered title with translation */}
                         <View className="flex-1 items-center">
                             <Text
-                                style={{ color: Colors.light.whiteFfffff }}
-                                className="text-3xl font-medium pt-1"
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.075
+                                }}
+                                className="font-medium"
                             >
-                                Task Details
+                                {isHi ? 'कार्य विवरण' : 'Task Details'}
                             </Text>
                         </View>
 
                         {/* Profile photo */}
                         <TouchableOpacity
                             onPress={handleProfilePress}
-                            style={{ backgroundColor: Colors.light.whiteFfffff }}
-                            className="w-10 h-10 rounded-full items-center justify-center"
+                            style={{
+                                backgroundColor: Colors.light.whiteFfffff,
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                borderRadius: (width * 0.1) / 2
+                            }}
+                            className="items-center justify-center"
                         >
                             <Image
                                 source={profilephoto}
-                                className="h-10 w-10 rounded-full"
+                                style={{
+                                    height: width * 0.1,
+                                    width: width * 0.1,
+                                    borderRadius: (width * 0.1) / 2
+                                }}
                             />
                         </TouchableOpacity>
                     </View>
@@ -586,99 +717,204 @@ const TaskDetails = () => {
 
                 {/* Header border line */}
                 <View
-                    className="absolute bottom-0 w-full h-[1px]"
-                    style={{ backgroundColor: Colors.light.whiteFfffff }}
+                    className="absolute bottom-0 w-full"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        height: 1
+                    }}
                 />
-            </ImageBackground>
+            </View>
 
             {/* =================== SCROLLABLE CONTENT SECTION =================== */}
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 20 }}
+                contentContainerStyle={{
+                    paddingBottom: height * 0.12,
+                    paddingHorizontal: width * 0.04
+                }}
             >
                 {/* =================== TASK TITLE SECTION =================== */}
-                <View className="py-5 flex-row items-center">
-                    <Image source={taskicon} className="w-[40px] h-[40px]" />
-                    <Text style={{ color: Colors.light.whiteFefefe }} className="font-semibold text-2xl pl-4">
+                <View
+                    className="flex-row items-center"
+                    style={{ paddingVertical: height * 0.025 }}
+                >
+                    <Image
+                        source={taskicon}
+                        style={{ width: width * 0.1, height: width * 0.1 }}
+                    />
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFefefe,
+                            fontSize: width * 0.055,
+                            paddingLeft: width * 0.04,
+                        }}
+                        className="font-semibold flex-1"
+                    >
+                        {/* Always show English task name from API */}
                         {taskDetail.task_name}
                     </Text>
                 </View>
 
                 {/* =================== TASK DESCRIPTION SECTION =================== */}
-                <View className="mb-4">
-                    <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-base leading-6">
+                <View style={{ marginBottom: height * 0.02 }}>
+                    <Text
+                        style={{
+                            color: Colors.light.placeholderColorOp70,
+                            fontSize: width * 0.04,
+                            lineHeight: width * 0.06,
+                        }}
+                    >
                         {taskDetail.task_description}
                     </Text>
                 </View>
 
                 {/* =================== HASHTAGS SECTION =================== */}
-                <View className="py-4">
-                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-lg font-semibold mb-3">
-                        Hashtags to Use
+                <View style={{ paddingVertical: height * 0.02 }}>
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFefefe,
+                            fontSize: width * 0.045,
+                            marginBottom: height * 0.015,
+                        }}
+                        className="font-semibold"
+                    >
+                        {currentLanguage === 'hi' ? 'हैशटैग इस्तेमाल करें' : 'Hashtags to Use'}
                     </Text>
+
                     <View className="flex-row flex-wrap">
-                        {['#MiragioCoin', '#TaskCompleted', '#EarnCoins', '#CryptoRewards', '#DigitalTasks', '#OnlineEarning'].map((hashtag, index) => (
+                        {(currentLanguage === 'hi'
+                            ? ['#मिराजिओकॉइन', '#टास्कपूरा', '#कॉइनकमाओ', '#क्रिप्टोरिवॉर्ड']
+                            : ['#MiragioCoin', '#TaskCompleted', '#EarnCoins', '#CryptoRewards']
+                        ).map((hashtag, index) => (
                             <View
                                 key={index}
-                                style={{ backgroundColor: Colors.light.backlight2, borderColor: Colors.light.bgBlueBtn }}
-                                className="border rounded-full px-3 py-1 mr-2 mb-2"
+                                style={{
+                                    backgroundColor: Colors.light.backlight2,
+                                    borderColor: Colors.light.bgBlueBtn,
+                                    borderWidth: 1,
+                                    borderRadius: 15,
+                                    paddingHorizontal: width * 0.03,
+                                    paddingVertical: height * 0.005,
+                                    marginRight: width * 0.02,
+                                    marginBottom: height * 0.01,
+                                }}
                             >
-                                <Text style={{ color: Colors.light.bgBlueBtn }} className="text-sm font-medium">
+                                <Text
+                                    style={{
+                                        color: Colors.light.bgBlueBtn,
+                                        fontSize: width * 0.035,
+                                    }}
+                                    className="font-medium"
+                                >
                                     {hashtag}
                                 </Text>
                             </View>
                         ))}
                     </View>
-                    <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm mt-2">
-                        Copy and use these hashtags when posting about this task
+
+                    <Text
+                        style={{
+                            color: Colors.light.placeholderColorOp70,
+                            fontSize: width * 0.035,
+                            marginTop: height * 0.01,
+                        }}
+                    >
+                        {currentLanguage === 'hi'
+                            ? 'पोस्ट करते समय इन हैशटैग का उपयोग करें'
+                            : 'Copy and use these hashtags when posting about this task'}
                     </Text>
                 </View>
 
+
+
                 {/* =================== TASK DETAILS CARDS SECTION =================== */}
-                <View className="py-5">
+                <View style={{ paddingVertical: height * 0.025 }}>
                     {/* =================== DUE DATE CARD =================== */}
-                    <View style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }} className="w-full rounded-lg border-l-2 mb-3">
-                        <View className="flex-row p-3">
-                            <View className="mr-2 items-center justify-center">
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            borderLeftColor: Colors.light.bgBlueBtn,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015,
+                        }}
+                    >
+                        <View className="flex-row" style={{ padding: width * 0.03 }}>
+                            <View className="items-center justify-center" style={{ marginRight: width * 0.03 }}>
                                 <Image
                                     source={icons.duedateicon}
-                                    className="h-[32px] w-[32px]"
+                                    style={{ height: width * 0.08, width: width * 0.08 }}
                                     resizeMode="contain"
                                 />
                             </View>
 
                             <View className="flex-1">
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-1 font-bold">
-                                    Due Date
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005,
+                                    }}
+                                    className="font-bold"
+                                >
+                                    {currentLanguage === 'hi' ? 'अंतिम तिथि' : 'Due Date'}
                                 </Text>
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035,
+                                    }}
+                                >
                                     {formatDate(taskDetail.task_endtime)}
                                 </Text>
                             </View>
 
                             <View className="items-center justify-center">
-                                <Image source={icons.duecheckicon} className="h-[36px] w-[36px]" />
+                                <Image
+                                    source={icons.duecheckicon}
+                                    style={{ height: width * 0.09, width: width * 0.09 }}
+                                />
                             </View>
                         </View>
                     </View>
 
                     {/* =================== TASK STATUS CARD =================== */}
-                    <View style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }} className="w-full rounded-lg border-l-2 mb-3">
-                        <View className="flex-row p-3">
-                            <View className="mr-2 items-center justify-center">
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            borderLeftColor: Colors.light.bgBlueBtn,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015,
+                        }}
+                    >
+                        <View className="flex-row" style={{ padding: width * 0.03 }}>
+                            <View className="items-center justify-center" style={{ marginRight: width * 0.03 }}>
                                 <Image
                                     source={icons.assignicon}
-                                    className="h-[32px] w-[32px]"
+                                    style={{ height: width * 0.08, width: width * 0.08 }}
                                     resizeMode="contain"
                                 />
                             </View>
 
                             <View className="flex-1">
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-1 font-bold">
-                                    Task Status
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005,
+                                    }}
+                                    className="font-bold"
+                                >
+                                    {currentLanguage === 'hi' ? 'कार्य स्थिति' : 'Task Status'}
                                 </Text>
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035,
+                                    }}
+                                >
                                     {getDisplayStatus()}
                                 </Text>
                             </View>
@@ -686,22 +922,42 @@ const TaskDetails = () => {
                     </View>
 
                     {/* =================== REWARD CARD =================== */}
-                    <View style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }} className="w-full rounded-lg border-l-2 mb-3">
-                        <View className="flex-row p-3">
-                            <View className="mr-2 items-center justify-center">
+                    <View
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            borderLeftColor: Colors.light.bgBlueBtn,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015,
+                        }}
+                    >
+                        <View className="flex-row" style={{ padding: width * 0.03 }}>
+                            <View className="items-center justify-center" style={{ marginRight: width * 0.03 }}>
                                 <Image
                                     source={icons.maincoin}
-                                    className="h-[32px] w-[32px]"
+                                    style={{ height: width * 0.08, width: width * 0.08 }}
                                     resizeMode="contain"
                                 />
                             </View>
 
                             <View className="flex-1">
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-1 font-bold">
-                                    Reward
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005,
+                                    }}
+                                    className="font-bold"
+                                >
+                                    {currentLanguage === 'hi' ? 'इनाम' : 'Reward'}
                                 </Text>
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
-                                    {taskDetail.task_reward} coins
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035,
+                                    }}
+                                >
+                                    {taskDetail.task_reward} {currentLanguage === 'hi' ? 'कॉइन्स' : 'coins'}
                                 </Text>
                             </View>
                         </View>
@@ -711,62 +967,137 @@ const TaskDetails = () => {
                     <TouchableOpacity
                         style={{
                             backgroundColor: Colors.light.backlight2,
-                            borderLeftColor: Colors.light.bgGreen,
-                            opacity: isDownloading ? 0.7 : 1
+                            borderLeftColor: hasDownloadableContent
+                                ? Colors.light.bgGreen
+                                : Colors.light.placeholderColorOp70,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015,
+                            opacity: isDownloading ? 0.7 : hasDownloadableContent ? 1 : 0.6,
                         }}
-                        className="w-full rounded-lg border-l-2 mb-3"
-                        onPress={downloadTaskFile}
-                        disabled={isDownloading}
+                        onPress={hasDownloadableContent ? downloadTaskFile : undefined}
+                        disabled={isDownloading || !hasDownloadableContent}
                     >
-                        <View className="flex-row p-3">
-                            <View className="mr-2 items-center justify-center">
+                        <View className="flex-row" style={{ padding: width * 0.03 }}>
+                            <View
+                                className="items-center justify-center"
+                                style={{ marginRight: width * 0.03 }}
+                            >
                                 <Image
-                                    source={icons.download || icons.go}
-                                    className="h-[32px] w-[32px]"
+                                    source={icons.download}
+                                    style={{ height: width * 0.08, width: width * 0.08 }}
                                     resizeMode="contain"
                                 />
                             </View>
 
                             <View className="flex-1">
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-1 font-bold">
-                                    {isDownloading ? 'Downloading...' : 'Download Materials'}
+                                <Text
+                                    style={{
+                                        color: hasDownloadableContent
+                                            ? Colors.light.whiteFefefe
+                                            : Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005,
+                                    }}
+                                    className="font-bold"
+                                >
+                                    {isDownloading
+                                        ? currentLanguage === 'hi'
+                                            ? 'डाउनलोड हो रहा है...'
+                                            : 'Downloading...'
+                                        : hasDownloadableContent
+                                            ? currentLanguage === 'hi'
+                                                ? 'सामग्री डाउनलोड करें'
+                                                : 'Download Materials'
+                                            : currentLanguage === 'hi'
+                                                ? 'कोई सामग्री उपलब्ध नहीं'
+                                                : 'No Materials Available'}
                                 </Text>
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
-                                    {isDownloading ? 'Please wait...' : 'Download task materials and examples'}
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035,
+                                    }}
+                                >
+                                    {isDownloading
+                                        ? currentLanguage === 'hi'
+                                            ? 'कृपया प्रतीक्षा करें...'
+                                            : 'Please wait...'
+                                        : hasDownloadableContent
+                                            ? currentLanguage === 'hi'
+                                                ? `डाउनलोड करें ${getDownloadFileType().toLowerCase()}`
+                                                : `Download ${getDownloadFileType().toLowerCase()}`
+                                            : currentLanguage === 'hi'
+                                                ? 'इस कार्य के लिए कोई डाउनलोड योग्य सामग्री नहीं है'
+                                                : 'No downloadable materials for this task'}
                                 </Text>
                             </View>
 
-                            <View className="items-center justify-center">
-                                <Image
-                                    source={icons.go}
-                                    className="w-3 h-3"
-                                    style={{ opacity: isDownloading ? 0.5 : 1 }}
-                                />
-                            </View>
+                            {hasDownloadableContent && (
+                                <View className="items-center justify-center">
+                                    <Image
+                                        source={icons.go}
+                                        style={{
+                                            width: width * 0.03,
+                                            height: width * 0.03,
+                                            opacity: isDownloading ? 0.5 : 1,
+                                            tintColor: Colors.light.bgGreen,
+                                        }}
+                                    />
+                                </View>
+                            )}
                         </View>
                     </TouchableOpacity>
 
                     {/* =================== UPLOAD SECTION =================== */}
                     {canSubmitTask && (
-                        <View className="mb-4">
+                        <View>
                             {/* Image Preview Section */}
                             {taskImage && (
-                                <View style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }} className="w-full rounded-lg border-l-2 mb-3 p-3">
-                                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-2 font-bold">
-                                        Selected Image
+                                <View
+                                    style={{
+                                        backgroundColor: Colors.light.backlight2,
+                                        borderLeftColor: Colors.light.bgBlueBtn,
+                                        borderLeftWidth: 4,
+                                        borderRadius: 12,
+                                        marginBottom: height * 0.015,
+                                        padding: width * 0.03,
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFefefe,
+                                            fontSize: width * 0.04,
+                                            marginBottom: height * 0.01,
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        {currentLanguage === 'hi' ? 'चयनित छवि' : 'Selected Image'}
                                     </Text>
 
-                                    <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm mb-2">
+                                    <Text
+                                        style={{
+                                            color: Colors.light.placeholderColorOp70,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01,
+                                        }}
+                                    >
                                         {selectedImageName}
                                     </Text>
 
-                                    <View className="w-full h-48 rounded-lg overflow-hidden mb-2" style={{ backgroundColor: '#333' }}>
+                                    <View
+                                        style={{
+                                            width: '100%',
+                                            height: height * 0.25,
+                                            borderRadius: 8,
+                                            backgroundColor: '#333',
+                                            marginBottom: height * 0.01,
+                                        }}
+                                        className="overflow-hidden"
+                                    >
                                         <Image
                                             source={{ uri: taskImage }}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                            }}
+                                            style={{ width: '100%', height: '100%' }}
                                             resizeMode="cover"
                                         />
                                     </View>
@@ -776,11 +1107,21 @@ const TaskDetails = () => {
                                             setTaskImage('');
                                             setSelectedImageName('');
                                         }}
-                                        className="px-4 py-2 rounded-lg self-end"
-                                        style={{ backgroundColor: Colors.light.placeholderColorOp70 }}
+                                        style={{
+                                            backgroundColor: Colors.light.placeholderColorOp70,
+                                            paddingHorizontal: width * 0.04,
+                                            paddingVertical: height * 0.01,
+                                            borderRadius: 8,
+                                            alignSelf: 'flex-end',
+                                        }}
                                     >
-                                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-sm">
-                                            Remove Image
+                                        <Text
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.035,
+                                            }}
+                                        >
+                                            {currentLanguage === 'hi' ? 'छवि हटाएं' : 'Remove Image'}
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
@@ -788,49 +1129,109 @@ const TaskDetails = () => {
 
                             {/* URL Preview Section */}
                             {taskUrl && (
-                                <View style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }} className="w-full rounded-lg border-l-2 mb-3 p-3">
-                                    <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-2 font-bold">
-                                        Added URL
+                                <View
+                                    style={{
+                                        backgroundColor: Colors.light.backlight2,
+                                        borderLeftColor: Colors.light.bgBlueBtn,
+                                        borderLeftWidth: 4,
+                                        borderRadius: 12,
+                                        marginBottom: height * 0.015,
+                                        padding: width * 0.03,
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFefefe,
+                                            fontSize: width * 0.04,
+                                            marginBottom: height * 0.01,
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        {currentLanguage === 'hi' ? 'जोड़ा गया URL' : 'Added URL'}
                                     </Text>
-                                    <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm mb-2">
+                                    <Text
+                                        style={{
+                                            color: Colors.light.placeholderColorOp70,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.01,
+                                        }}
+                                    >
                                         {taskUrl}
                                     </Text>
                                     <TouchableOpacity
                                         onPress={() => setTaskUrl('')}
-                                        className="px-4 py-2 rounded-lg self-end"
-                                        style={{ backgroundColor: Colors.light.placeholderColorOp70 }}
+                                        style={{
+                                            backgroundColor: Colors.light.placeholderColorOp70,
+                                            paddingHorizontal: width * 0.04,
+                                            paddingVertical: height * 0.01,
+                                            borderRadius: 8,
+                                            alignSelf: 'flex-end',
+                                        }}
                                     >
-                                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-sm">
-                                            Remove URL
+                                        <Text
+                                            style={{
+                                                color: Colors.light.whiteFefefe,
+                                                fontSize: width * 0.035,
+                                            }}
+                                        >
+                                            {currentLanguage === 'hi' ? 'URL हटाएं' : 'Remove URL'}
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
 
                             {/* Upload Controls */}
-                            <View className="flex-row justify-between">
+                            <View className="flex-row justify-between" style={{ marginBottom: height * 0.02 }}>
                                 {/* Upload photo card */}
                                 <TouchableOpacity
-                                    style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }}
-                                    className="w-[48%] rounded-lg border-l-2"
+                                    style={{
+                                        backgroundColor: Colors.light.backlight2,
+                                        borderLeftColor: Colors.light.bgBlueBtn,
+                                        borderLeftWidth: 4,
+                                        borderRadius: 12,
+                                        width: '48%',
+                                    }}
                                     onPress={showImagePickerOptions}
                                     disabled={isSubmitting}
                                 >
-                                    <View className="flex-row p-3">
-                                        <View className="mr-2 items-center justify-center">
+                                    <View className="flex-row" style={{ padding: width * 0.03 }}>
+                                        <View
+                                            className="items-center justify-center"
+                                            style={{ marginRight: width * 0.02 }}
+                                        >
                                             <Image
                                                 source={icons.uploadphoto}
-                                                className="h-[30px] w-[30px]"
+                                                style={{ height: width * 0.075, width: width * 0.075 }}
                                                 resizeMode="contain"
                                             />
                                         </View>
 
                                         <View className="flex-1">
-                                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-sm mb-1 font-bold">
-                                                Upload Photo
+                                            <Text
+                                                style={{
+                                                    color: Colors.light.whiteFefefe,
+                                                    fontSize: width * 0.035,
+                                                    marginBottom: height * 0.005,
+                                                }}
+                                                className="font-bold"
+                                            >
+                                                {currentLanguage === 'hi' ? 'फ़ोटो अपलोड करें' : 'Upload Photo'}
                                             </Text>
-                                            <Text style={{ color: taskImage ? Colors.light.bgGreen : Colors.light.placeholderColorOp70 }} className="text-xs">
-                                                {taskImage ? 'Photo selected' : 'add screenshot'}
+                                            <Text
+                                                style={{
+                                                    color: taskImage
+                                                        ? Colors.light.bgGreen
+                                                        : Colors.light.placeholderColorOp70,
+                                                    fontSize: width * 0.03,
+                                                }}
+                                            >
+                                                {taskImage
+                                                    ? currentLanguage === 'hi'
+                                                        ? 'फोटो चुनी गई'
+                                                        : 'Photo selected'
+                                                    : currentLanguage === 'hi'
+                                                        ? 'स्क्रीनशॉट जोड़ें'
+                                                        : 'add screenshot'}
                                             </Text>
                                         </View>
                                     </View>
@@ -838,26 +1239,54 @@ const TaskDetails = () => {
 
                                 {/* Add URL card */}
                                 <TouchableOpacity
-                                    style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }}
-                                    className="w-[48%] rounded-lg border-l-2"
+                                    style={{
+                                        backgroundColor: Colors.light.backlight2,
+                                        borderLeftColor: Colors.light.bgBlueBtn,
+                                        borderLeftWidth: 4,
+                                        borderRadius: 12,
+                                        width: '48%',
+                                    }}
                                     onPress={() => setShowUrlModal(true)}
                                     disabled={isSubmitting}
                                 >
-                                    <View className="flex-row p-3">
-                                        <View className="mr-2 items-center justify-center">
+                                    <View className="flex-row" style={{ padding: width * 0.03 }}>
+                                        <View
+                                            className="items-center justify-center"
+                                            style={{ marginRight: width * 0.02 }}
+                                        >
                                             <Image
                                                 source={icons.addurl}
-                                                className="h-[30px] w-[30px]"
+                                                style={{ height: width * 0.075, width: width * 0.075 }}
                                                 resizeMode="contain"
                                             />
                                         </View>
 
                                         <View className="flex-1">
-                                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-sm mb-1 font-bold">
-                                                Add Url
+                                            <Text
+                                                style={{
+                                                    color: Colors.light.whiteFefefe,
+                                                    fontSize: width * 0.035,
+                                                    marginBottom: height * 0.005,
+                                                }}
+                                                className="font-bold"
+                                            >
+                                                {currentLanguage === 'hi' ? 'यूआरएल जोड़ें' : 'Add Url'}
                                             </Text>
-                                            <Text style={{ color: taskUrl ? Colors.light.bgGreen : Colors.light.placeholderColorOp70 }} className="text-xs">
-                                                {taskUrl ? 'URL added' : 'Add url link'}
+                                            <Text
+                                                style={{
+                                                    color: taskUrl
+                                                        ? Colors.light.bgGreen
+                                                        : Colors.light.placeholderColorOp70,
+                                                    fontSize: width * 0.03,
+                                                }}
+                                            >
+                                                {taskUrl
+                                                    ? currentLanguage === 'hi'
+                                                        ? 'URL जोड़ा गया'
+                                                        : 'URL added'
+                                                    : currentLanguage === 'hi'
+                                                        ? 'यूआरएल लिंक जोड़ें'
+                                                        : 'Add url link'}
                                             </Text>
                                         </View>
                                     </View>
@@ -866,32 +1295,58 @@ const TaskDetails = () => {
                         </View>
                     )}
 
+
                     {/* =================== HOW TO DO IT CARD =================== */}
                     <TouchableOpacity
-                        style={{ backgroundColor: Colors.light.backlight2, borderLeftColor: Colors.light.bgBlueBtn }}
-                        className="w-full rounded-lg border-l-2 mb-3"
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            borderLeftColor: Colors.light.bgBlueBtn,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015,
+                        }}
                         onPress={handleInstructionsPress}
                     >
-                        <View className="flex-row p-3">
-                            <View className="mr-2 items-center justify-center">
+                        <View className="flex-row" style={{ padding: width * 0.03 }}>
+                            <View
+                                className="items-center justify-center"
+                                style={{ marginRight: width * 0.03 }}
+                            >
                                 <Image
                                     source={howtodoit}
-                                    className="h-[32px] w-[32px]"
+                                    style={{ height: width * 0.08, width: width * 0.08 }}
                                     resizeMode="contain"
                                 />
                             </View>
 
                             <View className="flex-1">
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="text-base mb-1 font-bold">
-                                    How to do it
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005,
+                                    }}
+                                    className="font-bold"
+                                >
+                                    {currentLanguage === 'hi' ? 'इसे कैसे करें' : 'How to do it'}
                                 </Text>
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }} className="text-sm">
-                                    Read the instructions to complete tasks
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035,
+                                    }}
+                                >
+                                    {currentLanguage === 'hi'
+                                        ? 'कार्य पूर्ण करने के लिए निर्देश पढ़ें'
+                                        : 'Read the instructions to complete tasks'}
                                 </Text>
                             </View>
 
                             <View className="items-center justify-center">
-                                <Image source={icons.go} className="w-3 h-3" />
+                                <Image
+                                    source={icons.go}
+                                    style={{ width: width * 0.03, height: width * 0.03 }}
+                                />
                             </View>
                         </View>
                     </TouchableOpacity>
@@ -901,87 +1356,182 @@ const TaskDetails = () => {
                         <TouchableOpacity
                             style={{
                                 backgroundColor: Colors.light.bgGreen,
-                                opacity: isSubmitting ? 0.7 : 1
+                                opacity: isSubmitting ? 0.7 : 1,
+                                height: height * 0.055,
+                                borderRadius: 12,
+                                marginBottom: height * 0.015,
                             }}
-                            className="w-full h-14 items-center justify-center rounded-lg mb-3"
+                            className="items-center justify-center"
                             onPress={handleMarkComplete}
                             disabled={isSubmitting}
                         >
-                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-semibold">
-                                {isSubmitting ? 'Submitting...' : 'Mark As Complete'}
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05,
+                                }}
+                                className="font-semibold"
+                            >
+                                {isSubmitting
+                                    ? currentLanguage === 'hi'
+                                        ? 'सबमिट कर रहे हैं...'
+                                        : 'Submitting...'
+                                    : currentLanguage === 'hi'
+                                        ? 'पूरा चिह्नित करें'
+                                        : 'Mark As Complete'}
                             </Text>
                         </TouchableOpacity>
                     )}
-
                     {/* =================== STATUS BUTTONS =================== */}
                     {getUserTaskStatus?.toLowerCase() === 'pending' && (
                         <View
-                            style={{ backgroundColor: "#FFA500" }}
-                            className="w-full h-14 items-center justify-center rounded-lg mb-3 opacity-80"
+                            style={{
+                                backgroundColor: '#FFA500',
+                                height: height * 0.07,
+                                borderRadius: 12,
+                                marginBottom: height * 0.015,
+                                opacity: 0.8,
+                            }}
+                            className="items-center justify-center"
                         >
-                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-semibold">
-                                ⏳ Pending Review
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05,
+                                }}
+                                className="font-semibold"
+                            >
+                                {currentLanguage === 'hi' ? '⏳ समीक्षा लंबित' : '⏳ Pending Review'}
                             </Text>
                         </View>
                     )}
 
                     {getUserTaskStatus?.toLowerCase() === 'approved' && (
                         <View
-                            style={{ backgroundColor: Colors.light.bgGreen }}
-                            className="w-full h-14 items-center justify-center rounded-lg mb-3 opacity-80"
+                            style={{
+                                backgroundColor: Colors.light.bgGreen,
+                                height: height * 0.07,
+                                borderRadius: 12,
+                                marginBottom: height * 0.015,
+                                opacity: 0.8,
+                            }}
+                            className="items-center justify-center"
                         >
-                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-semibold">
-                                Task Completed
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05,
+                                }}
+                                className="font-semibold"
+                            >
+                                {currentLanguage === 'hi' ? 'कार्य पूर्ण' : 'Task Completed'}
                             </Text>
                         </View>
                     )}
 
                     {getUserTaskStatus?.toLowerCase() === 'rejected' && (
                         <View
-                            style={{ backgroundColor: '#ff4444' }}
-                            className="w-full h-14 items-center justify-center rounded-lg mb-3 opacity-80"
+                            style={{
+                                backgroundColor: '#ff4444',
+                                height: height * 0.07,
+                                borderRadius: 12,
+                                marginBottom: height * 0.015,
+                                opacity: 0.8,
+                            }}
+                            className="items-center justify-center"
                         >
-                            <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-semibold">
-                                Task Rejected
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.05,
+                                }}
+                                className="font-semibold"
+                            >
+                                {currentLanguage === 'hi' ? 'कार्य अस्वीकृत' : 'Task Rejected'}
                             </Text>
                         </View>
                     )}
 
+
                     {/* =================== ERROR MESSAGE =================== */}
                     {submitError && (
-                        <View className="w-full mb-3 p-3 rounded-lg" style={{ backgroundColor: 'rgba(255, 0, 0, 0.1)', borderColor: '#ff4444', borderWidth: 1 }}>
-                            <Text style={{ color: '#ff4444' }} className="text-center text-sm">
-                                {submitError}
+                        <View
+                            style={{
+                                backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                                borderColor: '#ff4444',
+                                borderWidth: 1,
+                                borderRadius: 8,
+                                padding: width * 0.03,
+                                marginBottom: height * 0.015,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: '#ff4444',
+                                    fontSize: width * 0.035,
+                                    textAlign: 'center',
+                                }}
+                            >
+                                {
+                                    currentLanguage === 'hi'
+                                        ? 'त्रुटि: ' + submitError          // prefix with Hindi label
+                                        : submitError                        // English as is
+                                }
                             </Text>
                         </View>
                     )}
+
                 </View>
             </ScrollView>
 
             {/* =================== URL INPUT MODAL =================== */}
             <Modal
                 visible={showUrlModal}
-                transparent={true}
+                transparent
                 animationType="slide"
                 onRequestClose={() => setShowUrlModal(false)}
             >
-                <View className="flex-1 justify-center items-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                <View
+                    className="flex-1 justify-center items-center"
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+                >
                     <View
-                        style={{ backgroundColor: Colors.light.backlight2 }}
-                        className="w-4/5 p-6 rounded-lg"
+                        style={{
+                            backgroundColor: Colors.light.backlight2,
+                            width: width * 0.8,
+                            borderRadius: 12,
+                            padding: width * 0.06,
+                        }}
                     >
-                        <Text style={{ color: Colors.light.whiteFefefe }} className="text-xl font-bold mb-4">
-                            Add Task URL
+                        {/* Title */}
+                        <Text
+                            style={{
+                                color: Colors.light.whiteFefefe,
+                                fontSize: width * 0.05,
+                                marginBottom: height * 0.02,
+                            }}
+                            className="font-bold"
+                        >
+                            {currentLanguage === 'hi' ? 'कार्य का URL जोड़ें' : 'Add Task URL'}
                         </Text>
 
+                        {/* Input */}
                         <TextInput
                             style={{
                                 backgroundColor: Colors.light.blackPrimary,
                                 color: Colors.light.whiteFefefe,
-                                borderColor: Colors.light.bgBlueBtn
+                                borderColor: Colors.light.bgBlueBtn,
+                                borderWidth: 2,
+                                borderRadius: 8,
+                                padding: width * 0.03,
+                                marginBottom: height * 0.02,
+                                fontSize: width * 0.04,
                             }}
-                            className="border-2 rounded-lg p-3 mb-4"
-                            placeholder="Enter URL here..."
+                            placeholder={
+                                currentLanguage === 'hi'
+                                    ? 'यहाँ URL दर्ज करें...'
+                                    : 'Enter URL here...'
+                            }
                             placeholderTextColor={Colors.light.placeholderColorOp70}
                             value={taskUrl}
                             onChangeText={setTaskUrl}
@@ -990,29 +1540,50 @@ const TaskDetails = () => {
                             keyboardType="url"
                         />
 
+                        {/* Buttons */}
                         <View className="flex-row justify-end">
                             <TouchableOpacity
                                 onPress={() => setShowUrlModal(false)}
-                                className="px-4 py-2 mr-3"
+                                style={{
+                                    paddingHorizontal: width * 0.04,
+                                    paddingVertical: height * 0.01,
+                                    marginRight: width * 0.03,
+                                }}
                             >
-                                <Text style={{ color: Colors.light.placeholderColorOp70 }}>
-                                    Cancel
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.04,
+                                    }}
+                                >
+                                    {currentLanguage === 'hi' ? 'रद्द करें' : 'Cancel'}
                                 </Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                style={{ backgroundColor: Colors.light.bgBlueBtn }}
-                                className="px-6 py-2 rounded-lg"
+                                style={{
+                                    backgroundColor: Colors.light.bgBlueBtn,
+                                    paddingHorizontal: width * 0.06,
+                                    paddingVertical: height * 0.01,
+                                    borderRadius: 8,
+                                }}
                                 onPress={() => setShowUrlModal(false)}
                             >
-                                <Text style={{ color: Colors.light.whiteFefefe }} className="font-semibold">
-                                    Save
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04,
+                                    }}
+                                    className="font-semibold"
+                                >
+                                    {currentLanguage === 'hi' ? 'सहेजें' : 'Save'}
                                 </Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
             </Modal>
+
 
             {/* =================== VERIFICATION MODAL =================== */}
             <VerificationModal
