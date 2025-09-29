@@ -88,7 +88,7 @@ const STORAGE_KEYS = {
     FCM_TOKEN: '@fcm_token',
 };
 
-const API_BASE_URL = 'https://netinnovatus.tech/miragio_task/api/api.php';
+const API_BASE_URL = 'https://miragiofintech.org/api/api.php';
 
 // Normalize user data so all values are strings
 const normalizeUserData = (data: any): UserData => ({

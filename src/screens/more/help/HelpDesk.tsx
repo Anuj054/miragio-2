@@ -52,7 +52,7 @@ const HelpDesk: React.FC<Props> = ({ navigation }) => {
         setLoading(true);
         try {
             const res = await fetch(
-                "https://netinnovatus.tech/miragio_task/api/api.php",
+                "https://miragiofintech.org/api/api.php",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

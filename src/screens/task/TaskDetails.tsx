@@ -147,7 +147,7 @@ const TaskDetails = () => {
             }
 
             const response = await fetch(
-                'https://netinnovatus.tech/miragio_task/api/api.php',
+                'https://miragiofintech.org/api/api.php',
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -362,7 +362,7 @@ const TaskDetails = () => {
             }
 
             const response = await fetch(
-                'https://netinnovatus.tech/miragio_task/api/api.php',
+                'https://miragiofintech.org/api/api.php',
                 {
                     method: 'POST',
                     headers: {

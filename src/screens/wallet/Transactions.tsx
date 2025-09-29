@@ -195,7 +195,7 @@ const TransactionsPage = () => {
 
             const apiUrls = [
                 'https://netinnovatus.tech/miragiotask/api/api.php',
-                'https://netinnovatus.tech/miragio_task/api/api.php',
+                'https://miragiofintech.org/api/api.php',
             ];
 
             let allData: Transaction[] = [];

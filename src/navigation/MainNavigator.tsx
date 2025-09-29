@@ -23,7 +23,6 @@ import HelpDesk from '../screens/more/help/HelpDesk';
 import SystemStatus from '../screens/more/help/SystemStatus';
 
 // System folder screens
-import PrivacyPolicy from '../screens/more/system/PrivacyPolicy';
 
 
 import AboutUs from '../screens/more/system/AboutUs';
@@ -31,6 +30,7 @@ import TermsOfUse from '../screens/more/system/TermsOfUse';
 
 
 import type { MainStackParamList } from './types';
+import PrivacyPolicy from '../screens/more/system/Privacypolicy';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 

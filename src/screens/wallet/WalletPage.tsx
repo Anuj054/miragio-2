@@ -61,7 +61,7 @@ const WalletPage = () => {
             }
 
             const response = await fetch(
-                'https://netinnovatus.tech/miragio_task/api/api.php',
+                'https://miragiofintech.org/api/api.php',
                 {
                     method: 'POST',
                     headers: {
@@ -789,6 +789,9 @@ const WalletPage = () => {
                                 {isLoggingOut ? (currentLanguage === 'hi' ? 'लॉगआउट हो रहा है...' : 'Logging out...') : 'Logout'}
                             </TranslatedText>
                         </TouchableOpacity>
+
+                        {/* =================== FIXED DELETE ACCOUNT BUTTON =================== */}
+                        
                     </View>
                 </View>
             </ScrollView>

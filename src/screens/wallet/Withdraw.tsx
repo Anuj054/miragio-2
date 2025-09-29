@@ -85,7 +85,7 @@ const WithdrawAmountPage = () => {
             const methods: WithdrawalMethod[] = [];
 
             // Fetch UPI details
-            const upiResponse = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
+            const upiResponse = await fetch("https://miragiofintech.org/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -115,7 +115,7 @@ const WithdrawAmountPage = () => {
             }
 
             // Fetch Bank details
-            const bankResponse = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
+            const bankResponse = await fetch("https://miragiofintech.org/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -179,7 +179,7 @@ const WithdrawAmountPage = () => {
 
             setCoinValue(1); // Changed from 0.1 to 1
 
-            const userResponse = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
+            const userResponse = await fetch("https://miragiofintech.org/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -306,7 +306,7 @@ const WithdrawAmountPage = () => {
                 paymentMethodString = "bank_transfer";
             }
 
-            const response = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
+            const response = await fetch("https://miragiofintech.org/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

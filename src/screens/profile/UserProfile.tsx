@@ -1,4 +1,4 @@
-import { Image, ScrollView, Text, TouchableOpacity, View, ActivityIndicator, StatusBar, Dimensions, Modal, StyleSheet, SafeAreaView } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View, ActivityIndicator, StatusBar, Dimensions, Modal, StyleSheet, SafeAreaView, Alert } from "react-native";
 import { useEffect, useState } from "react";
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import bg2 from "../../assets/images/bg2.png";
@@ -47,7 +47,7 @@ const UserProfile = ({ navigation, route }: Props) => {
     const { from } = route.params || {};
     const { currentLanguage, changeLanguage, isLoading: translationLoading } = useTranslation();
     const isHindi = currentLanguage === 'hi';
-    const { user, isLoading: userLoading, refreshUserData } = useUser();
+    const { user, isLoading: userLoading, refreshUserData, logout } = useUser();
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showLanguageModal, setShowLanguageModal] = useState(false);
     const { getUserId, getUserWallet } = useUser();
@@ -62,6 +62,14 @@ const UserProfile = ({ navigation, route }: Props) => {
         goBack: isHindi ? "वापस जाएं" : "Go Back",
         tasksCompleted: isHindi ? "पूरे किए गए कार्य" : "Tasks Completed",
         walletBalance: isHindi ? "वॉलेट बैलेंस" : "Wallet Balance",
+        deleteAccount: isHindi ? "खाता हटाएं" : "Delete Account",
+        deleteConfirmTitle: isHindi ? "खाता हटाने की पुष्टि" : "Confirm Account Deletion",
+        deleteConfirmMessage: isHindi ? "क्या आप वाकई अपना खाता हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।" : "Are you sure you want to delete your account? This action cannot be undone.",
+        deleteSuccess: isHindi ? "खाता सफलतापूर्वक हटा दिया गया" : "Account deleted successfully",
+        deleteError: isHindi ? "खाता हटाने में त्रुटि" : "Error deleting account",
+        cancel: isHindi ? "रद्द करें" : "Cancel",
+        delete: isHindi ? "हटाएं" : "Delete",
+        deleting: isHindi ? "हटाया जा रहा है..." : "Deleting...",
     };
 
     // Language selection handler
@@ -90,7 +98,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                 return;
             }
 
-            const response = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
+            const response = await fetch("https://miragiofintech.org/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -165,6 +173,49 @@ const UserProfile = ({ navigation, route }: Props) => {
 
     const handleEditProfilePress = () => {
         navigation.navigate('EditProfile', { from: 'userprofile' });
+    };
+
+    // Delete user account function
+    const handleDeleteAccount = async () => {
+        try {
+            const userId = getUserId();
+
+            if (!userId) {
+                Alert.alert(
+                    t.deleteError,
+                    isHindi ? "उपयोगकर्ता ID नहीं मिला" : "User ID not found"
+                );
+                return;
+            }
+
+            const response = await fetch("https://miragiofintech.org/api/api.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    action: "delete_user",
+                    id: userId,
+                }),
+            });
+            console.log(JSON.stringify({
+                action: "delete_user",
+                id: userId,
+            }), 'body>>>>>>>');
+            console.log(userId, 'userId>>>>>>>');
+            console.log(response, 'response>>>>>>>');
+            const data = await response.json();
+
+            if (data.status === "success") {
+                console.log('Account deleted successfully');
+                await logout();
+            } else {
+                console.error('Error deleting account:', data.message);
+               
+            }
+        } catch (error) {
+            console.error('Error deleting account:', error);
+        }
     };
 
     if (userLoading || isRefreshing) {
@@ -461,6 +512,30 @@ const UserProfile = ({ navigation, route }: Props) => {
                         />
 
                     </View>
+                    <TouchableOpacity
+                        style={{
+                            backgroundColor: Colors.light.bgBlueBtn,
+                            opacity: 1,
+                            height: 52,
+                            marginVertical: 20,
+                            borderRadius: 12,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                        onPress={() => { handleDeleteAccount() }}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={{
+                            color: Colors.light.whiteFefefe,
+                            fontSize: 20,
+                            fontWeight: 'bold',
+                            paddingHorizontal: 8,
+                            marginLeft: 0
+                        }}>
+                            {t.deleteAccount}
+                        </Text>
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
 

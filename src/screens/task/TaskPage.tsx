@@ -168,7 +168,7 @@ const TaskPage = ({ navigation }: Props) => {
                 setError(isHi ? 'उपयोगकर्ता लॉग इन नहीं है।' : 'User not logged in. Please login again.');
                 return;
             }
-            const response = await fetch('https://netinnovatus.tech/miragio_task/api/api.php', {
+            const response = await fetch('https://miragiofintech.org/api/api.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'get_tasks' }),

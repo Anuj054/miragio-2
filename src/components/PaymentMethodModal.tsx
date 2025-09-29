@@ -98,7 +98,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
         try {
             setFormLoading(true);
 
-            const response = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
+            const response = await fetch("https://miragiofintech.org/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -184,7 +184,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
         try {
             setFormLoading(true);
 
-            const response = await fetch("https://netinnovatus.tech/miragio_task/api/api.php", {
+            const response = await fetch("https://miragiofintech.org/api/api.php", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

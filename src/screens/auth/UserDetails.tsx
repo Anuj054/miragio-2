@@ -117,7 +117,7 @@ const UserDetails = ({ navigation }: Props) => {
                 status: '1',
             };
 
-            const res = await fetch('https://netinnovatus.tech/miragio_task/api/api.php', {
+            const res = await fetch('https://miragiofintech.org/api/api.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
