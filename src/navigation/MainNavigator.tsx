@@ -12,15 +12,15 @@ import MorePagesScreen from '../screens/more/MorePageScreen';
 
 // Updates folder screens
 
-import AccountSecurity from '../screens/more/updates/AccountSecurity';
-import NewUpdates from '../screens/more/updates/NewUpdates';
+//import AccountSecurity from '../screens/more/updates/AccountSecurity';
+//import NewUpdates from '../screens/more/updates/NewUpdates';
 
 // Help folder screens
-import ReferFriends from '../screens/more/help/ReferFriends';
+//import ReferFriends from '../screens/more/help/ReferFriends';
 
 
 import HelpDesk from '../screens/more/help/HelpDesk';
-import SystemStatus from '../screens/more/help/SystemStatus';
+//import SystemStatus from '../screens/more/help/SystemStatus';
 
 // System folder screens
 
@@ -30,7 +30,7 @@ import TermsOfUse from '../screens/more/system/TermsOfUse';
 
 
 import type { MainStackParamList } from './types';
-import PrivacyPolicy from '../screens/more/system/Privacypolicy';
+import PrivacyPolicy from '../screens/more/system/PrivacyPolicy';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
@@ -69,15 +69,15 @@ const MainNavigator = () => {
 
             {/* Updates folder screens */}
 
-            <Stack.Screen name="AccountSecurity" component={AccountSecurity} />
-            <Stack.Screen name="NewUpdates" component={NewUpdates} />
+            {/*    <Stack.Screen name="AccountSecurity" component={AccountSecurity} />*/}
+            {/*    <Stack.Screen name="NewUpdates" component={NewUpdates} />*/}
 
             {/* Help folder screens */}
-            <Stack.Screen name="ReferFriends" component={ReferFriends} />
+            {/*    <Stack.Screen name="ReferFriends" component={ReferFriends} />*/}
 
 
             <Stack.Screen name="HelpDesk" component={HelpDesk} />
-            <Stack.Screen name="SystemStatus" component={SystemStatus} />
+            {/*<Stack.Screen name="SystemStatus" component={SystemStatus} />*/}
 
             {/* System folder screens */}
             <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
