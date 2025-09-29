@@ -62,6 +62,8 @@ interface ApiTask {
     created_at: string;
     status: string;
     documents: string | null;
+    hashtag: string | null;
+    tag: string | null;
     assigned_users: AssignedUser[];
 }
 
@@ -84,11 +86,7 @@ interface SubmissionResponse {
     };
 }
 
-// ✅ Usage example inside your component
-// const { currentLanguage } = useTranslation();
-// const isHi = currentLanguage === 'hi';
-// Then wrap UI strings like:
-// Alert.alert(isHi ? 'त्रुटि' : 'Error', isHi ? 'नेटवर्क समस्या' : 'Network issue');
+
 
 
 const TaskDetails = () => {
@@ -220,7 +218,7 @@ const TaskDetails = () => {
 
             let downloadUrl = taskDetail.documents!.trim();
             if (!downloadUrl.startsWith('http')) {
-                downloadUrl = `https://netinnovatus.tech/miragio_task/api/${downloadUrl}`;
+                downloadUrl = `https://miragiofintech.org/api/${downloadUrl}`;
             }
 
             const supported = await Linking.canOpenURL(downloadUrl);
@@ -310,11 +308,11 @@ const TaskDetails = () => {
                 return;
             }
 
-            if (!taskUrl && !taskImage) {
+            if (!taskUrl || !taskImage) {
                 setSubmitError(
                     isHi
-                        ? 'कृपया एक URL दें या एक छवि अपलोड करें'
-                        : 'Please provide either a URL or upload an image'
+                        ? 'कृपया कार्य पूरा करने से पहले URL जोड़ें और एक छवि अपलोड करें'
+                        : 'Please provide BOTH a URL and an image before submitting the task'
                 );
                 return;
             }
@@ -526,14 +524,15 @@ const TaskDetails = () => {
 
     // Handler to mark task as complete
     const handleMarkComplete = () => {
-        if (!taskUrl && !taskImage) {
+        if (!taskUrl || !taskImage) {
             setSubmitError(
                 isHi
-                    ? 'कृपया पूर्ण करने से पहले URL जोड़ें या छवि अपलोड करें'
-                    : 'Please provide either a URL or upload an image before marking as complete'
+                    ? 'कृपया कार्य पूरा करने से पहले URL जोड़ें और एक छवि अपलोड करें'
+                    : 'Please provide BOTH a URL and an image before marking as complete'
             );
             return;
         }
+
         setSubmitError(null);
         submitTask();
     };
@@ -768,64 +767,110 @@ const TaskDetails = () => {
                         {taskDetail.task_description}
                     </Text>
                 </View>
-
                 {/* =================== HASHTAGS SECTION =================== */}
-                <View style={{ paddingVertical: height * 0.02 }}>
-                    <Text
-                        style={{
-                            color: Colors.light.whiteFefefe,
-                            fontSize: width * 0.045,
-                            marginBottom: height * 0.015,
-                        }}
-                        className="font-semibold"
-                    >
-                        {currentLanguage === 'hi' ? 'हैशटैग इस्तेमाल करें' : 'Hashtags to Use'}
-                    </Text>
-
-                    <View className="flex-row flex-wrap">
-                        {(currentLanguage === 'hi'
-                            ? ['#मिराजिओकॉइन', '#टास्कपूरा', '#कॉइनकमाओ', '#क्रिप्टोरिवॉर्ड']
-                            : ['#MiragioCoin', '#TaskCompleted', '#EarnCoins', '#CryptoRewards']
-                        ).map((hashtag, index) => (
-                            <View
-                                key={index}
+                {taskDetail.hashtag &&
+                    taskDetail.hashtag.trim() &&
+                    taskDetail.hashtag.toLowerCase() !== 'null' && (
+                        <View style={{ paddingVertical: height * 0.02 }}>
+                            <Text
                                 style={{
-                                    backgroundColor: Colors.light.backlight2,
-                                    borderColor: Colors.light.bgBlueBtn,
-                                    borderWidth: 1,
-                                    borderRadius: 15,
-                                    paddingHorizontal: width * 0.03,
-                                    paddingVertical: height * 0.005,
-                                    marginRight: width * 0.02,
-                                    marginBottom: height * 0.01,
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.045,
+                                    marginBottom: height * 0.015,
+                                }}
+                                className="font-semibold"
+                            >
+                                {currentLanguage === 'hi' ? 'हैशटैग इस्तेमाल करें' : 'Hashtags to Use'}
+                            </Text>
+
+                            <View className="flex-row flex-wrap">
+                                {taskDetail.hashtag
+                                    .split(/[\s,]+/)          // split on spaces or commas
+                                    .filter(tag => tag.startsWith('#'))
+                                    .map((hashtag, index) => (
+                                        <View
+                                            key={index}
+                                            style={{
+                                                backgroundColor: Colors.light.backlight2,
+                                                borderColor: Colors.light.bgBlueBtn,
+                                                borderWidth: 1,
+                                                borderRadius: 15,
+                                                paddingHorizontal: width * 0.03,
+                                                paddingVertical: height * 0.005,
+                                                marginRight: width * 0.02,
+                                                marginBottom: height * 0.01,
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: Colors.light.bgBlueBtn,
+                                                    fontSize: width * 0.035,
+                                                }}
+                                                className="font-medium"
+                                            >
+                                                {hashtag}
+                                            </Text>
+                                        </View>
+                                    ))}
+                            </View>
+
+                            <Text
+                                style={{
+                                    color: Colors.light.placeholderColorOp70,
+                                    fontSize: width * 0.035,
+                                    marginTop: height * 0.01,
                                 }}
                             >
-                                <Text
-                                    style={{
-                                        color: Colors.light.bgBlueBtn,
-                                        fontSize: width * 0.035,
-                                    }}
-                                    className="font-medium"
-                                >
-                                    {hashtag}
-                                </Text>
-                            </View>
-                        ))}
-                    </View>
+                                {currentLanguage === 'hi'
+                                    ? 'पोस्ट करते समय इन हैशटैग का उपयोग करें'
+                                    : 'Copy and use these hashtags when posting about this task'}
+                            </Text>
+                        </View>
+                    )}
 
-                    <Text
+                {/* =================== TASK TAG CARD (if available) =================== */}
+                {taskDetail.tag && taskDetail.tag.trim() && taskDetail.tag.toLowerCase() !== 'null' && (
+                    <View
                         style={{
-                            color: Colors.light.placeholderColorOp70,
-                            fontSize: width * 0.035,
-                            marginTop: height * 0.01,
+                            backgroundColor: Colors.light.backlight2,
+                            borderLeftColor: Colors.light.bgBlueBtn,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015,
                         }}
                     >
-                        {currentLanguage === 'hi'
-                            ? 'पोस्ट करते समय इन हैशटैग का उपयोग करें'
-                            : 'Copy and use these hashtags when posting about this task'}
-                    </Text>
-                </View>
+                        <View className="flex-row" style={{ padding: width * 0.03 }}>
+                            <View className="items-center justify-center" style={{ marginRight: width * 0.03 }}>
+                                <Image
+                                    source={icons.assignicon}
+                                    style={{ height: width * 0.08, width: width * 0.08 }}
+                                    resizeMode="contain"
+                                />
+                            </View>
 
+                            <View className="flex-1">
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005,
+                                    }}
+                                    className="font-bold"
+                                >
+                                    {currentLanguage === 'hi' ? 'कार्य टैग' : 'Task Tag'}
+                                </Text>
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035,
+                                    }}
+                                >
+                                    {taskDetail.tag}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+                )}
 
 
                 {/* =================== TASK DETAILS CARDS SECTION =================== */}

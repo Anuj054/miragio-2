@@ -9,7 +9,7 @@ import {
     StatusBar,
     ImageBackground
 } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 
 // Import your assets
@@ -21,7 +21,11 @@ import { useTranslation } from '../../context/TranslationContext';
 const { width, height } = Dimensions.get('window');
 
 type NavigationProp = any;
-
+interface RouteParams {
+    title?: string;
+    description?: string;
+    youtubeLink?: string | null;
+}
 interface InstructionStep {
     en: string;
     hi: string;
@@ -33,10 +37,12 @@ interface TaskInstructions {
 }
 
 const Instructions = () => {
+    const route = useRoute();
     const navigation = useNavigation<NavigationProp>();
     const { currentLanguage } = useTranslation();   // <-- from your TranslationContext
     const isHindi = currentLanguage === 'hi';
-
+    const { title = '', youtubeLink = '' } =
+        (route.params as RouteParams) || {};
     const handleBackPress = () => {
         navigation.goBack();
     };
@@ -114,7 +120,7 @@ const Instructions = () => {
         ]
     };
 
-    const embedUrl = getEmbedUrl(dummyInstructions.videoUrl);
+    const embedUrl = getEmbedUrl(youtubeLink || '');
 
     return (
         <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
@@ -149,18 +155,29 @@ const Instructions = () => {
                 {/* TITLE */}
                 <View style={{ paddingVertical: height * 0.03 }}>
                     <Text style={{ color: Colors.light.whiteFefefe, fontSize: width * 0.055, textAlign: 'center' }} className="font-semibold">
-                        {isHindi ? dummyInstructions.title.hi : dummyInstructions.title.en}
+                        {title}
                     </Text>
                 </View>
 
                 {/* VIDEO */}
-                {embedUrl && (
+                {embedUrl ? (
                     <View style={{ marginBottom: height * 0.03 }}>
                         <View style={{ width: '100%', height: height * 0.23, backgroundColor: Colors.light.backlight2, borderRadius: 12 }} className="overflow-hidden">
                             <WebView source={{ uri: embedUrl }} style={{ flex: 1 }} />
                         </View>
                     </View>
+                ) : (
+                    <Text
+                        style={{
+                            color: Colors.light.whiteFefefe,
+                            textAlign: 'center',
+                            marginBottom: height * 0.03,
+                        }}
+                    >
+                        {isHindi ? 'कोई वीडियो लिंक उपलब्ध नहीं' : 'No video link provided'}
+                    </Text>
                 )}
+
 
                 {/* STEPS */}
                 <View style={{ marginBottom: height * 0.03 }}>
