@@ -165,7 +165,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    // ---------- Auth Methods ----------
     const login = async (email: string, password: string) => {
         try {
             setIsLoading(true);
@@ -178,10 +177,18 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
             if (data.status === 'success' && data.data) {
                 const normalizedUserData = normalizeUserData(data.data);
+
+                // ✅ Save user data locally
                 await storeUserData(normalizedUserData);
                 setUser(normalizedUserData);
                 setIsLoggedIn(true);
+
+                // ✅ Clear any pending signup state
                 await clearPendingSignupData();
+
+                // ✅ Store FCM token when user logs in
+                const fcmResult = await storeFcmToken(normalizedUserData.id);
+                console.log('📱 FCM token store result on login:', fcmResult);
 
                 return { success: true, message: data.message || 'Login successful!' };
             }
@@ -193,6 +200,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setIsLoading(false);
         }
     };
+
 
     const registerUser = async (signupData: SignupData) => {
         try {
@@ -228,17 +236,46 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             setIsLoading(true);
             console.log('🔄 Logging out user...');
+
+            const userId = getUserId();
+            if (userId) {
+                try {
+                    const res = await fetch(API_BASE_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'user_logout',
+                            user_id: userId,
+                        }),
+                    });
+
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        console.log('✅ Backend logout success:', data.message);
+                    } else {
+                        console.warn('⚠️ Backend logout failed:', data.message);
+                    }
+                } catch (apiErr) {
+                    console.error('❌ API logout error:', apiErr);
+                }
+            } else {
+                console.warn('⚠️ No userId found in context during logout.');
+            }
+
+            // Clear local state/storage regardless of API response
             await clearUserData();
             await clearPendingSignupData();
             setUser(null);
             setIsLoggedIn(false);
-            console.log('✅ User logged out successfully');
+
+            console.log('✅ User logged out locally');
         } catch (err) {
             console.error('❌ Logout error:', err);
         } finally {
             setIsLoading(false);
         }
     };
+
 
     // ---------- User Data ----------
     const refreshUserData = async (userId?: string) => {

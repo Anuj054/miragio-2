@@ -274,7 +274,6 @@ const TaskDetails = () => {
     };
 
     // Updated function to get download file type for display
-    // Updated function to get download file type for display
     const getDownloadFileType = () => {
         if (!taskDetail || !taskDetail.documents) return isHi ? 'दस्तावेज़' : 'Document';
 
@@ -324,39 +323,21 @@ const TaskDetails = () => {
             formData.append('user_id', String(USER_ID));
             formData.append('task_url', taskUrl || '');
 
-            // Add image file if selected
             if (taskImage) {
-                const getFileExtension = (filename: string): string => {
-                    if (!filename) return 'jpg';
-                    const parts = filename.split('.');
-                    return parts.length > 1 ? parts.pop()?.toLowerCase() || 'jpg' : 'jpg';
-                };
-
-                const timestamp = Math.floor(Date.now() / 1000);
-                const extension = getFileExtension(selectedImageName);
-                const originalName = selectedImageName
-                    ? selectedImageName.replace(/\.[^/.]+$/, '')
-                    : 'image';
-                const fileName = `${timestamp}_${originalName}.${extension}`;
-
-                const getMimeType = (ext: string): string => {
-                    switch (ext.toLowerCase()) {
-                        case 'png': return 'image/png';
-                        case 'jpg':
-                        case 'jpeg': return 'image/jpeg';
-                        case 'gif': return 'image/gif';
-                        case 'webp': return 'image/webp';
-                        default: return 'image/jpeg';
-                    }
-                };
+                const extension = selectedImageName.split('.').pop()?.toLowerCase() || 'jpg';
+                const fileName = `${Date.now()}_${selectedImageName}`;
+                const mimeType =
+                    extension === 'png'
+                        ? 'image/png'
+                        : extension === 'jpg' || extension === 'jpeg'
+                            ? 'image/jpeg'
+                            : 'application/octet-stream';
 
                 formData.append('task_image', {
-                    uri: taskImage,
-                    type: getMimeType(extension),
-                    name: fileName
+                    uri: taskImage.startsWith('file://') ? taskImage : `file://${taskImage}`,
+                    type: mimeType,
+                    name: fileName,
                 } as any);
-
-                console.log('Uploading file:', fileName);
             }
 
             const response = await fetch(

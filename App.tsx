@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { Alert, StatusBar, useColorScheme } from 'react-native';
+import { StatusBar, useColorScheme } from 'react-native';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import messaging from '@react-native-firebase/messaging';
+
 
 import { UserProvider, useUser } from './src/context/UserContext';
 import { TranslationProvider } from './src/context/TranslationContext'; // NEW: Translation context
@@ -10,8 +10,8 @@ import SplashScreen from './src/components/SplashScreen';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import MainNavigator from './src/navigation/MainNavigator';
 import type { RootStackParamList } from './src/navigation/types';
-import { requestPushPermission, getFcmToken, registerForegroundHandler, registerTokenRefreshHandler } from './src/notifications';
-import { registerFcmToken } from './src/api/registerFcm';
+import { requestPushPermission, registerForegroundHandler, registerTokenRefreshHandler } from './src/notifications';
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -22,11 +22,7 @@ const AppContent = () => {
     (async () => {
       await requestPushPermission();
 
-      const token = await getFcmToken();
-      if (token) {
-        // TODO: send token to your PHP backend
-        await registerFcmToken(163, token);
-      }
+
 
       const unsubFG = registerForegroundHandler();
       const unsubTok = registerTokenRefreshHandler(async (newToken) => {

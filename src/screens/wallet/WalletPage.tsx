@@ -143,31 +143,25 @@ const WalletPage = () => {
         navigation.navigate('Withdraw');
     };
 
-    // FIXED: Proper logout function
+
+
     const handleLogout = async () => {
-        if (isLoggingOut) return; // Prevent double-tap
+        if (isLoggingOut) return;
 
         try {
             setIsLoggingOut(true);
-            console.log('Wallet - Starting logout process...');
+            console.log("Wallet - Starting logout process...");
 
-            // Call the logout function from UserContext
-            // This will set isAuthenticated to false and clear user data
-            await logout();
+            await logout(); // This now calls API + clears context
 
-            console.log('Wallet - Logout completed, automatic navigation will occur');
-
-            // No manual navigation needed!
-            // RootNavigator will detect isAuthenticated = false
-            // and automatically show Auth stack instead of Main stack
-
+            console.log("Wallet - Logout completed, RootNavigator will redirect");
         } catch (error) {
-            console.error('Wallet - Logout error:', error);
-            // UserContext logout should still work even with errors
+            console.error("Wallet - Logout error:", error);
         } finally {
             setIsLoggingOut(false);
         }
     };
+
 
     return (
         <View
@@ -791,7 +785,7 @@ const WalletPage = () => {
                         </TouchableOpacity>
 
                         {/* =================== FIXED DELETE ACCOUNT BUTTON =================== */}
-                        
+
                     </View>
                 </View>
             </ScrollView>
