@@ -13,6 +13,7 @@ import {
     ImageBackground,
     Dimensions
 } from 'react-native';
+import { PermissionsAndroid, Platform, } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import type {
@@ -435,40 +436,55 @@ const TaskDetails = () => {
         });
     };
 
-    // Updated camera function
-    const openCamera = () => {
-        const options: CameraOptions = {
-            mediaType: 'photo' as MediaType,
-            includeBase64: false,
-            maxHeight: 2000,
-            maxWidth: 2000,
-            quality: 0.8,
-            includeExtra: true,
-        };
+    const openCamera = async () => {
+        try {
+            // ⚙️ Request permission only on Android
+            if (Platform.OS === 'android') {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.CAMERA,
+                    {
+                        title: 'Camera Permission',
+                        message: 'This app requires access to your camera to take photos.',
+                        buttonPositive: 'OK',
+                        buttonNegative: 'Cancel',
+                    }
+                );
 
-        launchCamera(options, (response: ImagePickerResponse) => {
-            if (response.didCancel || response.errorMessage) {
-                if (response.errorMessage) {
-                    Alert.alert(isHi ? 'त्रुटि' : 'Error', response.errorMessage);
+                if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+                    Alert.alert('Permission Denied', 'Camera access is required to take photos.');
+                    return;
                 }
-                return;
             }
 
-            if (response.assets && response.assets[0]) {
-                const asset = response.assets[0];
+            // ✅ If permission granted, open camera
+            const options: CameraOptions = {
+                mediaType: 'photo',
+                includeBase64: false,
+                maxHeight: 2000,
+                maxWidth: 2000,
+                quality: 0.8,
+                includeExtra: true,
+                saveToPhotos: true,
+            };
 
-                if (asset.uri) {
-                    setTaskImage(asset.uri);
+            launchCamera(options, (response: ImagePickerResponse) => {
+                if (response.didCancel) return;
+                if (response.errorCode || response.errorMessage) {
+                    Alert.alert('Error', response.errorMessage || response.errorCode);
+                    return;
+                }
+
+                if (response.assets && response.assets[0]?.uri) {
+                    const asset = response.assets[0];
+                    setTaskImage(asset.uri as string);
                     setSelectedImageName(asset.fileName || `photo_${Date.now()}.jpg`);
-                    Alert.alert(isHi ? 'सफलता' : 'Success',
-                        isHi ? 'फोटो सफलतापूर्वक कैप्चर हुआ!' : 'Photo captured successfully!');
-                } else {
-                    Alert.alert(isHi ? 'त्रुटि' : 'Error',
-                        isHi ? 'फोटो कैप्चर करने में विफल। कृपया पुनः प्रयास करें।'
-                            : 'Failed to capture photo. Please try again.');
+                    Alert.alert('Success', 'Photo captured successfully!');
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error('Camera Error:', error);
+            Alert.alert('Error', 'Unable to open camera. Please try again.');
+        }
     };
 
     // Show camera/gallery options
