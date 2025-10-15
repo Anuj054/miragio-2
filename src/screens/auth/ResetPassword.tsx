@@ -1,6 +1,6 @@
 import {
-    Image, Text, TextInput, TouchableOpacity, View, Dimensions, KeyboardAvoidingView,   // ✅ NEW
-    Platform,              // ✅ NEW
+    Image, Text, TextInput, TouchableOpacity, View, Dimensions, KeyboardAvoidingView,
+    Platform,
     ScrollView
 } from "react-native";
 import { useState } from "react";
@@ -98,233 +98,262 @@ const ResetPassword = ({ navigation }: Props) => {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}  // ✅ moves UI when keyboard opens
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        >
-            <ScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
-                keyboardShouldPersistTaps="handled"                   // ✅ dismiss keyboard on outside tap
+        <View style={{ flex: 1 }}>
+            {/* Background Image - Fixed */}
+            <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#000',
+            }}>
+                <Image
+                    source={bg}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        minWidth: width,
+                        minHeight: height,
+                    }}
+                    resizeMode="cover"
+                />
+            </View>
+
+            {/* Fixed Footer - Outside KeyboardAvoidingView */}
+            <View
+                style={{
+                    position: 'absolute',
+                    bottom: height * 0.034,
+                    left: 0,
+                    right: 0,
+                    alignItems: 'center',
+                    zIndex: 1,
+                    pointerEvents: 'none'
+                }}
             >
-                <View className="flex-1 items-center">
-                    {/* Background Image */}
-                    <View style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: '#000', // Fallback color
-                    }}>
-                        <Image
-                            source={bg}
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07
+                    }}
+                    className="font-bold"
+                >
+                    MIRAGIO
+                </Text>
+            </View>
+
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={0}
+            >
+                <ScrollView
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={{ minHeight: height, paddingBottom: height * 0.12 }}>
+                        {/* Back Button */}
+                        <TouchableOpacity
                             style={{
-                                width: '100%',
-                                height: '100%',
-                                minWidth: width,
-                                minHeight: height,
+                                position: 'absolute',
+                                left: width * 0.04,
+                                top: height * 0.09,
+                                width: width * 0.12,
+                                height: height * 0.06,
+                                zIndex: 10,
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
-                            resizeMode="cover"
-                        />
-                    </View>
+                            onPress={handleBackPress}
+                        >
+                            {icons && (
+                                <Image
+                                    source={icons.back}
+                                    style={{
+                                        width: width * 0.06,
+                                        height: width * 0.07,
+                                        opacity: isLoading ? 0.5 : 1
+                                    }}
+                                />
+                            )}
+                        </TouchableOpacity>
 
-                    {/* Back Button */}
-                    <TouchableOpacity
-                        className="absolute flex items-center justify-center"
-                        style={{
-                            left: width * 0.04,
-                            top: height * 0.09,
-                            width: width * 0.12,
-                            height: height * 0.06,
-                            zIndex: 10
-                        }}
-                        onPress={handleBackPress}
-                    >
-                        {icons && (
-                            <Image
-                                source={icons.back}
-                                style={{
-                                    width: width * 0.06,
-                                    height: width * 0.07,
-                                    opacity: isLoading ? 0.5 : 1
-                                }}
-                            />
-                        )}
-                    </TouchableOpacity>
-
-                    {/* Logo */}
-                    <Image
-                        source={logo}
-                        style={{
+                        {/* Logo - responsive positioning */}
+                        <View style={{
                             position: 'absolute',
                             top: height * 0.08,
-                            width: width * 0.25,
-                            height: width * 0.22
-                        }}
-                    />
-
-                    {/* Illustration */}
-                    <View
-                        className="absolute items-center"
-                        style={{
-                            top: height * 0.30
-                        }}
-                    >
-                        <Image
-                            source={resetpassimg}
-                            style={{
-                                height: height * 0.2,
-                                width: width * 0.36,
-                                resizeMode: 'contain'
-                            }}
-                        />
-                    </View>
-
-                    {/* Reset Password Instructions - USING TranslatedText */}
-                    <View
-                        className="absolute flex flex-col justify-center items-center"
-                        style={{
-                            top: height * 0.54,
-                            width: width * 0.8,
-                            paddingHorizontal: width * 0.04
-                        }}
-                    >
-                        <TranslatedText
-                            style={{
-                                color: Colors.light.whiteFfffff,
-                                fontSize: width * 0.07,
-                                lineHeight: width * 0.09,
-                                width: width * 0.9
-                            }}
-                            className="font-bold text-center"
-                        >
-                            Reset Password
-                        </TranslatedText>
-                        <TranslatedText
-                            style={{
-                                color: Colors.light.whiteFfffff,
-                                fontSize: width * 0.045,
-                                lineHeight: width * 0.07,
-                                marginTop: height * 0.02
-                            }}
-                            className="text-center"
-                        >
-                            We'll send a verification code to your email address.
-                        </TranslatedText>
-                    </View>
-
-                    {/* Email Input Section - using our placeholder hook */}
-                    <View
-                        className="absolute items-center"
-                        style={{
-                            top: height * 0.69,
-                            width: '100%',
-                            paddingHorizontal: width * 0.05
-                        }}
-                    >
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.whiteFfffff,
-                                width: '100%',
-                                maxWidth: width * 0.9,
-                                height: Math.max(48, height * 0.06),
-                                borderRadius: 15
-                            }}
-                            className="flex flex-row items-center"
-                        >
-                            <TextInput
+                            left: '50%',
+                            transform: [{ translateX: -(width * 0.25) / 2 }],
+                            zIndex: 5
+                        }}>
+                            <Image
+                                source={logo}
                                 style={{
-                                    backgroundColor: 'transparent',
-                                    color: Colors.light.blackPrimary,
-                                    flex: 1,
-                                    fontSize: Math.min(16, width * 0.035),
-                                    paddingHorizontal: width * 0.04,
-                                    paddingVertical: 0
+                                    width: width * 0.25,
+                                    height: width * 0.22
                                 }}
-                                placeholder={emailPlaceholder}
-                                placeholderTextColor={Colors.light.placeholderColor}
-                                value={email}
-                                onChangeText={(text) => {
-                                    setEmail(text);
-                                    if (errorMessage) setErrorMessage("");
-                                }}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                editable={!isLoading}
                             />
                         </View>
 
-                        {/* Error message display */}
-                        {errorMessage && (
-                            <Text
+                        {/* Illustration */}
+                        <View style={{
+                            position: 'absolute',
+                            top: height * 0.25,
+                            alignSelf: 'center',
+                            zIndex: 5
+                        }}>
+                            <Image
+                                source={resetpassimg}
                                 style={{
-                                    color: '#FF4444',
-                                    fontSize: width * 0.03,
-                                    textAlign: 'center',
-                                    marginTop: height * 0.01,
-                                    fontWeight: '500',
-                                    width: '100%',
-                                    maxWidth: width * 0.85
+                                    height: height * 0.2,
+                                    width: width * 0.36,
+                                    resizeMode: 'contain'
+                                }}
+                            />
+                        </View>
+
+                        {/* Reset Password Instructions */}
+                        <View style={{
+                            position: 'absolute',
+                            top: height * 0.48,
+                            width: '100%',
+                            paddingHorizontal: width * 0.04,
+                            alignItems: 'center',
+                            zIndex: 5
+                        }}>
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.07,
+                                    lineHeight: width * 0.09,
+                                    textAlign: 'center'
+                                }}
+                                className="font-bold"
+                            >
+                                Reset Password
+                            </TranslatedText>
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.045,
+                                    lineHeight: width * 0.07,
+                                    marginTop: height * 0.02,
+                                    textAlign: 'center'
                                 }}
                             >
-                                {errorMessage}
-                            </Text>
-                        )}
-                    </View>
+                                We'll send a verification code to your email address.
+                            </TranslatedText>
+                        </View>
 
-                    {/* Submit Button - USING conditional for button text only */}
-                    <View
-                        className="absolute items-center"
-                        style={{
-                            top: height * 0.8,
-                            width: '100%',
-                            paddingHorizontal: width * 0.02
-                        }}
-                    >
-                        <CustomGradientButton
-                            text={isLoading ? (currentLanguage === 'hi' ? "भेज रहे हैं..." : "Sending...") : (currentLanguage === 'hi' ? "सत्यापन कोड भेजें" : "Send Verification Code")}
-                            width={Math.min(width * 0.9, 500)}
-                            height={Math.max(48, height * 0.06)}
-                            borderRadius={15}
-                            fontSize={Math.min(18, width * 0.045)}
-                            fontWeight="600"
-                            textColor={Colors.light.whiteFfffff}
-                            onPress={handleRequestLoginLink}
-                            disabled={isLoading || !email.trim()}
+                        {/* Input Fields Container */}
+                        <View
                             style={{
-                                opacity: (isLoading || !email.trim()) ? 0.6 : 1,
+                                position: 'absolute',
+                                top: height * 0.62,
+                                width: '100%',
+                                paddingHorizontal: width * 0.05,
+                                zIndex: 5,
+                                alignItems: 'center'
                             }}
-                        />
-                    </View>
-
-                    {/* Footer */}
-                    <View
-                        className="absolute items-center"
-                        style={{
-                            bottom: height * 0.034
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: Colors.light.whiteFfffff,
-                                fontSize: width * 0.07
-                            }}
-                            className="font-bold"
                         >
-                            MIRAGIO
-                        </Text>
-                    </View>
+                            {/* Email Input */}
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    width: '100%',
+                                    maxWidth: width * 0.9,
+                                    height: Math.max(48, height * 0.06),
+                                    borderRadius: 15,
+                                    marginBottom: height * 0.02,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        flex: 1,
+                                        fontSize: Math.min(16, width * 0.035),
+                                        paddingHorizontal: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={emailPlaceholder}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    value={email}
+                                    onChangeText={(text) => {
+                                        setEmail(text);
+                                        if (errorMessage) setErrorMessage("");
+                                    }}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                    editable={!isLoading}
+                                />
+                            </View>
 
-                    {/* Email Sent Modal */}
-                    <EmailSentModal
-                        visible={showEmailModal}
-                        onClose={handleModalClose}
-                        email={email || "k*******9@gmail.com"}
-                    />
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                            {/* Error Message */}
+                            {errorMessage && (
+                                <View
+                                    style={{
+                                        marginBottom: height * 0.02,
+                                        width: '100%',
+                                        maxWidth: width * 0.85
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: '#FF4444',
+                                            fontSize: width * 0.035,
+                                            textAlign: 'center',
+                                            fontWeight: '500'
+                                        }}
+                                    >
+                                        {errorMessage}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+
+                        {/* Submit Button */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                top: height * 0.75,
+                                width: '100%',
+                                paddingHorizontal: width * 0.05,
+                                alignItems: 'center',
+                                zIndex: 5
+                            }}
+                        >
+                            <CustomGradientButton
+                                text={isLoading ? (currentLanguage === 'hi' ? "भेज रहे हैं..." : "Sending...") : (currentLanguage === 'hi' ? "सत्यापन कोड भेजें" : "Send Verification Code")}
+                                width={Math.min(width * 0.9, 500)}
+                                height={Math.max(48, height * 0.06)}
+                                borderRadius={15}
+                                fontSize={Math.min(18, width * 0.045)}
+                                fontWeight="600"
+                                textColor={Colors.light.whiteFfffff}
+                                onPress={handleRequestLoginLink}
+                                disabled={isLoading || !email.trim()}
+                                style={{
+                                    opacity: (isLoading || !email.trim()) ? 0.6 : 1,
+                                }}
+                            />
+                        </View>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+
+            {/* Email Sent Modal */}
+            <EmailSentModal
+                visible={showEmailModal}
+                onClose={handleModalClose}
+                email={email || "k*******9@gmail.com"}
+            />
+        </View>
     );
 };
 

@@ -1,6 +1,6 @@
 import {
-    Image, Text, TextInput, TouchableOpacity, View, Dimensions, KeyboardAvoidingView,    // ✅ NEW
-    Platform,               // ✅ NEW
+    Image, Text, TextInput, TouchableOpacity, View, Dimensions, KeyboardAvoidingView,
+    Platform,
     ScrollView
 } from "react-native";
 import { useState, useRef, useEffect } from "react";
@@ -124,267 +124,304 @@ const VerifyCode = ({ navigation, route }: Props) => {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}  // ✅ moves content when keyboard opens
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}   // tweak if you have a header
-        >
-            <ScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
-                keyboardShouldPersistTaps="handled"                   // ✅ allows tapping outside to dismiss
+        <View style={{ flex: 1 }}>
+            {/* Background Image - Fixed */}
+            <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#000',
+            }}>
+                <Image
+                    source={bg}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        minWidth: width,
+                        minHeight: height,
+                    }}
+                    resizeMode="cover"
+                />
+            </View>
+
+            {/* Fixed Footer - Outside KeyboardAvoidingView */}
+            <View
+                style={{
+                    position: 'absolute',
+                    bottom: height * 0.034,
+                    left: 0,
+                    right: 0,
+                    alignItems: 'center',
+                    zIndex: 1,
+                    pointerEvents: 'none'
+                }}
             >
-                <View className="flex-1 items-center">
-                    {/* Background Image */}
-                    <View style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: '#000', // Fallback color
-                    }}>
-                        <Image
-                            source={bg}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                minWidth: width,
-                                minHeight: height,
-                            }}
-                            resizeMode="cover"
-                        />
-                    </View>
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07
+                    }}
+                    className="font-bold"
+                >
+                    MIRAGIO
+                </Text>
+            </View>
 
-                    {/* Back Button */}
-                    <TouchableOpacity
-                        className="absolute flex items-center justify-center"
-                        style={{
-                            left: width * 0.04,
-                            top: height * 0.09,
-                            width: width * 0.12,
-                            height: height * 0.06,
-                            zIndex: 10
-                        }}
-                        onPress={handleBackPress}
-                        disabled={isLoading}
-                    >
-                        <Image
-                            source={icons.back}
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={0}
+            >
+                <ScrollView
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={{ minHeight: height, paddingBottom: height * 0.12 }}>
+                        {/* Back Button */}
+                        <TouchableOpacity
                             style={{
-                                width: width * 0.06,
-                                height: width * 0.07,
-                                opacity: isLoading ? 0.5 : 1
+                                position: 'absolute',
+                                left: width * 0.04,
+                                top: height * 0.09,
+                                width: width * 0.12,
+                                height: height * 0.06,
+                                zIndex: 10,
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
-                        />
-                    </TouchableOpacity>
+                            onPress={handleBackPress}
+                            disabled={isLoading}
+                        >
+                            <Image
+                                source={icons.back}
+                                style={{
+                                    width: width * 0.06,
+                                    height: width * 0.07,
+                                    opacity: isLoading ? 0.5 : 1
+                                }}
+                            />
+                        </TouchableOpacity>
 
-                    {/* Logo */}
-                    <Image
-                        source={logo}
-                        style={{
+                        {/* Logo - responsive positioning */}
+                        <View style={{
                             position: 'absolute',
                             top: height * 0.08,
-                            width: width * 0.25,
-                            height: width * 0.22
-                        }}
-                    />
-
-                    {/* Verification Instructions */}
-                    <View
-                        className="absolute flex flex-col justify-center items-center"
-                        style={{
-                            top: height * 0.31,
-                            width: width * 0.80,
-                            paddingHorizontal: width * 0.04
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: Colors.light.whiteFfffff,
-                                fontSize: width * 0.074,
-                                lineHeight: width * 0.096,
-                                width: width * 0.6
-                            }}
-                            className="font-bold text-center"
-                        >
-                            {isHi ? 'कोड सत्यापित करें' : 'Verify Code'}
-                        </Text>
-                        <Text
-                            style={{
-                                color: Colors.light.whiteFfffff,
-                                fontSize: width * 0.049,
-                                lineHeight: width * 0.07,
-                                marginTop: height * 0.027
-                            }}
-                            className="text-center"
-                        >
-                            {isHi
-                                ? 'हमने आपके ईमेल पर 6 अंकों का सत्यापन कोड भेजा है'
-                                : "We've sent a 6-digit verification code to"}
-                        </Text>
-                        <Text
-                            style={{
-                                color: Colors.light.blueTheme,
-                                fontSize: width * 0.04,
-                                lineHeight: width * 0.05,
-                                marginTop: height * 0.01
-                            }}
-                            className="font-semibold text-center"
-                        >
-                            {email}
-                        </Text>
-                    </View>
-
-                    {/* Code Input Section */}
-                    <View
-                        className="absolute flex flex-row justify-between"
-                        style={{
-                            top: height * 0.52,
-                            width: width * 0.85,
-                            paddingHorizontal: width * 0.02
-                        }}
-                    >
-                        {code.map((digit, index) => (
-                            <TextInput
-                                key={index}
-                                ref={(ref) => { inputRefs.current[index] = ref; }}
+                            left: '50%',
+                            transform: [{ translateX: -(width * 0.25) / 2 }],
+                            zIndex: 5
+                        }}>
+                            <Image
+                                source={logo}
                                 style={{
-                                    backgroundColor: Colors.light.whiteFfffff,
-                                    color: Colors.light.blackPrimary,
-                                    textAlign: 'center',
-                                    fontSize: Math.min(24, width * 0.06),
-                                    fontWeight: 'bold',
-                                    borderWidth: 2,
-                                    borderColor: digit ? Colors.light.blueTheme : '#E5E7EB',
-                                    width: width * 0.12,
-                                    height: Math.max(48, height * 0.06),
-                                    borderRadius: 15
+                                    width: width * 0.25,
+                                    height: width * 0.22
                                 }}
-                                value={digit}
-                                onChangeText={(text) => handleCodeChange(text, index)}
-                                onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
-                                keyboardType="numeric"
-                                maxLength={1}
-                                selectTextOnFocus
-                                editable={!isLoading}
                             />
-                        ))}
-                    </View>
+                        </View>
 
-                    {/* Error Message */}
-                    {errorMessage && (
+                        {/* Verification Instructions */}
                         <View
-                            className="absolute"
                             style={{
-                                top: height * 0.52,
-                                width: width * 0.85,
-                                paddingHorizontal: width * 0.04
+                                position: 'absolute',
+                                top: height * 0.25,
+                                width: '100%',
+                                paddingHorizontal: width * 0.04,
+                                alignItems: 'center',
+                                zIndex: 5
                             }}
                         >
                             <Text
                                 style={{
-                                    color: errorMessage.includes('भेजा') || errorMessage.includes('sent') ? '#10B981' : '#FF4444',
-                                    fontSize: width * 0.035,
-                                    textAlign: 'center',
-                                    fontWeight: '500',
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.074,
+                                    lineHeight: width * 0.096,
+                                    textAlign: 'center'
+                                }}
+                                className="font-bold"
+                            >
+                                {isHi ? 'कोड सत्यापित करें' : 'Verify Code'}
+                            </Text>
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.049,
+                                    lineHeight: width * 0.07,
+                                    marginTop: height * 0.027,
+                                    textAlign: 'center'
                                 }}
                             >
-                                {errorMessage}
+                                {isHi
+                                    ? 'हमने आपके ईमेल पर 6 अंकों का सत्यापन कोड भेजा है'
+                                    : "We've sent a 6-digit verification code to"}
                             </Text>
-                        </View>
-                    )}
-
-                    {/* Resend Code */}
-                    <View
-                        className="absolute flex flex-row items-center justify-center"
-                        style={{
-                            top: height * 0.62,
-                            width: width * 0.85,
-                            paddingHorizontal: width * 0.04
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: Colors.light.whiteFfffff,
-                                fontSize: width * 0.038
-                            }}
-                        >
-                            {isHi ? 'कोड प्राप्त नहीं हुआ?' : "Didn't receive the code?"}
-                        </Text>
-                        <TouchableOpacity
-                            onPress={resendResetCode}
-                            disabled={timer > 0 || resendLoading || isLoading}
-                            className="ml-1"
-                        >
                             <Text
                                 style={{
-                                    color: (timer > 0 || resendLoading || isLoading)
-                                        ? Colors.light.placeholderColor
-                                        : Colors.light.blueTheme,
-                                    textDecorationLine:
-                                        timer > 0 || resendLoading || isLoading ? 'none' : 'underline',
-                                    fontSize: width * 0.038
+                                    color: Colors.light.blueTheme,
+                                    fontSize: width * 0.04,
+                                    lineHeight: width * 0.05,
+                                    marginTop: height * 0.01,
+                                    textAlign: 'center'
                                 }}
                                 className="font-semibold"
                             >
-                                {resendLoading
-                                    ? (isHi ? 'भेजा जा रहा है...' : 'Sending...')
-                                    : timer > 0
-                                        ? (isHi ? `पुनः भेजें ${timer} सेकंड में` : `Resend in ${timer}s`)
-                                        : (isHi ? 'पुनः भेजें' : 'Resend')}
+                                {email}
                             </Text>
-                        </TouchableOpacity>
-                    </View>
+                        </View>
 
-                    {/* Verify Button */}
-                    <View
-                        className="absolute items-center"
-                        style={{
-                            top: height * 0.69,
-                            width: '100%',
-                            paddingHorizontal: width * 0.08
-                        }}
-                    >
-                        <CustomGradientButton
-                            text={
-                                isLoading
-                                    ? (isHi ? 'सत्यापित कर रहे हैं...' : 'Verifying...')
-                                    : (isHi ? 'कोड सत्यापित करें' : 'Verify Code')
-                            }
-                            width={Math.min(width * 0.9, 500)}
-                            height={Math.max(48, height * 0.06)}
-                            borderRadius={15}
-                            fontSize={Math.min(18, width * 0.045)}
-                            fontWeight="600"
-                            textColor={Colors.light.whiteFfffff}
-                            onPress={handleVerifyCode}
-                            disabled={isLoading || code.join('').length !== 6}
+                        {/* Code Input Section */}
+                        <View
                             style={{
-                                opacity: (isLoading || code.join('').length !== 6) ? 0.6 : 1,
+                                position: 'absolute',
+                                top: height * 0.45,
+                                width: '100%',
+                                paddingHorizontal: width * 0.075,
+                                alignItems: 'center',
+                                zIndex: 5
                             }}
-                        />
-                    </View>
-
-                    {/* Footer */}
-                    <View
-                        className="absolute items-center"
-                        style={{
-                            bottom: height * 0.034
-                        }}
-                    >
-                        <Text
-                            style={{
-                                color: Colors.light.whiteFfffff,
-                                fontSize: width * 0.07
-                            }}
-                            className="font-bold"
                         >
-                            MIRAGIO
-                        </Text>
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    width: '100%',
+                                    maxWidth: width * 0.85
+                                }}
+                            >
+                                {code.map((digit, index) => (
+                                    <TextInput
+                                        key={index}
+                                        ref={(ref) => { inputRefs.current[index] = ref; }}
+                                        style={{
+                                            backgroundColor: Colors.light.whiteFfffff,
+                                            color: Colors.light.blackPrimary,
+                                            textAlign: 'center',
+                                            fontSize: Math.min(24, width * 0.06),
+                                            fontWeight: 'bold',
+                                            borderWidth: 2,
+                                            borderColor: digit ? Colors.light.blueTheme : '#E5E7EB',
+                                            width: width * 0.12,
+                                            height: Math.max(48, height * 0.06),
+                                            borderRadius: 15,
+                                            paddingVertical: 0
+                                        }}
+                                        value={digit}
+                                        onChangeText={(text) => handleCodeChange(text, index)}
+                                        onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
+                                        keyboardType="numeric"
+                                        maxLength={1}
+                                        selectTextOnFocus
+                                        editable={!isLoading}
+                                        autoCorrect={false}
+                                    />
+                                ))}
+                            </View>
+
+                            {/* Error Message */}
+                            {errorMessage && (
+                                <View
+                                    style={{
+                                        marginTop: height * 0.02,
+                                        width: '100%',
+                                        maxWidth: width * 0.85
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: errorMessage.includes('भेजा') || errorMessage.includes('sent') ? '#10B981' : '#FF4444',
+                                            fontSize: width * 0.035,
+                                            textAlign: 'center',
+                                            fontWeight: '500',
+                                        }}
+                                    >
+                                        {errorMessage}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+
+                        {/* Resend Code */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                top: height * 0.58,
+                                width: '100%',
+                                paddingHorizontal: width * 0.04,
+                                alignItems: 'center',
+                                zIndex: 5
+                            }}
+                        >
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.038
+                                    }}
+                                >
+                                    {isHi ? 'कोड प्राप्त नहीं हुआ?' : "Didn't receive the code?"}
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={resendResetCode}
+                                    disabled={timer > 0 || resendLoading || isLoading}
+                                    style={{ marginLeft: 4 }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: (timer > 0 || resendLoading || isLoading)
+                                                ? Colors.light.placeholderColor
+                                                : Colors.light.blueTheme,
+                                            textDecorationLine:
+                                                timer > 0 || resendLoading || isLoading ? 'none' : 'underline',
+                                            fontSize: width * 0.038
+                                        }}
+                                        className="font-semibold"
+                                    >
+                                        {resendLoading
+                                            ? (isHi ? 'भेजा जा रहा है...' : 'Sending...')
+                                            : timer > 0
+                                                ? (isHi ? `पुनः भेजें ${timer} सेकंड में` : `Resend in ${timer}s`)
+                                                : (isHi ? 'पुनः भेजें' : 'Resend')}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Verify Button */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                top: height * 0.67,
+                                width: '100%',
+                                paddingHorizontal: width * 0.05,
+                                alignItems: 'center',
+                                zIndex: 5
+                            }}
+                        >
+                            <CustomGradientButton
+                                text={
+                                    isLoading
+                                        ? (isHi ? 'सत्यापित कर रहे हैं...' : 'Verifying...')
+                                        : (isHi ? 'कोड सत्यापित करें' : 'Verify Code')
+                                }
+                                width={Math.min(width * 0.9, 500)}
+                                height={Math.max(48, height * 0.06)}
+                                borderRadius={15}
+                                fontSize={Math.min(18, width * 0.045)}
+                                fontWeight="600"
+                                textColor={Colors.light.whiteFfffff}
+                                onPress={handleVerifyCode}
+                                disabled={isLoading || code.join('').length !== 6}
+                                style={{
+                                    opacity: (isLoading || code.join('').length !== 6) ? 0.6 : 1,
+                                }}
+                            />
+                        </View>
                     </View>
-                </View >
-            </ScrollView>
-        </KeyboardAvoidingView>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </View>
     )
 }
 

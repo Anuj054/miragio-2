@@ -471,844 +471,843 @@ const EditProfile = ({ navigation }: Props) => {
     const isButtonDisabled = !hasChanges || loading;
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // adjust offset as needed
-        >
-            <ScrollView
-                className="flex-1"
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"   // ✅ dismiss keyboard on outside tap
-                contentContainerStyle={{ paddingBottom: height * 0.06 }}
-            >
-                <View className="flex-1" style={{ backgroundColor: Colors.light.blackPrimary }}>
-                    <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <View style={{ flex: 1, backgroundColor: Colors.light.blackPrimary }}>
+            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-                    {/* =================== FIXED HEADER SECTION =================== */}
-                    <View style={{ height: height * 0.14 }}>
-                        {/* Background image */}
-                        <Image
-                            source={bg2}
-                            resizeMode="cover"
-                            className="w-full h-full absolute"
-                        />
+            {/* =================== FIXED HEADER SECTION =================== */}
+            <View style={{ height: height * 0.14 }}>
+                {/* Background image */}
+                <Image
+                    source={bg2}
+                    resizeMode="cover"
+                    className="w-full h-full absolute"
+                />
 
-                        {/* Header Content with proper flexbox layout */}
-                        <View
-                            className="flex-1"
+                {/* Header Content with proper flexbox layout */}
+                <View
+                    className="flex-1"
+                    style={{
+                        paddingTop: height * 0.05,
+                        paddingBottom: height * 0.02,
+                        paddingHorizontal: width * 0.04
+                    }}
+                >
+                    {/* Header row with proper spacing */}
+                    <View
+                        className="flex-row items-center justify-between"
+                        style={{ height: height * 0.08 }}
+                    >
+                        {/* Back button */}
+                        <TouchableOpacity
+                            onPress={handleBackPress}
                             style={{
-                                paddingTop: height * 0.05,
-                                paddingBottom: height * 0.02,
-                                paddingHorizontal: width * 0.04
+                                width: width * 0.1,
+                                height: width * 0.1,
+                                justifyContent: 'center',
+                                alignItems: 'center'
                             }}
                         >
-                            {/* Header row with proper spacing */}
-                            <View
-                                className="flex-row items-center justify-between"
-                                style={{ height: height * 0.08 }}
-                            >
-                                {/* Back button */}
-                                <TouchableOpacity
-                                    onPress={handleBackPress}
-                                    style={{
-                                        width: width * 0.1,
-                                        height: width * 0.1,
-                                        justifyContent: 'center',
-                                        alignItems: 'center'
-                                    }}
-                                >
-                                    <Image
-                                        source={icons.back}
-                                        style={{
-                                            width: width * 0.04,
-                                            height: width * 0.06
-                                        }}
-                                    />
-                                </TouchableOpacity>
+                            <Image
+                                source={icons.back}
+                                style={{
+                                    width: width * 0.04,
+                                    height: width * 0.06
+                                }}
+                            />
+                        </TouchableOpacity>
 
-                                {/* Centered title with translation */}
-                                <TranslatedText
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.075
-                                    }}
-                                    className="font-medium"
-                                >
-                                    Edit Profile
-                                </TranslatedText>
-
-                                {/* Empty space for symmetry */}
-                                <View style={{ width: width * 0.1, height: width * 0.1 }} />
-                            </View>
-                        </View>
-
-                        {/* Bottom border */}
-                        <View
-                            className="absolute bottom-0 w-full"
+                        {/* Centered title with translation */}
+                        <TranslatedText
                             style={{
-                                backgroundColor: Colors.light.whiteFfffff,
-                                height: 1
+                                color: Colors.light.whiteFfffff,
+                                fontSize: width * 0.075
                             }}
-                        />
-                    </View>
+                            className="font-medium"
+                        >
+                            Edit Profile
+                        </TranslatedText>
 
-                    <ScrollView
-                        className="flex-1"
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{
-                            paddingBottom: height * 0.06
+                        {/* Empty space for symmetry */}
+                        <View style={{ width: width * 0.1, height: width * 0.1 }} />
+                    </View>
+                </View>
+
+                {/* Bottom border */}
+                <View
+                    className="absolute bottom-0 w-full"
+                    style={{
+                        backgroundColor: Colors.light.whiteFfffff,
+                        height: 1
+                    }}
+                />
+            </View>
+
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={0}
+            >
+                <ScrollView
+                    style={{ flex: 1 }}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={{
+                        paddingBottom: height * 0.06
+                    }}
+                >
+                    {/* Profile Image Section */}
+                    <View
+                        className="items-center"
+                        style={{
+                            marginTop: height * 0.04,
+                            marginBottom: height * 0.03
                         }}
                     >
-                        {/* Profile Image Section */}
-                        <View
-                            className="items-center"
-                            style={{
-                                marginTop: height * 0.04,
-                                marginBottom: height * 0.03
-                            }}
-                        >
-                            <View className="relative">
-                                <Image
-                                    source={profileimg}
+                        <View className="relative">
+                            <Image
+                                source={profileimg}
+                                style={{
+                                    width: width * 0.24,
+                                    height: width * 0.24,
+                                    borderRadius: (width * 0.24) / 2,
+                                    borderWidth: 3,
+                                    borderColor: Colors.light.whiteFfffff
+                                }}
+                            />
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: Colors.light.bgBlueBtn,
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    right: 0,
+                                    width: width * 0.08,
+                                    height: width * 0.08,
+                                    borderRadius: (width * 0.08) / 2
+                                }}
+                                className="items-center justify-center"
+                            >
+                                <Text
                                     style={{
-                                        width: width * 0.24,
-                                        height: width * 0.24,
-                                        borderRadius: (width * 0.24) / 2,
-                                        borderWidth: 3,
-                                        borderColor: Colors.light.whiteFfffff
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.04
                                     }}
-                                />
-                                <TouchableOpacity
-                                    style={{
-                                        backgroundColor: Colors.light.bgBlueBtn,
-                                        position: 'absolute',
-                                        bottom: 0,
-                                        right: 0,
-                                        width: width * 0.08,
-                                        height: width * 0.08,
-                                        borderRadius: (width * 0.08) / 2
-                                    }}
-                                    className="items-center justify-center"
                                 >
-                                    <Text
-                                        style={{
-                                            color: Colors.light.whiteFfffff,
-                                            fontSize: width * 0.04
-                                        }}
-                                    >
-                                        +
-                                    </Text>
-                                </TouchableOpacity>
+                                    +
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* Form Fields */}
+                    <View style={{ paddingHorizontal: width * 0.06 }}>
+                        {/* Username Field */}
+                        <View style={{ marginBottom: height * 0.02 }}>
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
+                            >
+                                Username
+                            </TranslatedText>
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderRadius: 8,
+                                    height: height * 0.06,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    value={editUser.username}
+                                    onChangeText={(value) => handleEditChange('username', value)}
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        marginLeft: width * 0.05,
+                                        width: width * 0.7,
+                                        height: height * 0.058,
+                                        fontSize: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={usernamePlaceholder}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    autoCorrect={false}
+                                />
+                            </View>
+                            {editErrors.username && (
+                                <Text
+                                    style={{
+                                        color: '#ff4444',
+                                        fontSize: width * 0.035,
+                                        marginTop: height * 0.005
+                                    }}
+                                >
+                                    {editErrors.username}
+                                </Text>
+                            )}
+                        </View>
+
+                        {/* Email Field */}
+                        <View style={{ marginBottom: height * 0.02 }}>
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
+                            >
+                                Email
+                            </TranslatedText>
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderRadius: 8,
+                                    height: height * 0.06,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    value={editUser.email}
+                                    onChangeText={(value) => handleEditChange('email', value)}
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        marginLeft: width * 0.05,
+                                        width: width * 0.7,
+                                        height: height * 0.058,
+                                        fontSize: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={emailPlaceholder}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                />
+                            </View>
+                            {editErrors.email && (
+                                <Text
+                                    style={{
+                                        color: '#ff4444',
+                                        fontSize: width * 0.035,
+                                        marginTop: height * 0.005
+                                    }}
+                                >
+                                    {editErrors.email}
+                                </Text>
+                            )}
+                        </View>
+
+                        {/* Phone Field */}
+                        <View style={{ marginBottom: height * 0.02 }}>
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
+                            >
+                                Phone Number
+                            </TranslatedText>
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderRadius: 8,
+                                    height: height * 0.06,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    value={editUser.phone_number}
+                                    onChangeText={handlePhoneChange}
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        marginLeft: width * 0.05,
+                                        width: width * 0.7,
+                                        height: height * 0.058,
+                                        fontSize: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={phonePlaceholder}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    keyboardType="numeric"
+                                    maxLength={10}
+                                    autoCorrect={false}
+                                />
+                            </View>
+                            {editErrors.phone_number && (
+                                <Text
+                                    style={{
+                                        color: '#ff4444',
+                                        fontSize: width * 0.035,
+                                        marginTop: height * 0.005
+                                    }}
+                                >
+                                    {editErrors.phone_number}
+                                </Text>
+                            )}
+                        </View>
+
+                        {/* Age Field (Read-only) */}
+                        <View style={{ marginBottom: height * 0.02 }}>
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
+                            >
+                                Age
+                            </TranslatedText>
+                            <View
+                                style={{
+                                    backgroundColor: '#f3f4f6',
+                                    borderRadius: 8,
+                                    height: height * 0.06,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    value={editUser.age}
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: '#6b7280',
+                                        marginLeft: width * 0.05,
+                                        width: width * 0.7,
+                                        height: height * 0.058,
+                                        fontSize: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={currentLanguage === 'hi' ? 'उम्र' : 'Age'}
+                                    editable={false}
+                                />
                             </View>
                         </View>
 
-                        {/* Form Fields */}
-                        <View style={{ paddingHorizontal: width * 0.06 }}>
-                            {/* Username Field */}
-                            <View style={{ marginBottom: height * 0.02 }}>
-                                <TranslatedText
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.035,
-                                        marginBottom: height * 0.01
-                                    }}
-                                    className="font-medium"
-                                >
-                                    Username
-                                </TranslatedText>
-                                <View
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        borderRadius: 8,
-                                        height: height * 0.06
-                                    }}
-                                    className="flex flex-row items-center"
-                                >
-                                    <TextInput
-                                        value={editUser.username}
-                                        onChangeText={(value) => handleEditChange('username', value)}
-                                        style={{
-                                            backgroundColor: Colors.light.whiteFfffff,
-                                            color: Colors.light.blackPrimary,
-                                            marginLeft: width * 0.05,
-                                            width: width * 0.7,
-                                            height: height * 0.058,
-                                            fontSize: width * 0.04
-                                        }}
-                                        placeholder={usernamePlaceholder}
-                                        placeholderTextColor={Colors.light.placeholderColor}
-                                    />
-                                </View>
-                                {editErrors.username && (
-                                    <Text
-                                        style={{
-                                            color: '#ff4444',
-                                            fontSize: width * 0.035,
-                                            marginTop: height * 0.005
-                                        }}
-                                    >
-                                        {editErrors.username}
-                                    </Text>
-                                )}
-                            </View>
-
-                            {/* Email Field */}
-                            <View style={{ marginBottom: height * 0.02 }}>
-                                <TranslatedText
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.035,
-                                        marginBottom: height * 0.01
-                                    }}
-                                    className="font-medium"
-                                >
-                                    Email
-                                </TranslatedText>
-                                <View
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        borderRadius: 8,
-                                        height: height * 0.06
-                                    }}
-                                    className="flex flex-row items-center"
-                                >
-                                    <TextInput
-                                        value={editUser.email}
-                                        onChangeText={(value) => handleEditChange('email', value)}
-                                        style={{
-                                            backgroundColor: Colors.light.whiteFfffff,
-                                            color: Colors.light.blackPrimary,
-                                            marginLeft: width * 0.05,
-                                            width: width * 0.7,
-                                            height: height * 0.058,
-                                            fontSize: width * 0.04
-                                        }}
-                                        placeholder={emailPlaceholder}
-                                        placeholderTextColor={Colors.light.placeholderColor}
-                                        keyboardType="email-address"
-                                    />
-                                </View>
-                                {editErrors.email && (
-                                    <Text
-                                        style={{
-                                            color: '#ff4444',
-                                            fontSize: width * 0.035,
-                                            marginTop: height * 0.005
-                                        }}
-                                    >
-                                        {editErrors.email}
-                                    </Text>
-                                )}
-                            </View>
-
-                            {/* Phone Field */}
-                            <View style={{ marginBottom: height * 0.02 }}>
-                                <TranslatedText
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.035,
-                                        marginBottom: height * 0.01
-                                    }}
-                                    className="font-medium"
-                                >
-                                    Phone Number
-                                </TranslatedText>
-                                <View
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        borderRadius: 8,
-                                        height: height * 0.06
-                                    }}
-                                    className="flex flex-row items-center"
-                                >
-                                    <TextInput
-                                        value={editUser.phone_number}
-                                        onChangeText={handlePhoneChange}
-                                        style={{
-                                            backgroundColor: Colors.light.whiteFfffff,
-                                            color: Colors.light.blackPrimary,
-                                            marginLeft: width * 0.05,
-                                            width: width * 0.7,
-                                            height: height * 0.058,
-                                            fontSize: width * 0.04
-                                        }}
-                                        placeholder={phonePlaceholder}
-                                        placeholderTextColor={Colors.light.placeholderColor}
-                                        keyboardType="numeric"
-                                        maxLength={10}
-                                    />
-                                </View>
-                                {editErrors.phone_number && (
-                                    <Text
-                                        style={{
-                                            color: '#ff4444',
-                                            fontSize: width * 0.035,
-                                            marginTop: height * 0.005
-                                        }}
-                                    >
-                                        {editErrors.phone_number}
-                                    </Text>
-                                )}
-                            </View>
-
-                            {/* Age Field (Read-only) */}
-                            <View style={{ marginBottom: height * 0.02 }}>
-                                <TranslatedText
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.035,
-                                        marginBottom: height * 0.01
-                                    }}
-                                    className="font-medium"
-                                >
-                                    Age
-                                </TranslatedText>
-                                <View
-                                    style={{
-                                        backgroundColor: '#f3f4f6',
-                                        borderRadius: 8,
-                                        height: height * 0.06
-                                    }}
-                                    className="flex flex-row items-center"
-                                >
-                                    <TextInput
-                                        value={editUser.age}
-                                        style={{
-                                            backgroundColor: '#f3f4f6',
-                                            color: '#6b7280',
-                                            marginLeft: width * 0.05,
-                                            width: width * 0.7,
-                                            height: height * 0.058,
-                                            fontSize: width * 0.04
-                                        }}
-                                        placeholder={currentLanguage === 'hi' ? 'उम्र' : 'Age'}
-                                        editable={false}
-                                    />
-                                </View>
-                            </View>
-
-                            {/* Gender Field - KYC STYLE DROPDOWN */}
-                            <View
-                                className="relative"
-                                style={{ marginBottom: height * 0.025 }}
+                        {/* Gender Field - KYC STYLE DROPDOWN */}
+                        <View
+                            className="relative"
+                            style={{ marginBottom: height * 0.025 }}
+                        >
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
                             >
-                                <TranslatedText
+                                Gender
+                            </TranslatedText>
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderRadius: 8,
+                                    height: height * 0.06,
+                                    paddingHorizontal: width * 0.05,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between'
+                                }}
+                                onPress={handleGenderDropdownToggle}
+                            >
+                                <Text
                                     style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.035,
-                                        marginBottom: height * 0.01
+                                        color: editUser.gender ? Colors.light.blackPrimary : Colors.light.placeholderColor,
+                                        fontSize: width * 0.04
                                     }}
-                                    className="font-medium"
                                 >
-                                    Gender
-                                </TranslatedText>
-                                <TouchableOpacity
+                                    {editUser.gender ? editUser.gender : (currentLanguage === 'hi' ? "लिंग चुनें*" : "Select Gender*")}
+                                </Text>
+                                <Image
+                                    source={isGenderDropdownOpen ? icons.dropdownicon : icons.upicon}
+                                    style={{
+                                        width: width * 0.03,
+                                        height: width * 0.03
+                                    }}
+                                />
+                            </TouchableOpacity>
+
+                            {/* Gender Dropdown options container */}
+                            {isGenderDropdownOpen && (
+                                <View
                                     style={{
                                         backgroundColor: Colors.light.whiteFfffff,
+                                        borderColor: Colors.light.secondaryText,
+                                        position: 'absolute',
+                                        top: height * 0.1,
+                                        width: '100%',
+                                        zIndex: 1000,
+                                        maxHeight: height * 0.19,
                                         borderRadius: 8,
-                                        height: height * 0.06,
-                                        paddingHorizontal: width * 0.05
+                                        borderWidth: 1
                                     }}
-                                    className="flex flex-row items-center justify-between w-full"
-                                    onPress={handleGenderDropdownToggle}
                                 >
-                                    <Text
-                                        style={{
-                                            color: editUser.gender ? Colors.light.blackPrimary : Colors.light.placeholderColor,
-                                            fontSize: width * 0.04
-                                        }}
-                                    >
-                                        {editUser.gender ? editUser.gender : (currentLanguage === 'hi' ? "लिंग चुनें*" : "Select Gender*")}
-                                    </Text>
-                                    <Image
-                                        source={isGenderDropdownOpen ? icons.dropdownicon : icons.upicon}
-                                        style={{
-                                            width: width * 0.03,
-                                            height: width * 0.03
-                                        }}
-                                    />
-                                </TouchableOpacity>
-
-                                {/* Gender Dropdown options container */}
-                                {isGenderDropdownOpen && (
+                                    {/* Search input for filtering gender */}
                                     <View
                                         style={{
-                                            backgroundColor: Colors.light.whiteFfffff,
                                             borderColor: Colors.light.secondaryText,
-                                            position: 'absolute',
-                                            top: height * 0.1,
-                                            width: '100%',
-                                            zIndex: 1000,
-                                            maxHeight: height * 0.19,
-                                            borderRadius: 8,
-                                            borderWidth: 1
+                                            paddingHorizontal: width * 0.04,
+                                            paddingVertical: height * 0.005,
+                                            borderBottomWidth: 1
                                         }}
                                     >
-                                        {/* Search input for filtering gender */}
-                                        <View
+                                        <TextInput
                                             style={{
-                                                borderColor: Colors.light.secondaryText,
-                                                paddingHorizontal: width * 0.04,
-                                                paddingVertical: height * 0.005,
-                                                borderBottomWidth: 1
+                                                backgroundColor: Colors.light.whiteFefefe,
+                                                color: Colors.light.blackPrimary,
+                                                height: height * 0.05,
+                                                paddingHorizontal: width * 0.03,
+                                                paddingVertical: 0,
+                                                borderRadius: 8
                                             }}
-                                        >
-                                            <TextInput
-                                                style={{
-                                                    backgroundColor: Colors.light.whiteFefefe,
-                                                    color: Colors.light.blackPrimary,
-                                                    height: height * 0.05,
-                                                    paddingHorizontal: width * 0.03,
-                                                    borderRadius: 8
-                                                }}
-                                                placeholder={searchGenderPlaceholder}
-                                                placeholderTextColor={Colors.light.placeholderColor}
-                                                value={genderSearchQuery}
-                                                onChangeText={setGenderSearchQuery}
-                                                autoFocus={false}
-                                            />
-                                        </View>
+                                            placeholder={searchGenderPlaceholder}
+                                            placeholderTextColor={Colors.light.placeholderColor}
+                                            value={genderSearchQuery}
+                                            onChangeText={setGenderSearchQuery}
+                                            autoFocus={false}
+                                            autoCorrect={false}
+                                        />
+                                    </View>
 
-                                        {/* Scrollable gender options list */}
-                                        <ScrollView
-                                            style={{ maxHeight: height * 0.125 }}
-                                            nestedScrollEnabled={true}
-                                            showsVerticalScrollIndicator={true}
-                                        >
-                                            {filteredGenderOptions.length > 0 ? (
-                                                filteredGenderOptions.map((option, index) => (
-                                                    <TouchableOpacity
-                                                        key={index}
-                                                        style={{
-                                                            borderColor: Colors.light.secondaryText,
-                                                            paddingHorizontal: width * 0.05,
-                                                            paddingVertical: height * 0.02,
-                                                            height: height * 0.07,
-                                                            justifyContent: 'center',
-                                                            borderBottomWidth: index < filteredGenderOptions.length - 1 ? 1 : 0
-                                                        }}
-                                                        onPress={() => handleGenderSelect(option)}
-                                                    >
-                                                        <Text
-                                                            style={{
-                                                                color: Colors.light.blackPrimary,
-                                                                fontSize: width * 0.04
-                                                            }}
-                                                        >
-                                                            {getGenderLabel(option)}
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                ))
-                                            ) : (
-                                                <View
+                                    {/* Scrollable gender options list */}
+                                    <ScrollView
+                                        style={{ maxHeight: height * 0.125 }}
+                                        nestedScrollEnabled={true}
+                                        showsVerticalScrollIndicator={true}
+                                    >
+                                        {filteredGenderOptions.length > 0 ? (
+                                            filteredGenderOptions.map((option, index) => (
+                                                <TouchableOpacity
+                                                    key={index}
                                                     style={{
+                                                        borderColor: Colors.light.secondaryText,
                                                         paddingHorizontal: width * 0.05,
                                                         paddingVertical: height * 0.02,
                                                         height: height * 0.07,
-                                                        justifyContent: 'center'
+                                                        justifyContent: 'center',
+                                                        borderBottomWidth: index < filteredGenderOptions.length - 1 ? 1 : 0
                                                     }}
+                                                    onPress={() => handleGenderSelect(option)}
                                                 >
                                                     <Text
                                                         style={{
-                                                            color: Colors.light.placeholderColorOp70,
+                                                            color: Colors.light.blackPrimary,
                                                             fontSize: width * 0.04
                                                         }}
                                                     >
-                                                        {currentLanguage === 'hi' ? "कोई लिंग नहीं मिला" : "No gender found"}
+                                                        {getGenderLabel(option)}
                                                     </Text>
-                                                </View>
-                                            )}
-                                        </ScrollView>
-                                    </View>
-                                )}
-                            </View>
-
-                            {/* Occupation Field - KYC STYLE DROPDOWN */}
-                            <View
-                                className="relative"
-                                style={{ marginBottom: height * 0.025 }}
-                            >
-                                <TranslatedText
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.035,
-                                        marginBottom: height * 0.01
-                                    }}
-                                    className="font-medium"
-                                >
-                                    Occupation
-                                </TranslatedText>
-                                <TouchableOpacity
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        borderRadius: 8,
-                                        height: height * 0.06,
-                                        paddingHorizontal: width * 0.05
-                                    }}
-                                    className="flex flex-row items-center justify-between w-full"
-                                    onPress={handleOccupationDropdownToggle}
-                                >
-                                    <Text
-                                        style={{
-                                            color: editUser.occupation ? Colors.light.blackPrimary : Colors.light.placeholderColor,
-                                            fontSize: width * 0.04
-                                        }}
-                                    >
-                                        {editUser.occupation ? editUser.occupation : (currentLanguage === 'hi' ? "व्यवसाय चुनें*" : "Select Occupation*")}
-                                    </Text>
-                                    <Image
-                                        source={isOccupationDropdownOpen ? icons.dropdownicon : icons.upicon}
-                                        style={{
-                                            width: width * 0.03,
-                                            height: width * 0.03
-                                        }}
-                                    />
-                                </TouchableOpacity>
-
-                                {/* Occupation Dropdown options container */}
-                                {isOccupationDropdownOpen && (
-                                    <View
-                                        style={{
-                                            backgroundColor: Colors.light.whiteFfffff,
-                                            borderColor: Colors.light.secondaryText,
-                                            position: 'absolute',
-                                            top: height * 0.1,
-                                            width: '100%',
-                                            zIndex: 1000,
-                                            maxHeight: height * 0.19,
-                                            borderRadius: 8,
-                                            borderWidth: 1
-                                        }}
-                                    >
-                                        {/* Search input */}
-                                        <View
-                                            style={{
-                                                borderColor: Colors.light.secondaryText,
-                                                paddingHorizontal: width * 0.04,
-                                                paddingVertical: height * 0.005,
-                                                borderBottomWidth: 1
-                                            }}
-                                        >
-                                            <TextInput
+                                                </TouchableOpacity>
+                                            ))
+                                        ) : (
+                                            <View
                                                 style={{
-                                                    backgroundColor: Colors.light.whiteFefefe,
-                                                    color: Colors.light.blackPrimary,
-                                                    height: height * 0.05,
-                                                    paddingHorizontal: width * 0.03,
-                                                    borderRadius: 8
-                                                }}
-                                                placeholder={searchOccupationPlaceholder}
-                                                placeholderTextColor={Colors.light.placeholderColor}
-                                                value={occupationSearchQuery}
-                                                onChangeText={setOccupationSearchQuery}
-                                                autoFocus={false}
-                                            />
-                                        </View>
-
-                                        {/* Scrollable occupation list */}
-                                        <ScrollView
-                                            style={{ maxHeight: height * 0.125 }}
-                                            nestedScrollEnabled={true}
-                                            showsVerticalScrollIndicator={true}
-                                        >
-                                            {filteredOccupationOptions.length > 0 ? (
-                                                filteredOccupationOptions.map((option, index) => (
-                                                    <TouchableOpacity
-                                                        key={index}
-                                                        style={{
-                                                            borderColor: Colors.light.secondaryText,
-                                                            paddingHorizontal: width * 0.05,
-                                                            paddingVertical: height * 0.02,
-                                                            height: height * 0.07,
-                                                            justifyContent: 'center',
-                                                            borderBottomWidth: index < filteredOccupationOptions.length - 1 ? 1 : 0
-                                                        }}
-                                                        onPress={() => handleOccupationSelect(option)}
-                                                    >
-                                                        <Text
-                                                            style={{
-                                                                color: Colors.light.blackPrimary,
-                                                                fontSize: width * 0.04
-                                                            }}
-                                                        >
-                                                            {getOccupationLabel(option)}
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                ))
-                                            ) : (
-                                                <View
-                                                    style={{
-                                                        paddingHorizontal: width * 0.05,
-                                                        paddingVertical: height * 0.02,
-                                                        height: height * 0.07,
-                                                        justifyContent: 'center'
-                                                    }}
-                                                >
-                                                    <Text
-                                                        style={{
-                                                            color: Colors.light.placeholderColorOp70,
-                                                            fontSize: width * 0.04
-                                                        }}
-                                                    >
-                                                        {currentLanguage === 'hi' ? "कोई व्यवसाय नहीं मिला" : "No occupations found"}
-                                                    </Text>
-                                                </View>
-                                            )}
-                                        </ScrollView>
-                                    </View>
-                                )}
-                            </View>
-
-                            {/* Aadhar Number Field */}
-                            <View style={{ marginBottom: height * 0.02 }}>
-                                <TranslatedText
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.035,
-                                        marginBottom: height * 0.01
-                                    }}
-                                    className="font-medium"
-                                >
-                                    Aadhar Number
-                                </TranslatedText>
-                                <View
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        borderRadius: 8,
-                                        height: height * 0.06
-                                    }}
-                                    className="flex flex-row items-center"
-                                >
-                                    <TextInput
-                                        value={editUser.aadharnumber}
-                                        onChangeText={handleAadharChange}
-                                        style={{
-                                            backgroundColor: Colors.light.whiteFfffff,
-                                            color: Colors.light.blackPrimary,
-                                            marginLeft: width * 0.05,
-                                            width: width * 0.7,
-                                            height: height * 0.058,
-                                            fontSize: width * 0.04
-                                        }}
-                                        placeholder={aadharPlaceholder}
-                                        placeholderTextColor={Colors.light.placeholderColor}
-                                        keyboardType="numeric"
-                                        maxLength={12}
-                                    />
-                                </View>
-                                {editErrors.aadharnumber && (
-                                    <Text
-                                        style={{
-                                            color: '#ff4444',
-                                            fontSize: width * 0.035,
-                                            marginTop: height * 0.005
-                                        }}
-                                    >
-                                        {editErrors.aadharnumber}
-                                    </Text>
-                                )}
-                            </View>
-
-                            {/* Instagram Username Field */}
-                            <View style={{ marginBottom: height * 0.02 }}>
-                                <Text
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.035,
-                                        marginBottom: height * 0.01
-                                    }}
-                                    className="font-medium"
-                                >
-                                    {currentLanguage === 'hi' ? 'इंस्टाग्राम उपयोगकर्ता नाम' : 'Instagram Username'} <Text style={{ color: Colors.light.placeholderColor }}>({currentLanguage === 'hi' ? 'वैकल्पिक' : 'Optional'})</Text>
-                                </Text>
-                                <View
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        borderRadius: 8,
-                                        height: height * 0.06
-                                    }}
-                                    className="flex flex-row items-center"
-                                >
-                                    <TextInput
-                                        value={editUser.instagram_username}
-                                        onChangeText={(value) => handleEditChange('instagram_username', value)}
-                                        style={{
-                                            backgroundColor: Colors.light.whiteFfffff,
-                                            color: Colors.light.blackPrimary,
-                                            marginLeft: width * 0.05,
-                                            width: width * 0.7,
-                                            height: height * 0.058,
-                                            fontSize: width * 0.04
-                                        }}
-                                        placeholder={instagramPlaceholder}
-                                        placeholderTextColor={Colors.light.placeholderColor}
-                                        autoCapitalize="none"
-                                        autoCorrect={false}
-                                    />
-                                </View>
-                            </View>
-
-                            {/* UPI ID Field */}
-                            <View style={{ marginBottom: height * 0.02 }}>
-                                <Text
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.035,
-                                        marginBottom: height * 0.01
-                                    }}
-                                    className="font-medium"
-                                >
-                                    UPI ID <Text style={{ color: Colors.light.placeholderColor }}>({currentLanguage === 'hi' ? 'वैकल्पिक' : 'Optional'})</Text>
-                                </Text>
-                                <View
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        borderRadius: 8,
-                                        height: height * 0.06
-                                    }}
-                                    className="flex flex-row items-center"
-                                >
-                                    <TextInput
-                                        value={editUser.upi}
-                                        onChangeText={(value) => handleEditChange('upi', value)}
-                                        style={{
-                                            backgroundColor: Colors.light.whiteFfffff,
-                                            color: Colors.light.blackPrimary,
-                                            marginLeft: width * 0.05,
-                                            width: width * 0.7,
-                                            height: height * 0.058,
-                                            fontSize: width * 0.04
-                                        }}
-                                        placeholder={upiPlaceholder}
-                                        placeholderTextColor={Colors.light.placeholderColor}
-                                        autoCapitalize="none"
-                                        keyboardType="email-address"
-                                        autoCorrect={false}
-                                    />
-                                </View>
-                                {editErrors.upi && (
-                                    <Text
-                                        style={{
-                                            color: '#ff4444',
-                                            fontSize: width * 0.035,
-                                            marginTop: height * 0.005
-                                        }}
-                                    >
-                                        {editErrors.upi}
-                                    </Text>
-                                )}
-                            </View>
-
-                            {/* PAN Number Field */}
-                            <View style={{ marginBottom: height * 0.04 }}>
-                                <Text
-                                    style={{
-                                        color: Colors.light.whiteFfffff,
-                                        fontSize: width * 0.035,
-                                        marginBottom: height * 0.01
-                                    }}
-                                    className="font-medium"
-                                >
-                                    {currentLanguage === 'hi' ? 'PAN नंबर' : 'PAN Number'} <Text style={{ color: Colors.light.placeholderColor }}>({currentLanguage === 'hi' ? 'वैकल्पिक' : 'Optional'})</Text>
-                                </Text>
-                                <View
-                                    style={{
-                                        backgroundColor: Colors.light.whiteFfffff,
-                                        borderRadius: 8,
-                                        height: height * 0.06
-                                    }}
-                                    className="flex flex-row items-center"
-                                >
-                                    <TextInput
-                                        value={editUser.pan_number}
-                                        onChangeText={(value) => handleEditChange('pan_number', value)}
-                                        style={{
-                                            backgroundColor: Colors.light.whiteFfffff,
-                                            color: Colors.light.blackPrimary,
-                                            marginLeft: width * 0.05,
-                                            width: width * 0.7,
-                                            height: height * 0.058,
-                                            fontSize: width * 0.04
-                                        }}
-                                        placeholder={panPlaceholder}
-                                        placeholderTextColor={Colors.light.placeholderColor}
-                                        autoCapitalize="characters"
-                                        maxLength={10}
-                                        autoCorrect={false}
-                                    />
-                                </View>
-                                {editErrors.pan_number && (
-                                    <Text
-                                        style={{
-                                            color: '#ff4444',
-                                            fontSize: width * 0.035,
-                                            marginTop: height * 0.005
-                                        }}
-                                    >
-                                        {editErrors.pan_number}
-                                    </Text>
-                                )}
-                            </View>
-
-                            {/* Action Buttons */}
-                            <View
-                                className="flex-row justify-between items-center"
-                                style={{ marginTop: height * 0.03 }}
-                            >
-                                <TouchableOpacity
-                                    onPress={updateUser}
-                                    disabled={isButtonDisabled}
-                                    style={{
-                                        opacity: isButtonDisabled ? 0.5 : 1,
-                                        width: width * 0.43,
-                                        height: height * 0.055,
-                                        borderRadius: 10,
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        backgroundColor: hasChanges ? Colors.light.bgBlueBtn : '#6b7280'
-                                    }}
-                                >
-                                    {loading ? (
-                                        <View className="flex-row justify-center items-center">
-                                            <ActivityIndicator size="small" color={Colors.light.whiteFfffff} />
-                                            <Text
-                                                style={{
-                                                    color: Colors.light.whiteFfffff,
-                                                    fontSize: width * 0.045,
-                                                    fontWeight: '600',
-                                                    marginLeft: width * 0.02
+                                                    paddingHorizontal: width * 0.05,
+                                                    paddingVertical: height * 0.02,
+                                                    height: height * 0.07,
+                                                    justifyContent: 'center'
                                                 }}
                                             >
-                                                {currentLanguage === 'hi' ? 'सेव कर रहे हैं...' : 'Saving...'}
-                                            </Text>
-                                        </View>
-                                    ) : (
+                                                <Text
+                                                    style={{
+                                                        color: Colors.light.placeholderColorOp70,
+                                                        fontSize: width * 0.04
+                                                    }}
+                                                >
+                                                    {currentLanguage === 'hi' ? "कोई लिंग नहीं मिला" : "No gender found"}
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </ScrollView>
+                                </View>
+                            )}
+                        </View>
+
+                        {/* Occupation Field - KYC STYLE DROPDOWN */}
+                        <View
+                            className="relative"
+                            style={{ marginBottom: height * 0.025 }}
+                        >
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
+                            >
+                                Occupation
+                            </TranslatedText>
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderRadius: 8,
+                                    height: height * 0.06,
+                                    paddingHorizontal: width * 0.05,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between'
+                                }}
+                                onPress={handleOccupationDropdownToggle}
+                            >
+                                <Text
+                                    style={{
+                                        color: editUser.occupation ? Colors.light.blackPrimary : Colors.light.placeholderColor,
+                                        fontSize: width * 0.04
+                                    }}
+                                >
+                                    {editUser.occupation ? editUser.occupation : (currentLanguage === 'hi' ? "व्यवसाय चुनें*" : "Select Occupation*")}
+                                </Text>
+                                <Image
+                                    source={isOccupationDropdownOpen ? icons.dropdownicon : icons.upicon}
+                                    style={{
+                                        width: width * 0.03,
+                                        height: width * 0.03
+                                    }}
+                                />
+                            </TouchableOpacity>
+
+                            {/* Occupation Dropdown options container */}
+                            {isOccupationDropdownOpen && (
+                                <View
+                                    style={{
+                                        backgroundColor: Colors.light.whiteFfffff,
+                                        borderColor: Colors.light.secondaryText,
+                                        position: 'absolute',
+                                        top: height * 0.1,
+                                        width: '100%',
+                                        zIndex: 1000,
+                                        maxHeight: height * 0.19,
+                                        borderRadius: 8,
+                                        borderWidth: 1
+                                    }}
+                                >
+                                    {/* Search input */}
+                                    <View
+                                        style={{
+                                            borderColor: Colors.light.secondaryText,
+                                            paddingHorizontal: width * 0.04,
+                                            paddingVertical: height * 0.005,
+                                            borderBottomWidth: 1
+                                        }}
+                                    >
+                                        <TextInput
+                                            style={{
+                                                backgroundColor: Colors.light.whiteFefefe,
+                                                color: Colors.light.blackPrimary,
+                                                height: height * 0.05,
+                                                paddingHorizontal: width * 0.03,
+                                                paddingVertical: 0,
+                                                borderRadius: 8
+                                            }}
+                                            placeholder={searchOccupationPlaceholder}
+                                            placeholderTextColor={Colors.light.placeholderColor}
+                                            value={occupationSearchQuery}
+                                            onChangeText={setOccupationSearchQuery}
+                                            autoFocus={false}
+                                            autoCorrect={false}
+                                        />
+                                    </View>
+
+                                    {/* Scrollable occupation list */}
+                                    <ScrollView
+                                        style={{ maxHeight: height * 0.125 }}
+                                        nestedScrollEnabled={true}
+                                        showsVerticalScrollIndicator={true}
+                                    >
+                                        {filteredOccupationOptions.length > 0 ? (
+                                            filteredOccupationOptions.map((option, index) => (
+                                                <TouchableOpacity
+                                                    key={index}
+                                                    style={{
+                                                        borderColor: Colors.light.secondaryText,
+                                                        paddingHorizontal: width * 0.05,
+                                                        paddingVertical: height * 0.02,
+                                                        height: height * 0.07,
+                                                        justifyContent: 'center',
+                                                        borderBottomWidth: index < filteredOccupationOptions.length - 1 ? 1 : 0
+                                                    }}
+                                                    onPress={() => handleOccupationSelect(option)}
+                                                >
+                                                    <Text
+                                                        style={{
+                                                            color: Colors.light.blackPrimary,
+                                                            fontSize: width * 0.04
+                                                        }}
+                                                    >
+                                                        {getOccupationLabel(option)}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            ))
+                                        ) : (
+                                            <View
+                                                style={{
+                                                    paddingHorizontal: width * 0.05,
+                                                    paddingVertical: height * 0.02,
+                                                    height: height * 0.07,
+                                                    justifyContent: 'center'
+                                                }}
+                                            >
+                                                <Text
+                                                    style={{
+                                                        color: Colors.light.placeholderColorOp70,
+                                                        fontSize: width * 0.04
+                                                    }}
+                                                >
+                                                    {currentLanguage === 'hi' ? "कोई व्यवसाय नहीं मिला" : "No occupations found"}
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </ScrollView>
+                                </View>
+                            )}
+                        </View>
+
+                        {/* Aadhar Number Field */}
+                        <View style={{ marginBottom: height * 0.02 }}>
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
+                            >
+                                Aadhar Number
+                            </TranslatedText>
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderRadius: 8,
+                                    height: height * 0.06,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    value={editUser.aadharnumber}
+                                    onChangeText={handleAadharChange}
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        marginLeft: width * 0.05,
+                                        width: width * 0.7,
+                                        height: height * 0.058,
+                                        fontSize: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={aadharPlaceholder}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    keyboardType="numeric"
+                                    maxLength={12}
+                                    autoCorrect={false}
+                                />
+                            </View>
+                            {editErrors.aadharnumber && (
+                                <Text
+                                    style={{
+                                        color: '#ff4444',
+                                        fontSize: width * 0.035,
+                                        marginTop: height * 0.005
+                                    }}
+                                >
+                                    {editErrors.aadharnumber}
+                                </Text>
+                            )}
+                        </View>
+
+                        {/* Instagram Username Field */}
+                        <View style={{ marginBottom: height * 0.02 }}>
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
+                            >
+                                {currentLanguage === 'hi' ? 'इंस्टाग्राम उपयोगकर्ता नाम' : 'Instagram Username'} <Text style={{ color: Colors.light.placeholderColor }}>({currentLanguage === 'hi' ? 'वैकल्पिक' : 'Optional'})</Text>
+                            </Text>
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderRadius: 8,
+                                    height: height * 0.06,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    value={editUser.instagram_username}
+                                    onChangeText={(value) => handleEditChange('instagram_username', value)}
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        marginLeft: width * 0.05,
+                                        width: width * 0.7,
+                                        height: height * 0.058,
+                                        fontSize: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={instagramPlaceholder}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                />
+                            </View>
+                        </View>
+
+                        {/* UPI ID Field */}
+                        <View style={{ marginBottom: height * 0.02 }}>
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
+                            >
+                                UPI ID <Text style={{ color: Colors.light.placeholderColor }}>({currentLanguage === 'hi' ? 'वैकल्पिक' : 'Optional'})</Text>
+                            </Text>
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderRadius: 8,
+                                    height: height * 0.06,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    value={editUser.upi}
+                                    onChangeText={(value) => handleEditChange('upi', value)}
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        marginLeft: width * 0.05,
+                                        width: width * 0.7,
+                                        height: height * 0.058,
+                                        fontSize: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={upiPlaceholder}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    autoCapitalize="none"
+                                    keyboardType="email-address"
+                                    autoCorrect={false}
+                                />
+                            </View>
+                            {editErrors.upi && (
+                                <Text
+                                    style={{
+                                        color: '#ff4444',
+                                        fontSize: width * 0.035,
+                                        marginTop: height * 0.005
+                                    }}
+                                >
+                                    {editErrors.upi}
+                                </Text>
+                            )}
+                        </View>
+
+                        {/* PAN Number Field */}
+                        <View style={{ marginBottom: height * 0.04 }}>
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
+                            >
+                                {currentLanguage === 'hi' ? 'PAN नंबर' : 'PAN Number'} <Text style={{ color: Colors.light.placeholderColor }}>({currentLanguage === 'hi' ? 'वैकल्पिक' : 'Optional'})</Text>
+                            </Text>
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderRadius: 8,
+                                    height: height * 0.06,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    value={editUser.pan_number}
+                                    onChangeText={(value) => handleEditChange('pan_number', value)}
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        marginLeft: width * 0.05,
+                                        width: width * 0.7,
+                                        height: height * 0.058,
+                                        fontSize: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={panPlaceholder}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    autoCapitalize="characters"
+                                    maxLength={10}
+                                    autoCorrect={false}
+                                />
+                            </View>
+                            {editErrors.pan_number && (
+                                <Text
+                                    style={{
+                                        color: '#ff4444',
+                                        fontSize: width * 0.035,
+                                        marginTop: height * 0.005
+                                    }}
+                                >
+                                    {editErrors.pan_number}
+                                </Text>
+                            )}
+                        </View>
+
+                        {/* Action Buttons */}
+                        <View
+                            className="flex-row justify-between items-center"
+                            style={{ marginTop: height * 0.03 }}
+                        >
+                            <TouchableOpacity
+                                onPress={updateUser}
+                                disabled={isButtonDisabled}
+                                style={{
+                                    opacity: isButtonDisabled ? 0.5 : 1,
+                                    width: width * 0.43,
+                                    height: height * 0.055,
+                                    borderRadius: 10,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    backgroundColor: hasChanges ? Colors.light.bgBlueBtn : '#6b7280'
+                                }}
+                            >
+                                {loading ? (
+                                    <View className="flex-row justify-center items-center">
+                                        <ActivityIndicator size="small" color={Colors.light.whiteFfffff} />
                                         <Text
                                             style={{
                                                 color: Colors.light.whiteFfffff,
                                                 fontSize: width * 0.045,
-                                                fontWeight: '600'
+                                                fontWeight: '600',
+                                                marginLeft: width * 0.02
                                             }}
                                         >
-                                            {currentLanguage === 'hi' ? 'परिवर्तन सेव करें' : 'Save Changes'}
+                                            {currentLanguage === 'hi' ? 'सेव कर रहे हैं...' : 'Saving...'}
                                         </Text>
-                                    )}
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    onPress={handleCancel}
-                                    disabled={loading}
-                                    style={{
-                                        backgroundColor: Colors.light.backlight2,
-                                        opacity: loading ? 0.5 : 1,
-                                        width: width * 0.43,
-                                        height: height * 0.055,
-                                        borderRadius: 10,
-                                        justifyContent: 'center',
-                                        alignItems: 'center'
-                                    }}
-                                >
+                                    </View>
+                                ) : (
                                     <Text
                                         style={{
                                             color: Colors.light.whiteFfffff,
@@ -1316,53 +1315,77 @@ const EditProfile = ({ navigation }: Props) => {
                                             fontWeight: '600'
                                         }}
                                     >
-                                        {currentLanguage === 'hi' ? 'रद्द करें' : 'Cancel'}
+                                        {currentLanguage === 'hi' ? 'परिवर्तन सेव करें' : 'Save Changes'}
                                     </Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </ScrollView>
+                                )}
+                            </TouchableOpacity>
 
-                    {/* Success Message Toast */}
-                    {showSuccessMessage && (
-                        <Animated.View
-                            style={{
-                                position: 'absolute',
-                                bottom: height * 0.075,
-                                left: width * 0.05,
-                                right: width * 0.05,
-                                backgroundColor: Colors.light.bgGreen,
-                                borderRadius: 10,
-                                padding: width * 0.04,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                elevation: 5,
-                                shadowColor: '#000',
-                                shadowOffset: {
-                                    width: 0,
-                                    height: 2,
-                                },
-                                shadowOpacity: 0.25,
-                                shadowRadius: 3.84,
-                                opacity: successOpacity,
-                                transform: [{ translateY: successTranslateY }],
-                            }}
-                        >
-                            <Text style={{
-                                color: 'white',
-                                fontSize: width * 0.04,
-                                fontWeight: '600',
-                                flex: 1,
-                                textAlign: 'center'
-                            }}>
-                                {currentLanguage === 'hi' ? 'प्रोफाइल सफलतापूर्वक अपडेट हो गया!' : 'Profile updated successfully!'}
-                            </Text>
-                        </Animated.View>
-                    )}
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                            <TouchableOpacity
+                                onPress={handleCancel}
+                                disabled={loading}
+                                style={{
+                                    backgroundColor: Colors.light.backlight2,
+                                    opacity: loading ? 0.5 : 1,
+                                    width: width * 0.43,
+                                    height: height * 0.055,
+                                    borderRadius: 10,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.045,
+                                        fontWeight: '600'
+                                    }}
+                                >
+                                    {currentLanguage === 'hi' ? 'रद्द करें' : 'Cancel'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+
+            {/* Success Message Toast */}
+            {showSuccessMessage && (
+                <Animated.View
+                    style={{
+                        position: 'absolute',
+                        bottom: height * 0.075,
+                        left: width * 0.05,
+                        right: width * 0.05,
+                        backgroundColor: Colors.light.bgGreen,
+                        borderRadius: 10,
+                        padding: width * 0.04,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        elevation: 5,
+                        shadowColor: '#000',
+                        shadowOffset: {
+                            width: 0,
+                            height: 2,
+                        },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                        opacity: successOpacity,
+                        transform: [{ translateY: successTranslateY }],
+                    }}
+                >
+                    <Text style={{
+                        color: 'white',
+                        fontSize: width * 0.04,
+                        fontWeight: '600',
+                        flex: 1,
+                        textAlign: 'center'
+                    }}>
+                        {currentLanguage === 'hi' ? 'प्रोफाइल सफलतापूर्वक अपडेट हो गया!' : 'Profile updated successfully!'}
+                    </Text>
+                </Animated.View>
+            )}
+        </View>
     );
 };
 

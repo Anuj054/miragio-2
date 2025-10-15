@@ -7,7 +7,7 @@ import {
     View,
     ScrollView,
     Dimensions,
-    KeyboardAvoidingView,   // ✅ NEW
+    KeyboardAvoidingView,
     Platform
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -159,216 +159,265 @@ const UserDetails = ({ navigation }: Props) => {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}  // ✅ Moves content when keyboard appears
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}  // Adjust if you have a header
-        >
-            <ScrollView
-                className="flex-1"
-                contentContainerStyle={{ minHeight: height }}
-                keyboardShouldPersistTaps="handled"    // ✅ Allows tap outside to dismiss keyboard
+        <View style={{ flex: 1 }}>
+            {/* Background Image - Fixed */}
+            <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#000',
+            }}>
+                <Image
+                    source={bg}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        minWidth: width,
+                        minHeight: height,
+                    }}
+                    resizeMode="cover"
+                />
+            </View>
+
+            {/* Fixed Footer - Outside KeyboardAvoidingView */}
+            <View
+                style={{
+                    position: 'absolute',
+                    bottom: height * 0.04,
+                    left: 0,
+                    right: 0,
+                    alignItems: 'center',
+                    zIndex: 1,
+                    pointerEvents: 'none'
+                }}
             >
-                <View className="flex-1 items-center">
-                    <View style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: '#000', // Fallback color
-                    }}>
-                        <Image
-                            source={bg}
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07
+                    }}
+                    className="font-bold"
+                >
+                    MIRAGIO
+                </Text>
+            </View>
+
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={0}
+            >
+                <ScrollView
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                    bounces={false}
+                >
+                    <View style={{ minHeight: height, paddingHorizontal: width * 0.05, paddingBottom: height * 0.15 }}>
+                        {/* Back Button */}
+                        <TouchableOpacity
                             style={{
-                                width: '100%',
-                                height: '100%',
-                                minWidth: width,
-                                minHeight: height,
+                                position: 'absolute',
+                                left: width * 0.04,
+                                top: height * 0.09,
+                                width: width * 0.12,
+                                height: height * 0.06,
+                                zIndex: 10,
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
-                            resizeMode="cover"
-                        />
-                    </View>
-                    {/* Back */}
-                    <TouchableOpacity
-                        style={{
-                            position: 'absolute',
-                            left: width * 0.04,
-                            top: height * 0.09,
-                            width: width * 0.12,
-                            height: height * 0.06,
-                        }}
-                        onPress={() => navigation.goBack()}
-                    >
-                        <Image
-                            source={icons.back}
-                            style={{ width: width * 0.06, height: width * 0.07 }}
-                        />
-                    </TouchableOpacity>
-
-                    {/* Logo */}
-                    <Image
-                        source={logo}
-                        style={{
-                            position: 'absolute',
-                            top: height * 0.08,
-                            width: width * 0.25,
-                            height: width * 0.22,
-                        }}
-                    />
-
-                    {/* Title */}
-                    <TranslatedText
-                        className="font-bold text-center"
-                        style={{
-                            position: 'absolute',
-                            top: height * 0.23,
-                            color: Colors.light.whiteFfffff,
-                            fontSize: width * 0.075,
-                        }}
-                    >
-                        {isHi ? 'अतिरिक्त विवरण' : 'Additional Details'}
-                    </TranslatedText>
-
-                    {/* Inputs */}
-                    <View
-                        className="absolute items-center"
-                        style={{
-                            top: height * 0.31,
-                            width: '100%',
-                            paddingHorizontal: width * 0.05,
-                        }}
-                    >
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.whiteFfffff,
-                                width: '100%',
-                                maxWidth: width * 0.9,
-                                height: Math.max(48, height * 0.06),
-                                borderRadius: 15,
-                                marginBottom: height * 0.022,
-                            }}
-                            className="flex flex-row items-center"
+                            onPress={() => navigation.goBack()}
                         >
-                            <TextInput
+                            <Image
+                                source={icons.back}
+                                style={{ width: width * 0.06, height: width * 0.07 }}
+                            />
+                        </TouchableOpacity>
+
+                        {/* Logo */}
+                        <View style={{
+                            alignItems: 'center',
+                            marginTop: height * 0.08,
+                            zIndex: 5
+                        }}>
+                            <Image
+                                source={logo}
                                 style={{
-                                    flex: 1,
-                                    paddingHorizontal: width * 0.04,
-                                    color: Colors.light.blackPrimary,
-                                    fontSize: Math.min(16, width * 0.035),
+                                    width: width * 0.25,
+                                    height: width * 0.22
                                 }}
-                                placeholder={isHi ? 'इंस्टाग्राम आईडी' : 'Instagram ID'}
-                                placeholderTextColor={Colors.light.placeholderColor}
-                                value={instagramId}
-                                onChangeText={(t) => { setInstagramId(t); if (errorMessage) setErrorMessage(''); }}
-                                autoCapitalize="none"
                             />
                         </View>
 
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.whiteFfffff,
-                                width: '100%',
-                                maxWidth: width * 0.9,
-                                height: Math.max(48, height * 0.06),
-                                borderRadius: 15,
-                                marginBottom: height * 0.022,
-                            }}
-                            className="flex flex-row items-center"
-                        >
-                            <TextInput
+                        {/* Title */}
+                        <View style={{
+                            alignItems: 'center',
+                            marginTop: height * 0.04,
+                            marginBottom: height * 0.04,
+                            zIndex: 5
+                        }}>
+                            <TranslatedText
+                                className="font-bold text-center"
                                 style={{
-                                    flex: 1,
-                                    paddingHorizontal: width * 0.04,
-                                    color: Colors.light.blackPrimary,
-                                    fontSize: Math.min(16, width * 0.035),
-                                }}
-                                placeholder={isHi ? 'UPI आईडी' : 'UPI ID'}
-                                placeholderTextColor={Colors.light.placeholderColor}
-                                value={upiId}
-                                onChangeText={(t) => { setUpiId(t); if (errorMessage) setErrorMessage(''); }}
-                                autoCapitalize="none"
-                                keyboardType="email-address"
-                            />
-                        </View>
-
-                        <View
-                            style={{
-                                backgroundColor: Colors.light.whiteFfffff,
-                                width: '100%',
-                                maxWidth: width * 0.9,
-                                height: Math.max(48, height * 0.06),
-                                borderRadius: 15,
-                                marginBottom: height * 0.01,
-                            }}
-                            className="flex flex-row items-center"
-                        >
-                            <TextInput
-                                style={{
-                                    flex: 1,
-                                    paddingHorizontal: width * 0.04,
-                                    color: Colors.light.blackPrimary,
-                                    fontSize: Math.min(16, width * 0.035),
-                                }}
-                                placeholder={isHi ? 'पैन नंबर*' : 'PAN Number*'}
-                                placeholderTextColor={Colors.light.placeholderColor}
-                                value={panNumber}
-                                onChangeText={(t) => { setPanNumber(t.toUpperCase()); if (errorMessage) setErrorMessage(''); }}
-                                autoCapitalize="characters"
-                                maxLength={10}
-                            />
-                        </View>
-
-                        {errorMessage ? (
-                            <Text
-                                style={{
-                                    color: errorMessage.includes('success') || errorMessage.includes('सफल')
-                                        ? '#10B981'
-                                        : '#EF4444',
-                                    textAlign: 'center',
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.075,
                                 }}
                             >
-                                {errorMessage}
-                            </Text>
-                        ) : null}
-                    </View>
+                                {isHi ? 'अतिरिक्त विवरण' : 'Additional Details'}
+                            </TranslatedText>
+                        </View>
 
-                    {/* Button */}
-                    <View
-                        className="absolute items-center"
-                        style={{ top: height * 0.6, width: '100%' }}
-                    >
-                        <CustomGradientButton
-                            text={
-                                isLoading || contextLoading
-                                    ? (isHi ? 'खाता बना रहे हैं...' : 'Creating Account...')
-                                    : (isHi ? 'पंजीकरण पूर्ण करें' : 'Complete Registration')
-                            }
-                            width={Math.min(width * 0.9, 500)}
-                            height={Math.max(48, height * 0.06)}
-                            borderRadius={100}
-                            fontSize={Math.min(18, width * 0.045)}
-                            textColor={Colors.light.whiteFfffff}
-                            onPress={registerUser}
-                            disabled={isLoading || contextLoading}
-                        />
-                    </View>
+                        {/* Form Container */}
+                        <View style={{ alignItems: 'center', zIndex: 5 }}>
+                            {/* Instagram ID Input */}
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    width: '100%',
+                                    maxWidth: width * 0.9,
+                                    height: Math.max(48, height * 0.06),
+                                    borderRadius: 15,
+                                    marginBottom: height * 0.022,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    style={{
+                                        flex: 1,
+                                        paddingHorizontal: width * 0.04,
+                                        paddingVertical: 0,
+                                        color: Colors.light.blackPrimary,
+                                        fontSize: Math.min(16, width * 0.035),
+                                        backgroundColor: 'transparent'
+                                    }}
+                                    placeholder={isHi ? 'इंस्टाग्राम आईडी' : 'Instagram ID'}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    value={instagramId}
+                                    onChangeText={(t) => {
+                                        setInstagramId(t);
+                                        if (errorMessage) setErrorMessage('');
+                                    }}
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                    editable={!isLoading}
+                                />
+                            </View>
 
-                    {/* Footer */}
-                    <View
-                        className="absolute items-center"
-                        style={{ bottom: height * 0.04 }}
-                    >
-                        <Text
-                            style={{ color: Colors.light.whiteFfffff, fontSize: width * 0.07 }}
-                            className="font-bold"
-                        >
-                            MIRAGIO
-                        </Text>
+                            {/* UPI ID Input */}
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    width: '100%',
+                                    maxWidth: width * 0.9,
+                                    height: Math.max(48, height * 0.06),
+                                    borderRadius: 15,
+                                    marginBottom: height * 0.022,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    style={{
+                                        flex: 1,
+                                        paddingHorizontal: width * 0.04,
+                                        paddingVertical: 0,
+                                        color: Colors.light.blackPrimary,
+                                        fontSize: Math.min(16, width * 0.035),
+                                        backgroundColor: 'transparent'
+                                    }}
+                                    placeholder={isHi ? 'UPI आईडी' : 'UPI ID'}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    value={upiId}
+                                    onChangeText={(t) => {
+                                        setUpiId(t);
+                                        if (errorMessage) setErrorMessage('');
+                                    }}
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                    keyboardType="email-address"
+                                    editable={!isLoading}
+                                />
+                            </View>
+
+                            {/* PAN Number Input */}
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    width: '100%',
+                                    maxWidth: width * 0.9,
+                                    height: Math.max(48, height * 0.06),
+                                    borderRadius: 15,
+                                    marginBottom: height * 0.03,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    style={{
+                                        flex: 1,
+                                        paddingHorizontal: width * 0.04,
+                                        paddingVertical: 0,
+                                        color: Colors.light.blackPrimary,
+                                        fontSize: Math.min(16, width * 0.035),
+                                        backgroundColor: 'transparent'
+                                    }}
+                                    placeholder={isHi ? 'पैन नंबर*' : 'PAN Number*'}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    value={panNumber}
+                                    onChangeText={(t) => {
+                                        setPanNumber(t.toUpperCase());
+                                        if (errorMessage) setErrorMessage('');
+                                    }}
+                                    autoCapitalize="characters"
+                                    autoCorrect={false}
+                                    maxLength={10}
+                                    editable={!isLoading}
+                                />
+                            </View>
+
+                            {/* Error Message */}
+                            {errorMessage ? (
+                                <View style={{ marginBottom: height * 0.03, width: '100%' }}>
+                                    <Text
+                                        style={{
+                                            color: errorMessage.includes('success') || errorMessage.includes('सफल')
+                                                ? '#10B981'
+                                                : '#EF4444',
+                                            textAlign: 'center',
+                                            fontSize: width * 0.035
+                                        }}
+                                    >
+                                        {errorMessage}
+                                    </Text>
+                                </View>
+                            ) : null}
+
+                            {/* Register Button */}
+                            <View style={{ alignItems: 'center', marginBottom: height * 0.05 }}>
+                                <CustomGradientButton
+                                    text={
+                                        isLoading || contextLoading
+                                            ? (isHi ? 'खाता बना रहे हैं...' : 'Creating Account...')
+                                            : (isHi ? 'पंजीकरण पूर्ण करें' : 'Complete Registration')
+                                    }
+                                    width={Math.min(width * 0.9, 500)}
+                                    height={Math.max(48, height * 0.06)}
+                                    borderRadius={100}
+                                    fontSize={Math.min(18, width * 0.045)}
+                                    textColor={Colors.light.whiteFfffff}
+                                    onPress={registerUser}
+                                    disabled={isLoading || contextLoading}
+                                />
+                            </View>
+                        </View>
                     </View>
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </View>
     );
 };
 

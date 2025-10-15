@@ -7,7 +7,7 @@ import {
     View,
     Dimensions,
     ScrollView,
-    KeyboardAvoidingView,   // ✅ NEW
+    KeyboardAvoidingView,
     Platform
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -205,268 +205,291 @@ const Otp = ({ navigation, route }: Props) => {
     const isButtonDisabled = isLoading || contextLoading || otp.length !== 5;
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}  // ✅ lifts content when keyboard shows
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        >
-            <ScrollView
-                className="flex-1"
-                contentContainerStyle={{ minHeight: height }}
-                keyboardShouldPersistTaps="handled"                   // ✅ tap outside to dismiss
+        <View style={{ flex: 1 }}>
+            {/* Background Image - Fixed */}
+            <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#000',
+            }}>
+                <Image
+                    source={bg}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        minWidth: width,
+                        minHeight: height,
+                    }}
+                    resizeMode="cover"
+                />
+            </View>
+
+            {/* Fixed Footer - Outside KeyboardAvoidingView */}
+            <View
+                style={{
+                    position: 'absolute',
+                    bottom: height * 0.034,
+                    left: 0,
+                    right: 0,
+                    alignItems: 'center',
+                    zIndex: 1,
+                    pointerEvents: 'none'
+                }}
             >
-                <View className="flex-1 items-center">
-                    {/* Background */}
-                    <View style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: '#000', // Fallback color
-                    }}>
-                        <Image
-                            source={bg}
+                <Text
+                    style={{
+                        color: Colors.light.whiteFfffff,
+                        fontSize: width * 0.07
+                    }}
+                    className="font-bold"
+                >
+                    MIRAGIO
+                </Text>
+            </View>
+
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={0}
+            >
+                <ScrollView
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                    bounces={false}
+                >
+                    <View style={{ minHeight: height, paddingHorizontal: width * 0.05, paddingBottom: height * 0.12 }}>
+                        {/* Back Button */}
+                        <TouchableOpacity
                             style={{
-                                width: '100%',
-                                height: '100%',
-                                minWidth: width,
-                                minHeight: height,
+                                position: 'absolute',
+                                left: width * 0.04,
+                                top: height * 0.097,
+                                width: width * 0.12,
+                                height: height * 0.06,
+                                zIndex: 10,
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
-                            resizeMode="cover"
-                        />
-                    </View>
-
-                    {/* Back Button */}
-                    <TouchableOpacity
-                        className="absolute flex items-center justify-center"
-                        style={{
-                            left: width * 0.04,
-                            top: height * 0.097,
-                            width: width * 0.12,
-                            height: height * 0.06,
-                            zIndex: 10
-                        }}
-                        onPress={handleBackPress}
-                        disabled={isLoading || contextLoading}
-                    >
-                        <Image
-                            source={icons.back}
-                            style={{
-                                width: width * 0.06,
-                                height: width * 0.07,
-                                opacity: (isLoading || contextLoading) ? 0.5 : 1
-                            }}
-                        />
-                    </TouchableOpacity>
-
-                    {/* Logo */}
-                    <Image
-                        source={logo}
-                        style={{
-                            position: 'absolute',
-                            top: height * 0.08,
-                            width: width * 0.25,
-                            height: width * 0.22
-                        }}
-                    />
-
-                    {/* Title */}
-                    <TranslatedText
-                        className="font-medium text-center"
-                        style={{
-                            position: 'absolute',
-                            top: height * 0.22,
-                            color: Colors.light.whiteFfffff,
-                            fontSize: width * 0.077,
-                            lineHeight: width * 0.09
-                        }}
-                    >
-                        {isHi ? 'ओटीपी सफलतापूर्वक भेजा गया' : 'OTP Sent Successfully'}
-                    </TranslatedText>
-
-                    <Text
-                        style={{
-                            color: Colors.light.secondaryText,
-                            fontSize: width * 0.035,
-                            marginTop: height * 0.26,
-                            position: 'absolute',
-                            textAlign: 'center'
-                        }}
-                    >
-                        {isHi ? 'अपना इनबॉक्स जांचें' : 'Check your inbox'}
-                    </Text>
-
-                    {/* Illustration */}
-                    <View
-                        className="absolute items-center"
-                        style={{ top: height * 0.33 }}
-                    >
-                        <Image
-                            source={otpimage}
-                            style={{
-                                height: height * 0.28,
-                                width: width * 1,
-                                resizeMode: 'contain'
-                            }}
-                        />
-                    </View>
-
-                    {/* Instructions */}
-                    <View
-                        className="absolute items-center"
-                        style={{ top: height * 0.62, width: width * 0.85 }}
-                    >
-                        <TranslatedText
-                            className="font-bold text-center"
-                            style={{
-                                color: Colors.light.whiteFfffff,
-                                fontSize: width * 0.07,
-                                lineHeight: width * 0.09
-                            }}
-                        >
-                            {isHi ? 'अपना नंबर पुष्टि करें' : 'Confirm Your Number'}
-                        </TranslatedText>
-                        <Text
-                            style={{
-                                color: Colors.light.placeholderColorOp70,
-                                fontSize: width * 0.035,
-                                marginTop: height * 0.01,
-                                textAlign: 'center'
-                            }}
-                        >
-                            {isHi ? 'हमने 5 अंकों का कोड भेजा है' : "We've sent a 5-digit verification code"}
-                        </Text>
-                    </View>
-
-                    {/* OTP Input */}
-                    <View
-                        className="absolute items-center"
-                        style={{ top: height * 0.74, width: '100%', paddingHorizontal: width * 0.02 }}
-                    >
-                        <View
-                            style={{
-                                borderColor: Colors.light.whiteFfffff,
-                                borderWidth: 1,
-                                borderRadius: 15,
-                                width: '100%',
-                                maxWidth: width * 0.9,
-                                height: Math.max(48, height * 0.06),
-                                marginBottom: height * 0.02
-                            }}
-                            className="flex flex-row items-center"
+                            onPress={handleBackPress}
+                            disabled={isLoading || contextLoading}
                         >
                             <Image
-                                source={icons.otp}
+                                source={icons.back}
                                 style={{
-                                    width: width * 0.04,
-                                    height: width * 0.035,
-                                    marginLeft: width * 0.04,
-                                    marginRight: width * 0.03
+                                    width: width * 0.06,
+                                    height: width * 0.07,
+                                    opacity: (isLoading || contextLoading) ? 0.5 : 1
                                 }}
                             />
-                            <TextInput
+                        </TouchableOpacity>
+
+                        {/* Logo */}
+                        <View style={{
+                            alignItems: 'center',
+                            marginTop: height * 0.08,
+                            zIndex: 5
+                        }}>
+                            <Image
+                                source={logo}
+                                style={{
+                                    width: width * 0.25,
+                                    height: width * 0.22
+                                }}
+                            />
+                        </View>
+
+                        {/* Title */}
+                        <View style={{
+                            alignItems: 'center',
+                            marginTop: height * 0.04,
+                            zIndex: 5
+                        }}>
+                            <TranslatedText
+                                className="font-medium text-center"
                                 style={{
                                     color: Colors.light.whiteFfffff,
-                                    flex: 1,
-                                    fontSize: Math.min(16, width * 0.04),
-                                    paddingVertical: 0
+                                    fontSize: width * 0.077,
+                                    lineHeight: width * 0.09
                                 }}
-                                placeholder={isHi ? 'ओटीपी दर्ज करें' : 'Enter OTP'}
-                                placeholderTextColor={Colors.light.whiteFfffff}
-                                keyboardType="numeric"
-                                maxLength={5}
-                                value={otp}
-                                onChangeText={handleOtpChange}
-                                editable={!isLoading && !contextLoading}
-                            />
+                            >
+                                {isHi ? 'ओटीपी सफलतापूर्वक भेजा गया' : 'OTP Sent Successfully'}
+                            </TranslatedText>
+
                             <Text
                                 style={{
-                                    color: Colors.light.whiteFfffff,
-                                    fontSize: width * 0.03,
-                                    marginRight: width * 0.02
+                                    color: Colors.light.secondaryText,
+                                    fontSize: width * 0.035,
+                                    textAlign: 'center',
+                                    marginTop: height * 0.01
                                 }}
                             >
-                                {otp.length}/5
+                                {isHi ? 'अपना इनबॉक्स जांचें' : 'Check your inbox'}
                             </Text>
-                            <TouchableOpacity
-                                onPress={handleResendOTP}
-                                disabled={isLoading || contextLoading}
-                                style={{ paddingHorizontal: width * 0.03, paddingVertical: height * 0.01 }}
+                        </View>
+
+                        {/* Illustration */}
+                        <View style={{
+                            alignItems: 'center',
+                            marginTop: height * 0.02,
+                            zIndex: 5
+                        }}>
+                            <Image
+                                source={otpimage}
+                                style={{
+                                    height: height * 0.28,
+                                    width: width * 1,
+                                    resizeMode: 'contain'
+                                }}
+                            />
+                        </View>
+
+                        {/* Form Container */}
+                        <View style={{ alignItems: 'center', zIndex: 5, marginTop: height * 0.02 }}>
+                            {/* Instructions */}
+                            <View style={{
+                                alignItems: 'center',
+                                width: width * 0.85,
+                                marginBottom: height * 0.03
+                            }}>
+                                <TranslatedText
+                                    className="font-bold text-center"
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.07,
+                                        lineHeight: width * 0.09
+                                    }}
+                                >
+                                    {isHi ? 'अपना नंबर पुष्टि करें' : 'Confirm Your Number'}
+                                </TranslatedText>
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035,
+                                        marginTop: height * 0.01,
+                                        textAlign: 'center'
+                                    }}
+                                >
+                                    {isHi ? 'हमने 5 अंकों का कोड भेजा है' : "We've sent a 5-digit verification code"}
+                                </Text>
+                            </View>
+
+                            {/* OTP Input */}
+                            <View
+                                style={{
+                                    borderColor: Colors.light.whiteFfffff,
+                                    borderWidth: 1,
+                                    borderRadius: 15,
+                                    width: '100%',
+                                    maxWidth: width * 0.9,
+                                    height: Math.max(48, height * 0.06),
+                                    marginBottom: height * 0.02,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
                             >
+                                <Image
+                                    source={icons.otp}
+                                    style={{
+                                        width: width * 0.04,
+                                        height: width * 0.035,
+                                        marginLeft: width * 0.04,
+                                        marginRight: width * 0.03
+                                    }}
+                                />
+                                <TextInput
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        flex: 1,
+                                        fontSize: Math.min(16, width * 0.04),
+                                        paddingVertical: 0,
+                                        backgroundColor: 'transparent'
+                                    }}
+                                    placeholder={isHi ? 'ओटीपी दर्ज करें' : 'Enter OTP'}
+                                    placeholderTextColor={Colors.light.whiteFfffff}
+                                    keyboardType="numeric"
+                                    maxLength={5}
+                                    value={otp}
+                                    onChangeText={handleOtpChange}
+                                    editable={!isLoading && !contextLoading}
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                />
                                 <Text
                                     style={{
                                         color: Colors.light.whiteFfffff,
-                                        opacity: (isLoading || contextLoading) ? 0.5 : 1,
-                                        fontSize: width * 0.03
+                                        fontSize: width * 0.03,
+                                        marginRight: width * 0.02
                                     }}
                                 >
-                                    {isHi ? 'पुनः भेजें' : 'Resend'}
+                                    {otp.length}/5
                                 </Text>
-                            </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={handleResendOTP}
+                                    disabled={isLoading || contextLoading}
+                                    style={{ paddingHorizontal: width * 0.03, paddingVertical: height * 0.01 }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFfffff,
+                                            opacity: (isLoading || contextLoading) ? 0.5 : 1,
+                                            fontSize: width * 0.03
+                                        }}
+                                    >
+                                        {isHi ? 'पुनः भेजें' : 'Resend'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Error Message */}
+                            {errorMessage ? (
+                                <View style={{ marginBottom: height * 0.02, width: '100%' }}>
+                                    <Text
+                                        style={{
+                                            color: errorMessage.includes('success') ||
+                                                errorMessage.includes('सफल') ||
+                                                errorMessage.includes('सत्यापित') ||
+                                                errorMessage.includes('भेजा गया')
+                                                ? '#10B981'
+                                                : '#EF4444',
+                                            fontSize: width * 0.035,
+                                            textAlign: 'center',
+                                            fontWeight: '500'
+                                        }}
+                                    >
+                                        {errorMessage}
+                                    </Text>
+                                </View>
+                            ) : null}
+
+                            {/* Verify Button */}
+                            <View style={{ alignItems: 'center', marginBottom: height * 0.05 }}>
+                                <CustomGradientButton
+                                    text={
+                                        isLoading || contextLoading
+                                            ? (isHi ? 'सत्यापित कर रहे हैं...' : 'Verifying...')
+                                            : (isHi ? 'ओटीपी सत्यापित करें' : 'Verify OTP')
+                                    }
+                                    width={Math.min(width * 0.9, 500)}
+                                    height={Math.max(48, height * 0.06)}
+                                    borderRadius={15}
+                                    fontSize={Math.min(18, width * 0.045)}
+                                    fontWeight="600"
+                                    textColor={Colors.light.whiteFfffff}
+                                    onPress={handleVerifyOTP}
+                                    disabled={isButtonDisabled}
+                                    style={{ opacity: isButtonDisabled ? 0.6 : 1 }}
+                                />
+                            </View>
                         </View>
-
-                        {errorMessage ? (
-                            <Text
-                                style={{
-                                    color: errorMessage.includes('success') ||
-                                        errorMessage.includes('सफल') ||
-                                        errorMessage.includes('सत्यापित') ||
-                                        errorMessage.includes('भेजा गया')
-                                        ? '#10B981'
-                                        : '#EF4444',
-                                    fontSize: width * 0.035,
-                                    textAlign: 'center',
-                                    fontWeight: '500',
-                                    marginHorizontal: width * 0.05
-                                }}
-                            >
-                                {errorMessage}
-                            </Text>
-                        ) : null}
                     </View>
-
-                    {/* Verify Button */}
-                    <View
-                        className="absolute items-center"
-                        style={{ top: height * 0.85, width: '100%', paddingHorizontal: width * 0.02 }}
-                    >
-                        <CustomGradientButton
-                            text={
-                                isLoading || contextLoading
-                                    ? (isHi ? 'सत्यापित कर रहे हैं...' : 'Verifying...')
-                                    : (isHi ? 'ओटीपी सत्यापित करें' : 'Verify OTP')
-                            }
-                            width={Math.min(width * 0.9, 500)}
-                            height={Math.max(48, height * 0.06)}
-                            borderRadius={15}
-                            fontSize={Math.min(18, width * 0.045)}
-                            fontWeight="600"
-                            textColor={Colors.light.whiteFfffff}
-                            onPress={handleVerifyOTP}
-                            disabled={isButtonDisabled}
-                            style={{ opacity: isButtonDisabled ? 0.6 : 1 }}
-                        />
-                    </View>
-
-                    {/* Footer */}
-                    <View
-                        className="absolute items-center"
-                        style={{ bottom: height * 0.034 }}
-                    >
-                        <Text
-                            style={{
-                                color: Colors.light.whiteFfffff,
-                                fontSize: width * 0.07
-                            }}
-                            className="font-bold"
-                        >
-                            MIRAGIO
-                        </Text>
-                    </View>
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </View>
     );
 };
 
