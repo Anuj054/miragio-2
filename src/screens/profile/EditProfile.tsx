@@ -52,6 +52,7 @@ interface EditUserData {
     upi: string;
     pan_number: string;
     age: string;
+    city: string;
 }
 
 // Define the shape of form errors
@@ -62,6 +63,7 @@ interface FormErrors {
     aadharnumber?: string;
     upi?: string;
     pan_number?: string;
+    city?: string;
 }
 
 const EditProfile = ({ navigation }: Props) => {
@@ -130,7 +132,7 @@ const EditProfile = ({ navigation }: Props) => {
         const fieldsToCheck: (keyof EditUserData)[] = [
             'username', 'email', 'phone_number', 'gender',
             'occupation', 'aadharnumber', 'instagram_username',
-            'upi', 'pan_number'
+            'upi', 'pan_number', 'city'
         ];
 
         return fieldsToCheck.some(field =>
@@ -151,7 +153,8 @@ const EditProfile = ({ navigation }: Props) => {
                 instagram_username: user.instagram_username || '',
                 upi: user.upi || '',
                 pan_number: user.pan_number || '',
-                age: user.age || ''
+                age: user.age || '',
+                city: user.city || ''
             };
 
             setEditUser(userData);
@@ -329,6 +332,11 @@ const EditProfile = ({ navigation }: Props) => {
         } else if (editUser.phone_number.length !== 10 || !/^\d{10}$/.test(editUser.phone_number) ||
             editUser.phone_number.startsWith('0') || editUser.phone_number.startsWith('1') || editUser.phone_number.startsWith('2')) {
             errors.phone_number = currentLanguage === 'hi' ? "कृपया सही फोन नंबर दर्ज करें" : "Please enter a correct phone number";
+        }
+        if (!editUser.city.trim()) {
+            errors.city = currentLanguage === 'hi'
+                ? "कृपया अपना शहर दर्ज करें"
+                : "Please enter your city";
         }
 
         // Aadhar number validation with Hindi messages
@@ -793,6 +801,56 @@ const EditProfile = ({ navigation }: Props) => {
                                     editable={false}
                                 />
                             </View>
+                        </View>
+                        {/* City Field */}
+                        <View style={{ marginBottom: height * 0.02 }}>
+                            <TranslatedText
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.035,
+                                    marginBottom: height * 0.01
+                                }}
+                                className="font-medium"
+                            >
+                                City
+                            </TranslatedText>
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    borderRadius: 8,
+                                    height: height * 0.06,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    value={editUser.city}
+                                    onChangeText={(value) => handleEditChange('city', value)}
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        marginLeft: width * 0.05,
+                                        width: width * 0.7,
+                                        height: height * 0.058,
+                                        fontSize: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={currentLanguage === 'hi' ? 'शहर दर्ज करें' : 'Enter City'}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    autoCorrect={false}
+                                />
+                            </View>
+                            {editErrors.city && (
+                                <Text
+                                    style={{
+                                        color: '#ff4444',
+                                        fontSize: width * 0.035,
+                                        marginTop: height * 0.005
+                                    }}
+                                >
+                                    {editErrors.city}
+                                </Text>
+                            )}
                         </View>
 
                         {/* Gender Field - KYC STYLE DROPDOWN */}

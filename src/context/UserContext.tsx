@@ -17,6 +17,7 @@ export interface UserData {
     wallet: string;
     status: string;
     created_at: string;
+    city: string;
     instagram_username?: string;
     upi?: string;
     pan_number?: string;
@@ -134,6 +135,7 @@ const normalizeUserData = (data: any): UserData => ({
     wallet: String(data.wallet || '0'),
     status: String(data.status || ''),
     created_at: String(data.created_at || ''),
+    city: String(data.city || ''),
     instagram_username: data.instagram_username || '',
     upi: data.upi || '',
     pan_number: data.pan_number || '',
