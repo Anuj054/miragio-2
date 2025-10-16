@@ -162,48 +162,68 @@ const SignIn = ({ navigation }: Props) => {
         }
     };
 
-    // CORRECTED: Login handler with proper error handling
+    // Updated handleLogin function in SignIn.tsx
     const handleLogin = async () => {
-        if (isLoading) return;
+        // Prevent multiple submissions
+        if (isLoading) {
+            console.log('⚠️ Login already in progress, ignoring click');
+            return;
+        }
 
+        // Clear previous errors
         setErrorMessage('');
-        if (!validateForm()) return;
 
+        // Validate form
+        if (!validateForm()) {
+            console.log('❌ Form validation failed');
+            return;
+        }
+
+        // Start loading
         setIsLoading(true);
+        console.log('🔄 Starting login process...');
 
         try {
-            console.log('🔄 Attempting login with:', email.trim());
+            // Call login function
             const result = await login(email.trim(), password.trim());
-
             console.log('📥 Login result:', result);
 
             if (result.success) {
-                setErrorMessage(currentLanguage === 'hi' ? 'लॉगिन सफल! रीडायरेक्ट कर रहे हैं...' : 'Login successful! Redirecting...');
-                console.log('✅ Login successful, UserContext will handle navigation automatically');
+                // SUCCESS: Show success message
+                console.log('✅ Login successful!');
+                setErrorMessage(
+                    currentLanguage === 'hi'
+                        ? 'लॉगिन सफल! रीडायरेक्ट कर रहे हैं...'
+                        : 'Login successful! Redirecting...'
+                );
+
+                // Request permissions
                 await requestAppPermissions();
 
-                // DO NOT NAVIGATE HERE - Let the authentication state change handle navigation
-                // The RootNavigator will automatically switch to MainNavigator when isAuthenticated becomes true
+                // Keep loading state true - RootNavigator will handle navigation automatically
+                // when isAuthenticated changes to true in UserContext
+                console.log('✅ Waiting for automatic navigation...');
 
             } else {
-                // Login failed - show error and stay on SignIn screen
-                const errorMsg = result.message || (currentLanguage === 'hi' ? 'अमान्य ईमेल या पासवर्ड' : 'Invalid email or password');
-                setErrorMessage(errorMsg);
-                console.log('❌ Login failed, showing error:', errorMsg);
-
-                // CRITICAL: Do NOT call any navigation functions here
-                // Stay on SignIn screen to show the error message
+                // FAILURE: Show error message and stop loading
+                console.log('❌ Login failed:', result.message);
+                setErrorMessage(result.message);
+                setIsLoading(false); // Stop loading on error
             }
+
         } catch (error) {
-            console.error('❌ Login error:', error);
-            setErrorMessage(currentLanguage === 'hi' ? 'एक त्रुटि आई है। कृपया फिर से कोशिश करें।' : 'An error occurred. Please try again.');
-
-            // CRITICAL: Do NOT call any navigation functions here either
-        } finally {
-            setIsLoading(false);
+            // CATCH BLOCK: Handle unexpected errors
+            console.error('❌ Unexpected login error:', error);
+            setErrorMessage(
+                currentLanguage === 'hi'
+                    ? 'एक अप्रत्याशित त्रुटि आई है। कृपया फिर से कोशिश करें।'
+                    : 'An unexpected error occurred. Please try again.'
+            );
+            setIsLoading(false); // Stop loading on error
         }
-    };
 
+
+    };
     return (
         <View style={{ flex: 1 }}>
             {/* Background Image - Fixed */}

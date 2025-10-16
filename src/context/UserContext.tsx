@@ -218,37 +218,66 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
+    // Updated login function in UserContext.tsx
     const login = async (email: string, password: string) => {
         try {
-            setIsLoading(true);
+            // DON'T set isLoading here - let the SignIn component handle its own loading state
+            console.log('🔄 Attempting login for:', email);
+
             const res = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'user_login', email: email.trim(), password: password.trim() }),
+                body: JSON.stringify({
+                    action: 'user_login',
+                    email: email.trim(),
+                    password: password.trim()
+                }),
             });
-            const data: LoginResponse = await res.json();
 
+            const data: LoginResponse = await res.json();
+            console.log('📥 Login response:', data);
+
+            // Check for successful login
             if (data.status === 'success' && data.data) {
+                console.log('✅ Login successful, processing user data...');
+
                 const normalizedUserData = normalizeUserData(data.data);
+
+                // Store user data and update state
                 await storeUserData(normalizedUserData);
                 setUser(normalizedUserData);
                 setIsLoggedIn(true);
+
+                // Clear any old registration data
                 await clearRegistrationData();
 
+                // Store FCM token
                 const fcmResult = await storeFcmToken(normalizedUserData.id);
                 console.log('📱 FCM token stored on login:', fcmResult.success);
 
-                return { success: true, message: data.message || 'Login successful!' };
+                console.log('✅ Login completed successfully');
+                return {
+                    success: true,
+                    message: data.message || 'Login successful!'
+                };
             }
-            return { success: false, message: data.message || 'Login failed. Please try again.' };
-        } catch (err) {
-            console.error('❌ Login error:', err);
-            return { success: false, message: 'Network error. Please check your internet connection.' };
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
+            // Login failed - return error message
+            console.warn('⚠️ Login failed:', data.message);
+            return {
+                success: false,
+                message: data.message || 'Invalid email or password. Please try again.'
+            };
+
+        } catch (err) {
+            console.error('❌ Login network error:', err);
+            return {
+                success: false,
+                message: 'Network error. Please check your internet connection and try again.'
+            };
+        }
+
+    };
     // ---------- Step 1: Email & Password ----------
     const registerStep1 = async (data: Step1Data): Promise<{ success: boolean; message: string; userId?: string }> => {
         try {
