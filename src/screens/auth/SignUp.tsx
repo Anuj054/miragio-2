@@ -22,10 +22,12 @@ import bg from '../../assets/images/bg.png';
 import logo from '../../assets/images/MIRAGIO--LOGO.png';
 import CustomGradientButton from '../../components/CustomGradientButton';
 import type { AuthStackParamList } from '../../navigation/types';
-// Translation imports - USING OUR CUSTOM COMPONENTS
+
+// Translation imports
 import { TranslatedText } from '../../components/TranslatedText';
 import { useTranslation } from '../../context/TranslationContext';
 import { usePlaceholder } from '../../hooks/useTranslatedText';
+import { useUser } from '../../context/UserContext';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 
@@ -33,38 +35,31 @@ const { width, height } = Dimensions.get('window');
 
 const SignUp = ({ navigation }: Props) => {
     const { currentLanguage } = useTranslation();
+    const { registerStep1, isLoading: contextLoading } = useUser();
     const scrollViewRef = useRef<ScrollView>(null);
 
-    // State for password visibility toggles
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
-
-    // State for terms and conditions checkbox
     const [isChecked, setChecked] = useState(false);
 
-    // State for form inputs - START EMPTY
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [referralCode, setReferralCode] = useState("");
 
-    // State for error message and loading
     const [errorMessage, setErrorMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    // Using our custom placeholder hooks
     const emailPlaceholder = usePlaceholder('Enter Email', 'ईमेल दर्ज करें');
 
     useEffect(() => {
         clearAllSignupData();
     }, []);
 
-    // Handle back button properly
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
-                if (!isLoading) {
-                    // Go back to Welcome instead of staying in auth loop
+                if (!isLoading && !contextLoading) {
                     navigation.reset({
                         index: 0,
                         routes: [{ name: 'Welcome' }],
@@ -75,12 +70,11 @@ const SignUp = ({ navigation }: Props) => {
 
             const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
             return () => subscription?.remove();
-        }, [navigation, isLoading])
+        }, [navigation, isLoading, contextLoading])
     );
 
     const clearAllSignupData = async () => {
         try {
-            // Clear all signup-related storage when starting fresh
             await Promise.all([
                 AsyncStorage.removeItem('@signup_data'),
                 AsyncStorage.removeItem('@registration_data'),
@@ -92,24 +86,20 @@ const SignUp = ({ navigation }: Props) => {
         }
     };
 
-    // Toggle password visibility for main password field
     const togglePasswordVisibility = () => {
         setIsPasswordVisible(!isPasswordVisible);
     };
 
-    // Toggle password visibility for confirm password field
     const toggleConfirmPasswordVisibility = () => {
         setIsConfirmPasswordVisible(!isConfirmPasswordVisible);
     };
 
-    // Validate form inputs with translation
     const validateForm = () => {
         if (!email.trim()) {
             setErrorMessage(currentLanguage === 'hi' ? "कृपया अपना ईमेल दर्ज करें" : "Please enter your email");
             return false;
         }
 
-        // Email validation regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email.trim())) {
             setErrorMessage(currentLanguage === 'hi' ? "कृपया वैध ईमेल पता दर्ज करें" : "Please enter a valid email address");
@@ -139,10 +129,8 @@ const SignUp = ({ navigation }: Props) => {
         return true;
     };
 
-    // Navigation handlers
     const handleBackPress = () => {
-        // Go back to Welcome to break the loop
-        if (!isLoading) {
+        if (!isLoading && !contextLoading) {
             navigation.reset({
                 index: 0,
                 routes: [{ name: 'Welcome' }],
@@ -151,51 +139,68 @@ const SignUp = ({ navigation }: Props) => {
     };
 
     const handleSignInPress = () => {
-        // Use replace instead of navigate to prevent stack accumulation
-        if (!isLoading) {
+        if (!isLoading && !contextLoading) {
             navigation.replace('SignIn');
         }
     };
 
-    // Handle next button press - store data and navigate to KYC
     const handleNextPress = async () => {
-        if (isLoading) return;
+        if (isLoading || contextLoading) return;
 
-        // Clear previous error
         setErrorMessage("");
 
-        if (!validateForm()) return;
-
-        setIsLoading(true);
+        // First validate local form
+        if (!validateForm()) {
+            console.log('SignUp - Form validation failed');
+            return;
+        }
 
         try {
-            // Store signup data in AsyncStorage
-            // UPDATED: Ensure referral code is properly handled as optional
-            const signupData = {
+            const step1Data = {
                 email: email.trim(),
                 password: password,
-                referral_code: referralCode.trim() || "", // Empty string if no referral code
+                referral_code: referralCode.trim() || "",
                 user_role: "user",
-                status: "1",
             };
 
-            await AsyncStorage.setItem('@signup_data', JSON.stringify(signupData));
-            console.log('SignUp - Stored data:', signupData);
+            console.log('SignUp - Calling registerStep1 with email:', step1Data.email);
 
-            // Navigate to KYC page directly
-            navigation.navigate('KYC');
+            const result = await registerStep1(step1Data);
+
+            console.log('SignUp - API Response:', { success: result.success, message: result.message, userId: result.userId });
+
+            // Check if result is successful
+            if (result.success === false) {
+                setErrorMessage(result.message || (currentLanguage === 'hi' ? "पंजीकरण विफल। कृपया फिर से कोशिश करें।" : "Registration failed. Please try again."));
+                console.error('SignUp - API returned error:', result.message);
+                return;
+            }
+
+            // Check if userId exists
+            if (!result.userId) {
+                setErrorMessage(currentLanguage === 'hi' ? "उपयोगकर्ता आईडी प्राप्त नहीं हुई। कृपया फिर से कोशिश करें।" : "Failed to get user ID. Please try again.");
+                console.error('SignUp - No userId in response');
+                return;
+            }
+
+            // Everything passed - show loading and navigate to KYC
+            console.log('SignUp - All checks passed, navigating to KYC with userId:', result.userId);
+            setIsLoading(true);
+
+            // Small delay to show loading state, then navigate
+            setTimeout(() => {
+                navigation.navigate('KYC');
+                setIsLoading(false);
+            }, 800);
 
         } catch (error) {
-            console.error('Error storing signup data:', error);
+            console.error('SignUp - Unexpected error:', error);
             setErrorMessage(currentLanguage === 'hi' ? "कुछ गलत हुआ। कृपया फिर से कोशिश करें।" : "Something went wrong. Please try again.");
-        } finally {
-            setIsLoading(false);
         }
     };
 
     return (
         <View style={{ flex: 1 }}>
-            {/* Background Image - Fixed */}
             <View style={{
                 position: 'absolute',
                 top: 0,
@@ -216,7 +221,6 @@ const SignUp = ({ navigation }: Props) => {
                 />
             </View>
 
-            {/* Fixed Footer - Outside KeyboardAvoidingView */}
             <View
                 style={{
                     position: 'absolute',
@@ -253,7 +257,6 @@ const SignUp = ({ navigation }: Props) => {
                     bounces={false}
                 >
                     <View style={{ minHeight: height, paddingHorizontal: width * 0.05, paddingBottom: height * 0.15 }}>
-                        {/* Back Button - responsive positioning */}
                         <TouchableOpacity
                             style={{
                                 position: 'absolute',
@@ -266,19 +269,20 @@ const SignUp = ({ navigation }: Props) => {
                                 justifyContent: 'center'
                             }}
                             onPress={handleBackPress}
+                            disabled={isLoading || contextLoading}
                         >
                             {icons && (
                                 <Image
                                     source={icons.back}
                                     style={{
                                         width: width * 0.06,
-                                        height: width * 0.07
+                                        height: width * 0.07,
+                                        opacity: (isLoading || contextLoading) ? 0.5 : 1
                                     }}
                                 />
                             )}
                         </TouchableOpacity>
 
-                        {/* Logo - responsive positioning */}
                         <View style={{
                             alignItems: 'center',
                             marginTop: height * 0.08,
@@ -293,7 +297,6 @@ const SignUp = ({ navigation }: Props) => {
                             />
                         </View>
 
-                        {/* Title - USING TranslatedText */}
                         <View style={{
                             alignItems: 'center',
                             marginTop: height * 0.04,
@@ -313,9 +316,7 @@ const SignUp = ({ navigation }: Props) => {
                             </TranslatedText>
                         </View>
 
-                        {/* Form Container */}
                         <View style={{ alignItems: 'center', zIndex: 5 }}>
-                            {/* Email Input - responsive with translation */}
                             <View
                                 style={{
                                     backgroundColor: Colors.light.whiteFfffff,
@@ -346,11 +347,10 @@ const SignUp = ({ navigation }: Props) => {
                                     }}
                                     autoCapitalize="none"
                                     keyboardType="email-address"
-                                    editable={!isLoading}
+                                    editable={!isLoading && !contextLoading}
                                 />
                             </View>
 
-                            {/* Password Input - responsive with translation */}
                             <View
                                 style={{
                                     backgroundColor: Colors.light.whiteFfffff,
@@ -382,7 +382,7 @@ const SignUp = ({ navigation }: Props) => {
                                         if (errorMessage) setErrorMessage("");
                                     }}
                                     autoCapitalize="none"
-                                    editable={!isLoading}
+                                    editable={!isLoading && !contextLoading}
                                 />
                                 <TouchableOpacity
                                     style={{
@@ -394,7 +394,7 @@ const SignUp = ({ navigation }: Props) => {
                                         justifyContent: 'center'
                                     }}
                                     onPress={togglePasswordVisibility}
-                                    disabled={isLoading}
+                                    disabled={isLoading || contextLoading}
                                 >
                                     {icons && (
                                         <Image
@@ -408,7 +408,6 @@ const SignUp = ({ navigation }: Props) => {
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Confirm Password Input - responsive with translation */}
                             <View
                                 style={{
                                     backgroundColor: Colors.light.whiteFfffff,
@@ -440,7 +439,7 @@ const SignUp = ({ navigation }: Props) => {
                                         if (errorMessage) setErrorMessage("");
                                     }}
                                     autoCapitalize="none"
-                                    editable={!isLoading}
+                                    editable={!isLoading && !contextLoading}
                                 />
                                 <TouchableOpacity
                                     style={{
@@ -452,7 +451,7 @@ const SignUp = ({ navigation }: Props) => {
                                         justifyContent: 'center'
                                     }}
                                     onPress={toggleConfirmPasswordVisibility}
-                                    disabled={isLoading}
+                                    disabled={isLoading || contextLoading}
                                 >
                                     {icons && (
                                         <Image
@@ -466,7 +465,6 @@ const SignUp = ({ navigation }: Props) => {
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Referral Code Input - with translation */}
                             <View
                                 style={{
                                     backgroundColor: Colors.light.whiteFfffff,
@@ -496,11 +494,10 @@ const SignUp = ({ navigation }: Props) => {
                                         if (errorMessage) setErrorMessage("");
                                     }}
                                     autoCapitalize="characters"
-                                    editable={!isLoading}
+                                    editable={!isLoading && !contextLoading}
                                 />
                             </View>
 
-                            {/* Error Message - responsive */}
                             {errorMessage ? (
                                 <View
                                     style={{
@@ -522,25 +519,23 @@ const SignUp = ({ navigation }: Props) => {
                                 </View>
                             ) : null}
 
-                            {/* Next Button */}
                             <View style={{ alignItems: 'center', marginBottom: height * 0.03 }}>
                                 <CustomGradientButton
-                                    text={isLoading ? (currentLanguage === 'hi' ? "सेव कर रहे हैं..." : "Saving...") : (currentLanguage === 'hi' ? "अगला" : "Next")}
+                                    text={isLoading || contextLoading ? (currentLanguage === 'hi' ? "सेव कर रहे हैं..." : "Saving...") : (currentLanguage === 'hi' ? "अगला" : "Next")}
                                     width={Math.min(width * 0.9, 500)}
                                     height={Math.max(48, height * 0.06)}
                                     borderRadius={28}
                                     fontSize={Math.min(18, width * 0.045)}
                                     fontWeight="600"
                                     onPress={handleNextPress}
-                                    disabled={!isChecked || isLoading}
+                                    disabled={!isChecked || isLoading || contextLoading}
                                     textColor={isChecked ? Colors.light.whiteFfffff : Colors.light.secondaryText}
                                     style={{
-                                        opacity: isChecked && !isLoading ? 1 : 0.6,
+                                        opacity: isChecked && !isLoading && !contextLoading ? 1 : 0.6,
                                     }}
                                 />
                             </View>
 
-                            {/* Terms and Conditions Section */}
                             <View
                                 style={{
                                     flexDirection: 'row',
@@ -564,7 +559,7 @@ const SignUp = ({ navigation }: Props) => {
                                         width: Math.max(20, width * 0.06)
                                     }}
                                     tintColors={{ true: Colors.light.blueTheme, false: Colors.light.whiteFfffff }}
-                                    disabled={isLoading}
+                                    disabled={isLoading || contextLoading}
                                 />
 
                                 <View style={{ flex: 1, flexDirection: 'column' }}>
@@ -604,7 +599,6 @@ const SignUp = ({ navigation }: Props) => {
                                 </View>
                             </View>
 
-                            {/* Sign In Navigation Link */}
                             <View
                                 style={{
                                     flexDirection: 'row',
@@ -626,7 +620,7 @@ const SignUp = ({ navigation }: Props) => {
                                 </Text>
                                 <TouchableOpacity
                                     onPress={handleSignInPress}
-                                    disabled={isLoading}
+                                    disabled={isLoading || contextLoading}
                                     style={{ marginLeft: 4 }}
                                 >
                                     <Text

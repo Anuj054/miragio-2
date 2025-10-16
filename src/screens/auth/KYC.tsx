@@ -11,14 +11,14 @@ import {
     Platform
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import bg from '../../assets/images/bg.png';
 import logo from '../../assets/images/MIRAGIO--LOGO.png';
 import { icons } from '../../constants/index';
 import CustomGradientButton from '../../components/CustomGradientButton';
 import { Colors } from '../../constants/Colors';
+import { useUser } from '../../context/UserContext';
 
-// ✅ Translation
+// Translation
 import { useTranslation } from '../../context/TranslationContext';
 import { TranslatedText } from '../../components/TranslatedText';
 import type { AuthStackParamList } from '../../navigation/types';
@@ -27,28 +27,12 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'KYC'>;
 
 const { width, height } = Dimensions.get('window');
 
-interface SignupData {
-    email: string;
-    password: string;
-    referral_code: string;
-    user_role: string;
-    status: string;
-}
-
-interface RegistrationData extends SignupData {
-    username: string;
-    aadharnumber: string;
-    age: string;
-    gender: string;
-    occupation: string;
-    phone_number: string;
-}
-
 const KYC = ({ navigation }: Props) => {
     const { currentLanguage } = useTranslation();
     const isHi = currentLanguage === 'hi';
 
-    const [signupData, setSignupData] = useState<SignupData | null>(null);
+    // Get data from context
+    const { step1Data, currentUserId, registerStep2, isLoading: contextLoading } = useUser();
 
     const [aadharNumber, setAadharNumber] = useState('');
     const [username, setUsername] = useState('');
@@ -56,6 +40,7 @@ const KYC = ({ navigation }: Props) => {
     const [gender, setGender] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [selectedOccupation, setSelectedOccupation] = useState('');
+    const [isDropdownActive, setIsDropdownActive] = useState(false);
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -90,78 +75,122 @@ const KYC = ({ navigation }: Props) => {
     useEffect(() => {
         (async () => {
             try {
-                const stored = await AsyncStorage.getItem('@signup_data');
-                if (stored) setSignupData(JSON.parse(stored));
-                else {
+                // Check if we have step1 data from context
+                if (!step1Data || !currentUserId) {
                     setErrorMessage(
                         isHi
-                            ? 'साइनअप डेटा नहीं मिला। कृपया साइनअप से शुरू करें।'
-                            : 'Signup data not found. Please start from signup page.'
+                            ? 'पंजीकरण डेटा नहीं मिला। कृपया साइनअप से शुरू करें।'
+                            : 'Registration data not found. Please start from signup page.'
                     );
                     setTimeout(() => navigation.navigate('SignUp'), 2000);
+                    return;
                 }
-            } catch {
+
+                console.log('✅ KYC Screen loaded with User ID:', currentUserId);
+            } catch (err) {
+                console.error('❌ Error loading KYC:', err);
                 setErrorMessage(
-                    isHi ? 'डेटा लोड करने में त्रुटि।' : 'Error loading signup data.'
+                    isHi ? 'डेटा लोड करने में त्रुटि।' : 'Error loading data.'
                 );
             }
         })();
-    }, [isHi, navigation]);
+    }, [step1Data, currentUserId, isHi, navigation]);
 
     const validateForm = () => {
         const err = (en: string, hi: string) => (isHi ? hi : en);
+
         if (!aadharNumber.trim())
             return err('Please enter Aadhar number', 'कृपया आधार नंबर दर्ज करें');
+
         if (aadharNumber.length !== 12)
             return err('Aadhar number must be 12 digits', 'आधार नंबर 12 अंकों का होना चाहिए');
+
         if (!username.trim())
             return err('Please enter username', 'कृपया यूज़रनेम दर्ज करें');
+
         if (!age.trim())
             return err('Please enter age', 'कृपया उम्र दर्ज करें');
+
         const ageNum = parseInt(age);
         if (isNaN(ageNum) || ageNum < 18 || ageNum > 100)
             return err('Enter valid age (18-100)', 'उम्र 18 से 100 के बीच होनी चाहिए');
+
         if (!gender.trim())
             return err('Please select gender', 'कृपया लिंग चुनें');
+
         if (!selectedOccupation)
             return err('Please select occupation', 'कृपया व्यवसाय चुनें');
+
         if (!phoneNumber.trim())
             return err('Please enter phone number', 'कृपया फ़ोन नंबर दर्ज करें');
+
         if (phoneNumber.length !== 10)
             return err('Phone number must be 10 digits', 'फ़ोन नंबर 10 अंकों का होना चाहिए');
+
         return '';
     };
 
     const proceed = async () => {
-        if (isLoading) return;
+        if (isLoading || contextLoading) return;
+
         const e = validateForm();
         if (e) {
             setErrorMessage(e);
             return;
         }
-        if (!signupData) return;
-        setIsLoading(true);
+
+        if (!step1Data || !currentUserId) {
+            setErrorMessage(isHi ? 'सत्र समाप्त हो गया।' : 'Session expired.');
+            setTimeout(() => navigation.navigate('SignUp'), 2000);
+            return;
+        }
+
         try {
+            console.log('🔄 KYC - Calling registerStep2 for user:', currentUserId);
+
             const occLabel =
                 occupations.find(o => o.value === selectedOccupation)?.label ||
                 selectedOccupation;
-            const data: RegistrationData = {
-                ...signupData,
+
+            const step2Data = {
+                ...step1Data,
+                user_id: currentUserId,
                 username,
                 aadharnumber: aadharNumber,
                 age,
                 gender,
                 occupation: occLabel,
                 phone_number: phoneNumber,
+                city: 'Unknown',
             };
-            await AsyncStorage.setItem('@registration_data', JSON.stringify(data));
-            navigation.navigate('UserDetails');
-        } catch {
+
+            console.log('KYC - Step2 Payload:', { user_id: step2Data.user_id, username, aadhar: aadharNumber });
+
+            const result = await registerStep2(step2Data);
+
+            console.log('KYC - API Response:', { success: result.success, message: result.message });
+
+            if (result.success !== true) {
+                setErrorMessage(result.message || (isHi ? 'चरण 2 विफल।' : 'Step 2 failed.'));
+                console.error('❌ KYC - Step 2 failed:', result.message);
+                return;
+            }
+
+            console.log('✅ KYC - Step 2 completed successfully');
+            console.log('KYC - About to set loading and navigate to UserDetails');
+            setIsLoading(true);
+
+            setTimeout(() => {
+                console.log('KYC - Navigating to UserDetails');
+                navigation.navigate('UserDetails');
+                setIsLoading(false);
+            }, 800);
+
+        } catch (err) {
+            console.error('❌ KYC - Error in proceed:', err);
             setErrorMessage(
                 isHi ? 'डेटा सेव करने में त्रुटि।' : 'Error saving data.'
             );
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -224,6 +253,8 @@ const KYC = ({ navigation }: Props) => {
                 keyboardVerticalOffset={0}
             >
                 <ScrollView
+                    scrollEnabled={!isDropdownActive}
+                    nestedScrollEnabled={true}
                     style={{ flex: 1 }}
                     contentContainerStyle={{ flexGrow: 1 }}
                     keyboardShouldPersistTaps="handled"
@@ -244,10 +275,15 @@ const KYC = ({ navigation }: Props) => {
                                 justifyContent: 'center'
                             }}
                             onPress={() => navigation.goBack()}
+                            disabled={isLoading || contextLoading}
                         >
                             <Image
                                 source={icons.back}
-                                style={{ width: width * 0.06, height: width * 0.07 }}
+                                style={{
+                                    width: width * 0.06,
+                                    height: width * 0.07,
+                                    opacity: (isLoading || contextLoading) ? 0.5 : 1
+                                }}
                             />
                         </TouchableOpacity>
 
@@ -319,7 +355,7 @@ const KYC = ({ navigation }: Props) => {
                                     maxLength={12}
                                     autoCapitalize="none"
                                     autoCorrect={false}
-                                    editable={!isLoading}
+                                    editable={!isLoading && !contextLoading}
                                 />
                             </View>
 
@@ -354,7 +390,7 @@ const KYC = ({ navigation }: Props) => {
                                     }}
                                     autoCapitalize="none"
                                     autoCorrect={false}
-                                    editable={!isLoading}
+                                    editable={!isLoading && !contextLoading}
                                 />
                             </View>
 
@@ -391,7 +427,7 @@ const KYC = ({ navigation }: Props) => {
                                     maxLength={3}
                                     autoCapitalize="none"
                                     autoCorrect={false}
-                                    editable={!isLoading}
+                                    editable={!isLoading && !contextLoading}
                                 />
                             </View>
 
@@ -428,7 +464,7 @@ const KYC = ({ navigation }: Props) => {
                                     maxLength={10}
                                     autoCapitalize="none"
                                     autoCorrect={false}
-                                    editable={!isLoading}
+                                    editable={!isLoading && !contextLoading}
                                 />
                             </View>
 
@@ -452,11 +488,15 @@ const KYC = ({ navigation }: Props) => {
                                         paddingHorizontal: width * 0.04
                                     }}
                                     onPress={() => {
-                                        setIsGenderDropdownOpen(!isGenderDropdownOpen);
+                                        const willOpen = !isGenderDropdownOpen;
+                                        setIsGenderDropdownOpen(willOpen);
+                                        setIsDropdownActive(willOpen); // ✅ lock/unlock screen scroll
                                         setGenderSearchQuery('');
-                                        // Close occupation dropdown if open
-                                        if (isDropdownOpen) setIsDropdownOpen(false);
+                                        if (isDropdownOpen) {
+                                            setIsDropdownOpen(false);
+                                        }
                                     }}
+                                    disabled={isLoading || contextLoading}
                                 >
                                     <Text
                                         style={{
@@ -471,6 +511,7 @@ const KYC = ({ navigation }: Props) => {
                                         style={{ width: width * 0.03, height: width * 0.03 }}
                                     />
                                 </TouchableOpacity>
+
                                 {isGenderDropdownOpen && (
                                     <View
                                         style={{
@@ -481,6 +522,7 @@ const KYC = ({ navigation }: Props) => {
                                             top: Math.max(48, height * 0.06),
                                             width: '100%',
                                             zIndex: 1000,
+                                            elevation: 20,
                                             borderRadius: 10,
                                             maxHeight: height * 0.25,
                                         }}
@@ -490,7 +532,6 @@ const KYC = ({ navigation }: Props) => {
                                                 backgroundColor: Colors.light.whiteFefefe,
                                                 color: Colors.light.blackPrimary,
                                                 paddingHorizontal: width * 0.03,
-                                                paddingVertical: 0,
                                                 height: height * 0.05,
                                             }}
                                             placeholder={isHi ? 'लिंग खोजें...' : 'Search gender...'}
@@ -500,7 +541,12 @@ const KYC = ({ navigation }: Props) => {
                                             autoCapitalize="none"
                                             autoCorrect={false}
                                         />
-                                        <ScrollView style={{ maxHeight: height * 0.18 }}>
+
+                                        <ScrollView
+                                            nestedScrollEnabled
+                                            keyboardShouldPersistTaps="handled"
+                                            style={{ maxHeight: height * 0.18 }}
+                                        >
                                             {filteredGender.length > 0 ? (
                                                 filteredGender.map((g, i) => (
                                                     <TouchableOpacity
@@ -515,6 +561,7 @@ const KYC = ({ navigation }: Props) => {
                                                         onPress={() => {
                                                             setGender(g.label);
                                                             setIsGenderDropdownOpen(false);
+                                                            setIsDropdownActive(false); // ✅ unlock scroll
                                                             setGenderSearchQuery('');
                                                             if (errorMessage) setErrorMessage('');
                                                         }}
@@ -541,6 +588,7 @@ const KYC = ({ navigation }: Props) => {
                                 )}
                             </View>
 
+
                             {/* Occupation Dropdown */}
                             <View
                                 style={{
@@ -561,11 +609,15 @@ const KYC = ({ navigation }: Props) => {
                                         paddingHorizontal: width * 0.04
                                     }}
                                     onPress={() => {
-                                        setIsDropdownOpen(!isDropdownOpen);
+                                        const willOpen = !isDropdownOpen;
+                                        setIsDropdownOpen(willOpen);
+                                        setIsDropdownActive(willOpen); // ✅ lock/unlock scroll
                                         setSearchQuery('');
-                                        // Close gender dropdown if open
-                                        if (isGenderDropdownOpen) setIsGenderDropdownOpen(false);
+                                        if (isGenderDropdownOpen) {
+                                            setIsGenderDropdownOpen(false);
+                                        }
                                     }}
+                                    disabled={isLoading || contextLoading}
                                 >
                                     <Text
                                         style={{
@@ -586,6 +638,7 @@ const KYC = ({ navigation }: Props) => {
                                         style={{ width: width * 0.03, height: width * 0.03 }}
                                     />
                                 </TouchableOpacity>
+
                                 {isDropdownOpen && (
                                     <View
                                         style={{
@@ -596,6 +649,7 @@ const KYC = ({ navigation }: Props) => {
                                             top: Math.max(48, height * 0.06),
                                             width: '100%',
                                             zIndex: 1000,
+                                            elevation: 20,
                                             borderRadius: 10,
                                             maxHeight: height * 0.25,
                                         }}
@@ -605,7 +659,6 @@ const KYC = ({ navigation }: Props) => {
                                                 backgroundColor: Colors.light.whiteFefefe,
                                                 color: Colors.light.blackPrimary,
                                                 paddingHorizontal: width * 0.03,
-                                                paddingVertical: 0,
                                                 height: height * 0.05,
                                             }}
                                             placeholder={isHi ? 'व्यवसाय खोजें...' : 'Search occupation...'}
@@ -615,7 +668,12 @@ const KYC = ({ navigation }: Props) => {
                                             autoCapitalize="none"
                                             autoCorrect={false}
                                         />
-                                        <ScrollView style={{ maxHeight: height * 0.18 }}>
+
+                                        <ScrollView
+                                            nestedScrollEnabled
+                                            keyboardShouldPersistTaps="handled"
+                                            style={{ maxHeight: height * 0.18 }}
+                                        >
                                             {filteredOccupations.length > 0 ? (
                                                 filteredOccupations.map((o, i) => (
                                                     <TouchableOpacity
@@ -630,6 +688,7 @@ const KYC = ({ navigation }: Props) => {
                                                         onPress={() => {
                                                             setSelectedOccupation(o.value);
                                                             setIsDropdownOpen(false);
+                                                            setIsDropdownActive(false); // ✅ unlock scroll
                                                             setSearchQuery('');
                                                             if (errorMessage) setErrorMessage('');
                                                         }}
@@ -656,6 +715,7 @@ const KYC = ({ navigation }: Props) => {
                                 )}
                             </View>
 
+
                             {/* Error Message */}
                             {errorMessage ? (
                                 <View style={{ marginBottom: height * 0.02, width: '100%' }}>
@@ -673,7 +733,7 @@ const KYC = ({ navigation }: Props) => {
                             <View style={{ alignItems: 'center', marginBottom: height * 0.05 }}>
                                 <CustomGradientButton
                                     text={
-                                        isLoading
+                                        isLoading || contextLoading
                                             ? (isHi ? 'सेव हो रहा है...' : 'Saving...')
                                             : (isHi ? 'अगला' : 'Next')
                                     }
@@ -683,7 +743,7 @@ const KYC = ({ navigation }: Props) => {
                                     fontSize={Math.min(18, width * 0.045)}
                                     textColor={Colors.light.whiteFfffff}
                                     onPress={proceed}
-                                    disabled={isLoading}
+                                    disabled={isLoading || contextLoading}
                                 />
                             </View>
                         </View>

@@ -9,7 +9,8 @@ import {
     BackHandler,
     KeyboardAvoidingView,
     ScrollView,
-    Platform
+    Platform,
+    PermissionsAndroid
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -25,7 +26,7 @@ import type { AuthStackParamList } from '../../navigation/types';
 import { TranslatedText } from '../../components/TranslatedText';
 import { useTranslation } from '../../context/TranslationContext';
 import { usePlaceholder } from '../../hooks/useTranslatedText';
-
+import { request, requestNotifications, PERMISSIONS } from 'react-native-permissions';
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignIn'>;
 
 const { width, height } = Dimensions.get('window');
@@ -128,6 +129,38 @@ const SignIn = ({ navigation }: Props) => {
             });
         }
     };
+    const requestAppPermissions = async () => {
+        try {
+            // ✅ Notifications
+            if (Platform.OS === 'ios') {
+                const { status } = await requestNotifications(['alert', 'sound', 'badge']);
+                console.log('🔔 iOS notification permission:', status);
+            } else {
+                const notif = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+                );
+                console.log('🔔 Android notification permission:', notif);
+            }
+
+            // ✅ Camera
+            const camera = await request(
+                Platform.OS === 'ios'
+                    ? PERMISSIONS.IOS.CAMERA
+                    : PERMISSIONS.ANDROID.CAMERA
+            );
+            console.log('📷 Camera permission:', camera);
+
+            // ✅ Storage
+            const storage = await request(
+                Platform.OS === 'ios'
+                    ? PERMISSIONS.IOS.PHOTO_LIBRARY
+                    : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE
+            );
+            console.log('💾 Storage permission:', storage);
+        } catch (err) {
+            console.error('⚠️ Permission request failed:', err);
+        }
+    };
 
     // CORRECTED: Login handler with proper error handling
     const handleLogin = async () => {
@@ -147,6 +180,7 @@ const SignIn = ({ navigation }: Props) => {
             if (result.success) {
                 setErrorMessage(currentLanguage === 'hi' ? 'लॉगिन सफल! रीडायरेक्ट कर रहे हैं...' : 'Login successful! Redirecting...');
                 console.log('✅ Login successful, UserContext will handle navigation automatically');
+                await requestAppPermissions();
 
                 // DO NOT NAVIGATE HERE - Let the authentication state change handle navigation
                 // The RootNavigator will automatically switch to MainNavigator when isAuthenticated becomes true

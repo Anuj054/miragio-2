@@ -8,7 +8,8 @@ import {
     Dimensions,
     ScrollView,
     KeyboardAvoidingView,
-    Platform
+    Platform,
+    PermissionsAndroid
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,7 +21,12 @@ import CustomGradientButton from '../../components/CustomGradientButton';
 import { Colors } from '../../constants/Colors';
 import { useUser } from '../../context/UserContext';
 import type { AuthStackParamList } from '../../navigation/types';
+import {
 
+    request,
+    requestNotifications,   // ✅ proper helper for iOS notifications
+    PERMISSIONS,
+} from "react-native-permissions";
 // ✅ Translation
 import { useTranslation } from '../../context/TranslationContext';
 import { TranslatedText } from '../../components/TranslatedText';
@@ -30,27 +36,18 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Otp'>;
 const { width, height } = Dimensions.get('window');
 
 const Otp = ({ navigation, route }: Props) => {
-    // Get FCM token function and other utilities from UserContext
-    const {
-        login,
-        storeFcmToken,
-        isLoading: contextLoading,
-        pendingUserId,
-        clearPendingSignupData
-    } = useUser();
-
+    const { login, storeFcmToken, verifyEmailOtp, isLoading: contextLoading, currentUserId, } = useUser();
     const { currentLanguage } = useTranslation();
     const isHi = currentLanguage === 'hi';
 
     const [otp, setOtp] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [userId, setUserId] = useState<string | null>(route.params?.userId || pendingUserId || null);
+    const [userId, setUserId] = useState<string | null>(route.params?.userId || currentUserId || null);
 
     useEffect(() => {
         const initializeUserId = async () => {
             if (!userId) {
-                // Try to get from AsyncStorage as fallback
                 const storedUserId = await AsyncStorage.getItem('@pending_user_id');
 
                 if (storedUserId) {
@@ -67,19 +64,50 @@ const Otp = ({ navigation, route }: Props) => {
         };
 
         initializeUserId();
-    }, [userId, pendingUserId, isHi, navigation]);
+    }, [userId, currentUserId, isHi, navigation]);
 
     const handleOtpChange = (text: string) => {
-        const numeric = text.replace(/[^0-9]/g, '').slice(0, 5);
+        const numeric = text.replace(/[^0-9]/g, '').slice(0, 6);
         setOtp(numeric);
         if (errorMessage) setErrorMessage('');
     };
+    async function requestAppPermissions() {
+        try {
+            // ✅ Ask Notification permission
+            if (Platform.OS === "ios") {
+                const { status } = await requestNotifications(["alert", "sound", "badge"]);
+                console.log("🔔 iOS notification permission:", status);
+            } else {
+                const notifStatus = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+                );
+                console.log("🔔 Android notification permission:", notifStatus);
+            }
 
+            // ✅ Ask Camera permission
+            const cameraStatus = await request(
+                Platform.OS === "ios"
+                    ? PERMISSIONS.IOS.CAMERA
+                    : PERMISSIONS.ANDROID.CAMERA
+            );
+            console.log("📷 Camera permission:", cameraStatus);
+
+            // ✅ Ask Storage / Photo access
+            const storageStatus = await request(
+                Platform.OS === "ios"
+                    ? PERMISSIONS.IOS.PHOTO_LIBRARY
+                    : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE
+            );
+            console.log("💾 Storage permission:", storageStatus);
+        } catch (err) {
+            console.warn("⚠️ Permission request error:", err);
+        }
+    }
     const handleVerifyOTP = async () => {
         if (isLoading || contextLoading) return;
 
-        if (!otp.trim() || otp.length !== 5) {
-            setErrorMessage(isHi ? 'कृपया 5 अंकों का सही ओटीपी दर्ज करें' : 'Please enter a valid 5-digit OTP');
+        if (!otp.trim() || otp.length < 5) {
+            setErrorMessage(isHi ? 'कृपया सही ओटीपी दर्ज करें' : 'Please enter a valid OTP');
             return;
         }
 
@@ -93,74 +121,82 @@ const Otp = ({ navigation, route }: Props) => {
         setErrorMessage('');
 
         try {
-            console.log('🔄 Processing OTP verification (static)...');
+            console.log('🔄 Verifying OTP for user:', userId);
 
-            // Simulate API delay for better UX
-            await new Promise<void>((resolve) => setTimeout(resolve, 1500));
+            // Call the actual API to verify OTP
+            const otpResult = await verifyEmailOtp(userId, otp);
 
-            // Static OTP verification - accept any 5-digit OTP
-            console.log('✅ OTP accepted (static verification)');
+            if (!otpResult.success) {
+                console.error('❌ OTP verification failed:', otpResult.message);
+                setErrorMessage(otpResult.message || (isHi ? 'ओटीपी सत्यापन विफल।' : 'OTP verification failed.'));
+                setIsLoading(false);
+                return;
+            }
+
+            console.log('✅ OTP verified successfully');
             setErrorMessage(isHi ? 'ओटीपी सफलतापूर्वक सत्यापित!' : 'OTP verified successfully!');
 
-            // Auto-login user if credentials are stored
-            await autoLoginUser();
+            // Small delay to show success message
+            await new Promise<void>(resolve => setTimeout(resolve, 800));
 
-            // 🔑 CRITICAL: Store FCM token in database after OTP verification
+            // Store FCM token
             console.log('🔄 Storing FCM token for user:', userId);
             const fcmResult = await storeFcmToken(userId);
 
             if (fcmResult.success) {
-                console.log('✅ FCM token stored successfully:', fcmResult.message);
+                console.log('✅ FCM token stored successfully');
             } else {
                 console.warn('⚠️ FCM token storage failed:', fcmResult.message);
-                // Don't block the user flow if FCM token fails
             }
 
-            // Clean up and navigate to main app
-            await clearPendingSignupData();
-            await AsyncStorage.removeItem('@new_account_credentials');
-            await AsyncStorage.removeItem('@pending_user_id');
+            // Get credentials for auto-login
+            const creds = await AsyncStorage.getItem('@new_account_credentials');
+            if (!creds) {
+                console.warn('⚠️ No credentials found for auto-login');
+                setIsLoading(false);
+                return;
+            }
 
-            // Navigate to main screen after short delay
-            setTimeout(() => {
-                // Option 1: Navigate to a specific screen in your stack
-                // navigation.navigate('YourMainScreen' as any);
+            const credentials = JSON.parse(creds);
+            console.log('🔄 Auto-logging in user with email:', credentials.email);
 
-                // Option 2: Go back to previous screens and let app handle logged-in state
-                navigation.goBack();
+            // Perform auto-login
+            const loginResult = await login(credentials.email, credentials.password);
 
-                // Option 3: If you have a main tab navigator or specific screen, use:
-                // navigation.reset({
-                //     index: 0,
-                //     routes: [{ name: 'YourActualMainScreenName' }],
-                // });
-            }, 2000);
+            if (loginResult.success) {
+                console.log('✅ User auto-logged in successfully');
+                await requestAppPermissions();
+                // Clean up temporary storage
+                await AsyncStorage.removeItem('@new_account_credentials');
+                await AsyncStorage.removeItem('@pending_user_id');
+
+                // Navigate to home/main app
+                setTimeout(() => {
+                    console.log('✅ Navigating to main app (auto-logged in)');
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'TaskPage' as any }], // Change to your main app screen
+                    });
+                    setIsLoading(false);
+                }, 1000);
+            } else {
+                console.warn('⚠️ Auto-login failed:', loginResult.message);
+                setErrorMessage(
+                    isHi
+                        ? 'खाता सत्यापित हो गया। कृपया लॉगिन करें।'
+                        : 'Account verified. Please login.'
+                );
+                setIsLoading(false);
+            }
 
         } catch (error) {
-            console.error('❌ Error during OTP verification process:', error);
+            console.error('❌ Error during OTP verification:', error);
             setErrorMessage(isHi ? 'सत्यापन विफल। कृपया पुनः प्रयास करें।' : 'Verification failed. Please try again.');
-        } finally {
             setIsLoading(false);
         }
     };
 
-    const autoLoginUser = async () => {
-        try {
-            const creds = await AsyncStorage.getItem('@new_account_credentials');
-            if (creds) {
-                const credentials = JSON.parse(creds);
-                console.log('🔄 Auto-logging in user...');
-                const result = await login(credentials.email, credentials.password);
-                if (result.success) {
-                    console.log('✅ User logged in successfully');
-                } else {
-                    console.warn('⚠️ Auto-login failed:', result.message);
-                }
-            }
-        } catch (err) {
-            console.error('❌ Error during auto-login:', err);
-        }
-    };
+
 
     const handleResendOTP = async () => {
         if (isLoading || contextLoading) return;
@@ -174,25 +210,22 @@ const Otp = ({ navigation, route }: Props) => {
         setErrorMessage('');
 
         try {
-            // Simulate resend delay
+            // Call your resend OTP API here
+            // For now, just simulating
             await new Promise<void>((resolve) => setTimeout(resolve, 1000));
 
-            console.log('✅ OTP resend simulated');
+            console.log('✅ OTP resend requested');
             setErrorMessage(isHi ? 'ओटीपी पुनः भेजा गया!' : 'OTP sent successfully!');
+
+            // Clear success message after 3 seconds
+            setTimeout(() => {
+                setErrorMessage('');
+            }, 3000);
         } catch (error) {
             console.error('❌ Resend OTP error:', error);
             setErrorMessage(isHi ? 'ओटीपी पुनः नहीं भेजा जा सका।' : 'Failed to resend OTP.');
         } finally {
             setIsLoading(false);
-            // Clear success message after 3 seconds
-            setTimeout(() => {
-                setErrorMessage(prev => {
-                    if (prev.includes('success') || prev.includes('सफल') || prev.includes('भेजा गया')) {
-                        return '';
-                    }
-                    return prev;
-                });
-            }, 3000);
         }
     };
 
@@ -202,11 +235,10 @@ const Otp = ({ navigation, route }: Props) => {
         }
     };
 
-    const isButtonDisabled = isLoading || contextLoading || otp.length !== 5;
+    const isButtonDisabled = isLoading || contextLoading || otp.length < 5;
 
     return (
         <View style={{ flex: 1 }}>
-            {/* Background Image - Fixed */}
             <View style={{
                 position: 'absolute',
                 top: 0,
@@ -227,7 +259,6 @@ const Otp = ({ navigation, route }: Props) => {
                 />
             </View>
 
-            {/* Fixed Footer - Outside KeyboardAvoidingView */}
             <View
                 style={{
                     position: 'absolute',
@@ -263,7 +294,6 @@ const Otp = ({ navigation, route }: Props) => {
                     bounces={false}
                 >
                     <View style={{ minHeight: height, paddingHorizontal: width * 0.05, paddingBottom: height * 0.12 }}>
-                        {/* Back Button */}
                         <TouchableOpacity
                             style={{
                                 position: 'absolute',
@@ -288,7 +318,6 @@ const Otp = ({ navigation, route }: Props) => {
                             />
                         </TouchableOpacity>
 
-                        {/* Logo */}
                         <View style={{
                             alignItems: 'center',
                             marginTop: height * 0.08,
@@ -303,7 +332,6 @@ const Otp = ({ navigation, route }: Props) => {
                             />
                         </View>
 
-                        {/* Title */}
                         <View style={{
                             alignItems: 'center',
                             marginTop: height * 0.04,
@@ -332,7 +360,6 @@ const Otp = ({ navigation, route }: Props) => {
                             </Text>
                         </View>
 
-                        {/* Illustration */}
                         <View style={{
                             alignItems: 'center',
                             marginTop: height * 0.02,
@@ -348,9 +375,7 @@ const Otp = ({ navigation, route }: Props) => {
                             />
                         </View>
 
-                        {/* Form Container */}
                         <View style={{ alignItems: 'center', zIndex: 5, marginTop: height * 0.02 }}>
-                            {/* Instructions */}
                             <View style={{
                                 alignItems: 'center',
                                 width: width * 0.85,
@@ -374,11 +399,10 @@ const Otp = ({ navigation, route }: Props) => {
                                         textAlign: 'center'
                                     }}
                                 >
-                                    {isHi ? 'हमने 5 अंकों का कोड भेजा है' : "We've sent a 5-digit verification code"}
+                                    {isHi ? 'हमने सत्यापन कोड भेजा है' : "We've sent a verification code"}
                                 </Text>
                             </View>
 
-                            {/* OTP Input */}
                             <View
                                 style={{
                                     borderColor: Colors.light.whiteFfffff,
@@ -412,7 +436,7 @@ const Otp = ({ navigation, route }: Props) => {
                                     placeholder={isHi ? 'ओटीपी दर्ज करें' : 'Enter OTP'}
                                     placeholderTextColor={Colors.light.whiteFfffff}
                                     keyboardType="numeric"
-                                    maxLength={5}
+                                    maxLength={6}
                                     value={otp}
                                     onChangeText={handleOtpChange}
                                     editable={!isLoading && !contextLoading}
@@ -426,7 +450,7 @@ const Otp = ({ navigation, route }: Props) => {
                                         marginRight: width * 0.02
                                     }}
                                 >
-                                    {otp.length}/5
+                                    {otp.length}/6
                                 </Text>
                                 <TouchableOpacity
                                     onPress={handleResendOTP}
@@ -445,7 +469,6 @@ const Otp = ({ navigation, route }: Props) => {
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Error Message */}
                             {errorMessage ? (
                                 <View style={{ marginBottom: height * 0.02, width: '100%' }}>
                                     <Text
@@ -453,7 +476,8 @@ const Otp = ({ navigation, route }: Props) => {
                                             color: errorMessage.includes('success') ||
                                                 errorMessage.includes('सफल') ||
                                                 errorMessage.includes('सत्यापित') ||
-                                                errorMessage.includes('भेजा गया')
+                                                errorMessage.includes('भेजा गया') ||
+                                                errorMessage.includes('बनाया गया')
                                                 ? '#10B981'
                                                 : '#EF4444',
                                             fontSize: width * 0.035,
@@ -466,7 +490,6 @@ const Otp = ({ navigation, route }: Props) => {
                                 </View>
                             ) : null}
 
-                            {/* Verify Button */}
                             <View style={{ alignItems: 'center', marginBottom: height * 0.05 }}>
                                 <CustomGradientButton
                                     text={
