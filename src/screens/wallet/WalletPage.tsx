@@ -329,7 +329,7 @@ const WalletPage = () => {
                                 disabled={loading}
                             >
                                 <Image
-                                    source={icons.go}
+                                    source={icons.reload}
                                     style={{
                                         width: width * 0.05,
                                         height: width * 0.05,

@@ -211,7 +211,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                 await logout();
             } else {
                 console.error('Error deleting account:', data.message);
-               
+
             }
         } catch (error) {
             console.error('Error deleting account:', error);
@@ -355,7 +355,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{
-                    paddingBottom: height * 0.06
+                    paddingBottom: height * 0.07
                 }}
             >
                 <View style={{ paddingHorizontal: width * 0.05, paddingTop: height * 0.025 }}>
@@ -411,22 +411,7 @@ const UserProfile = ({ navigation, route }: Props) => {
                                             {isHindi ? 'स्तर 1' : 'Level 1'}
                                         </Text>
                                     </View>
-                                    {/* Arrow navigation icon */}
-                                    <TouchableOpacity
-                                        style={{
-                                            width: width * 0.1,
-                                            height: width * 0.23
-                                        }}
-                                        className="flex items-center justify-center"
-                                    >
-                                        <Image
-                                            source={icons.go}
-                                            style={{
-                                                width: width * 0.03,
-                                                height: width * 0.03
-                                            }}
-                                        />
-                                    </TouchableOpacity>
+
                                 </View>
                             </View>
                         </View>
@@ -512,30 +497,18 @@ const UserProfile = ({ navigation, route }: Props) => {
                         />
 
                     </View>
-                    <TouchableOpacity
-                        style={{
-                            backgroundColor: Colors.light.bgBlueBtn,
-                            opacity: 1,
-                            height: 52,
-                            marginVertical: 20,
-                            borderRadius: 12,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                        onPress={() => { handleDeleteAccount() }}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={{
-                            color: Colors.light.whiteFefefe,
-                            fontSize: 20,
-                            fontWeight: 'bold',
-                            paddingHorizontal: 8,
-                            marginLeft: 0
-                        }}>
-                            {t.deleteAccount}
-                        </Text>
-                    </TouchableOpacity>
+                    <View style={{ marginTop: height * 0.02 }}>
+                        <CustomGradientButton
+                            text={t.deleteAccount}
+                            width={width * 0.9}
+                            height={height * 0.055}
+                            borderRadius={10}
+                            fontSize={width * 0.045}
+                            fontWeight="600"
+                            textColor={Colors.light.whiteFfffff}
+                            onPress={handleDeleteAccount}
+                        />
+                    </View>
                 </View>
             </ScrollView>
 
@@ -637,12 +610,14 @@ const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
+
         justifyContent: 'center',
         alignItems: 'center',
     },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
+        width: '80%',
         alignItems: 'center',
         paddingHorizontal: 20,
     },

@@ -524,7 +524,7 @@ const WithdrawAmountPage = () => {
                             disabled={loading}
                         >
                             <Image
-                                source={icons.go}
+                                source={icons.reload}
                                 style={{
                                     width: width * 0.04,
                                     height: width * 0.04,

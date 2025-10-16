@@ -12,7 +12,7 @@ import eye from "../assets/images/eye.png";
 import eyevector from "../assets/images/eyevector.png";
 import otp from "../assets/images/otp.png";
 import eyeopen from "../assets/images/eyeopen.png";
-
+import reload from "../assets/images/reload.png";
 // Navigation icons
 import back from "../assets/images/back.png";
 import homeicon from "../assets/images/homeicon.png";
@@ -116,6 +116,7 @@ export const icons = {
     gamehistory,
     offers,
     house,
+    reload,
 };
 
 export const onboarding = [
