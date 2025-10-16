@@ -39,6 +39,8 @@ const KYC = ({ navigation }: Props) => {
     const [age, setAge] = useState('');
     const [gender, setGender] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [city, setCity] = useState('');
+
     const [selectedOccupation, setSelectedOccupation] = useState('');
     const [isDropdownActive, setIsDropdownActive] = useState(false);
 
@@ -123,6 +125,8 @@ const KYC = ({ navigation }: Props) => {
 
         if (!phoneNumber.trim())
             return err('Please enter phone number', 'कृपया फ़ोन नंबर दर्ज करें');
+        if (!city.trim())
+            return err('Please enter city', 'कृपया शहर दर्ज करें');
 
         if (phoneNumber.length !== 10)
             return err('Phone number must be 10 digits', 'फ़ोन नंबर 10 अंकों का होना चाहिए');
@@ -161,7 +165,7 @@ const KYC = ({ navigation }: Props) => {
                 gender,
                 occupation: occLabel,
                 phone_number: phoneNumber,
-                city: 'Unknown',
+                city: city,
             };
 
             console.log('KYC - Step2 Payload:', { user_id: step2Data.user_id, username, aadhar: aadharNumber });
@@ -467,6 +471,41 @@ const KYC = ({ navigation }: Props) => {
                                     editable={!isLoading && !contextLoading}
                                 />
                             </View>
+                            {/* City Field */}
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    width: '100%',
+                                    maxWidth: width * 0.9,
+                                    height: Math.max(48, height * 0.06),
+                                    borderRadius: 15,
+                                    marginBottom: height * 0.022,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    style={{
+                                        flex: 1,
+                                        paddingHorizontal: width * 0.04,
+                                        paddingVertical: 0,
+                                        color: Colors.light.blackPrimary,
+                                        fontSize: Math.min(16, width * 0.035),
+                                        backgroundColor: 'transparent'
+                                    }}
+                                    placeholder={isHi ? 'शहर दर्ज करें*' : 'Enter City*'}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    value={city}
+                                    onChangeText={(t) => {
+                                        setCity(t);
+                                        if (errorMessage) setErrorMessage('');
+                                    }}
+                                    autoCapitalize="words"
+                                    autoCorrect={false}
+                                    editable={!isLoading && !contextLoading}
+                                />
+                            </View>
+
 
                             {/* Gender Dropdown */}
                             <View
