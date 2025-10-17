@@ -30,7 +30,7 @@ import TermsOfUse from '../screens/more/system/TermsOfUse';
 
 
 import type { MainStackParamList } from './types';
-import PrivacyPolicy from '../screens/more/system/PrivacyPolicy';
+import PrivacyPolicy from '../screens/more/system/Privacypolicy';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
