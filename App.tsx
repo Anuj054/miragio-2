@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { Alert, StatusBar, useColorScheme } from 'react-native';
+import { StatusBar, useColorScheme } from 'react-native';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import messaging from '@react-native-firebase/messaging';
+
 
 import { UserProvider, useUser } from './src/context/UserContext';
 import { TranslationProvider } from './src/context/TranslationContext'; // NEW: Translation context
@@ -10,52 +10,69 @@ import SplashScreen from './src/components/SplashScreen';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import MainNavigator from './src/navigation/MainNavigator';
 import type { RootStackParamList } from './src/navigation/types';
+import { requestPushPermission, registerForegroundHandler, registerTokenRefreshHandler } from './src/notifications';
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppContent = () => {
   const { isLoggedIn, isLoading } = useUser();
   const colorScheme = useColorScheme();
-
   useEffect(() => {
-    // Request notification permissions
-    messaging()
-      .requestPermission()
-      .then(authStatus => {
-        const enabled =
-          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+    (async () => {
+      await requestPushPermission();
 
-        if (enabled) {
-          console.log('✅ Notification permission granted:', authStatus);
-        }
+
+
+      const unsubFG = registerForegroundHandler();
+      const unsubTok = registerTokenRefreshHandler(async (newToken) => {
+        // Re-register token with backend
       });
 
-    // Get FCM token (important for testing)
-    messaging()
-      .getToken()
-      .then(token => {
-        console.log('🔥 FCM Token:', token);
-
-        // Show token in an alert popup for easy copying during dev
-
-      })
-      .catch(error => {
-        console.error('❌ Error fetching FCM token:', error);
-      });
-
-    // Handle foreground notifications
-    const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
-      Alert.alert(
-        remoteMessage.notification?.title ?? 'New Notification',
-        remoteMessage.notification?.body ?? 'You received a new message'
-      );
-    });
-
-    return () => {
-      unsubscribeOnMessage();
-    };
+      return () => { unsubFG(); unsubTok(); };
+    })();
   }, []);
+
+
+  // useEffect(() => {
+  //   // Request notification permissions
+  //   messaging()
+  //     .requestPermission()
+  //     .then(authStatus => {
+  //       const enabled =
+  //         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+  //         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+  //       if (enabled) {
+  //         console.log('✅ Notification permission granted:', authStatus);
+  //       }
+  //     });
+
+  //   // Get FCM token (important for testing)
+  //   messaging()
+  //     .getToken()
+  //     .then(token => {
+  //       console.log('🔥 FCM Token:', token);
+
+  //       // Show token in an alert popup for easy copying during dev
+
+  //     })
+  //     .catch(error => {
+  //       console.error('❌ Error fetching FCM token:', error);
+  //     });
+
+  //   // Handle foreground notifications
+  //   const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
+  //     Alert.alert(
+  //       remoteMessage.notification?.title ?? 'New Notification',
+  //       remoteMessage.notification?.body ?? 'You received a new message'
+  //     );
+  //   });
+
+  //   return () => {
+  //     unsubscribeOnMessage();
+  //   };
+  // }, []);
 
   if (isLoading) {
     return <SplashScreen />;

@@ -17,6 +17,7 @@ export interface UserData {
     wallet: string;
     status: string;
     created_at: string;
+    city: string;
     instagram_username?: string;
     upi?: string;
     pan_number?: string;
@@ -28,24 +29,47 @@ interface LoginResponse {
     data: UserData;
 }
 
-export interface SignupData {
-    username: string;
+export interface Step1Data {
     email: string;
     password: string;
+    referral_code: string;
+    user_role: string;
+}
+
+export interface Step2Data extends Step1Data {
+    user_id: string;
+    username: string;
+    aadharnumber: string;
     phone_number: string;
     age: string;
     gender: string;
     occupation: string;
-    aadharnumber: string;
-    instagram_username?: string;
-    upi?: string;
-    pan_number?: string;
+    city: string;
 }
 
-interface SignupResponse {
+export interface Step3Data extends Step2Data {
+    instagram_username: string;
+    upi: string;
+    pan_number: string;
+    commission_percent?: string;
+}
+
+interface Step1Response {
     status: string;
     message: string;
-    data?: { user_id: string; otp_token?: string };
+    data?: { user_id: string };
+}
+
+interface Step2Response {
+    status: string;
+    message: string;
+    data?: { user_id: string };
+}
+
+interface Step3Response {
+    status: string;
+    message: string;
+    data?: { user_id: string; referral_code?: string };
 }
 
 export interface UserContextType {
@@ -54,25 +78,32 @@ export interface UserContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
 
-    pendingSignupData: SignupData | null;
-    pendingUserId: string | null;
+    // 3-Step Registration State
+    step1Data: Step1Data | null;
+    step2Data: Step2Data | null;
+    currentUserId: string | null;
 
     login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
     logout: () => Promise<void>;
-    registerUser: (signupData: SignupData) => Promise<{ success: boolean; message: string; userId?: string }>;
+
+    // 3-Step Registration Methods
+    registerStep1: (data: Step1Data) => Promise<{ success: boolean; message: string; userId?: string }>;
+    registerStep2: (data: Step2Data) => Promise<{ success: boolean; message: string }>;
+    registerStep3: (data: Step3Data) => Promise<{ success: boolean; message: string; userId?: string }>;
+
+    verifyEmailOtp: (userId: string, otp: string) => Promise<{ success: boolean; message: string }>;
 
     refreshUserData: (userId?: string) => Promise<void>;
     updateUserData: (userData: Partial<UserData>) => void;
 
-    storePendingSignupData: (signupData: SignupData, userId: string) => void;
-    clearPendingSignupData: () => void;
+    clearRegistrationData: () => void;
+    getRegistrationProgress: () => 'step1' | 'step2' | 'step3' | 'none';
 
     getUserId: () => string | null;
     getUserEmail: () => string | null;
     getUserName: () => string | null;
     getUserWallet: () => string | null;
 
-    // ➕ FCM token functionality
     storeFcmToken: (userId: string) => Promise<{ success: boolean; message: string }>;
 }
 
@@ -83,14 +114,14 @@ const STORAGE_KEYS = {
     USER_DATA: '@user_data',
     USER_ID: '@user_id',
     IS_LOGGED_IN: '@is_logged_in',
-    PENDING_SIGNUP_DATA: '@pending_signup_data',
-    PENDING_USER_ID: '@pending_user_id',
+    STEP1_DATA: '@step1_data',
+    STEP2_DATA: '@step2_data',
+    CURRENT_USER_ID: '@current_user_id',
     FCM_TOKEN: '@fcm_token',
 };
 
 const API_BASE_URL = 'https://miragiofintech.org/api/api.php';
 
-// Normalize user data so all values are strings
 const normalizeUserData = (data: any): UserData => ({
     id: String(data.id || ''),
     username: String(data.username || ''),
@@ -104,6 +135,7 @@ const normalizeUserData = (data: any): UserData => ({
     wallet: String(data.wallet || '0'),
     status: String(data.status || ''),
     created_at: String(data.created_at || ''),
+    city: String(data.city || ''),
     instagram_username: data.instagram_username || '',
     upi: data.upi || '',
     pan_number: data.pan_number || '',
@@ -114,21 +146,21 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [pendingSignupData, setPendingSignupData] = useState<SignupData | null>(null);
-    const [pendingUserId, setPendingUserId] = useState<string | null>(null);
+    const [step1Data, setStep1Data] = useState<Step1Data | null>(null);
+    const [step2Data, setStep2Data] = useState<Step2Data | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
     useEffect(() => {
         initializeUser();
         initializeFCMToken();
     }, []);
 
-    // Initialize FCM token on app start
     const initializeFCMToken = async () => {
         try {
             const token = await messaging().getToken();
             if (token) {
                 await AsyncStorage.setItem(STORAGE_KEYS.FCM_TOKEN, token);
-                console.log('📱 FCM Token initialized:', token);
+                console.log('📱 FCM Token initialized:', token.substring(0, 20) + '...');
             }
         } catch (error) {
             console.error('❌ Error initializing FCM token:', error);
@@ -138,19 +170,40 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const initializeUser = async () => {
         try {
             setIsLoading(true);
-            const [storedUserData, storedLoginStatus, storedSignupData, storedPendingUserId] =
+            const [storedUserData, storedLoginStatus, storedStep1, storedStep2, storedUserId] =
                 await Promise.all([
                     AsyncStorage.getItem(STORAGE_KEYS.USER_DATA),
                     AsyncStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN),
-                    AsyncStorage.getItem(STORAGE_KEYS.PENDING_SIGNUP_DATA),
-                    AsyncStorage.getItem(STORAGE_KEYS.PENDING_USER_ID),
+                    AsyncStorage.getItem(STORAGE_KEYS.STEP1_DATA),
+                    AsyncStorage.getItem(STORAGE_KEYS.STEP2_DATA),
+                    AsyncStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID),
                 ]);
 
-            if (storedSignupData && storedPendingUserId) {
-                setPendingSignupData(JSON.parse(storedSignupData));
-                setPendingUserId(storedPendingUserId);
+            console.log('🔄 initializeUser - Loading stored data:', {
+                hasStep1: !!storedStep1,
+                hasStep2: !!storedStep2,
+                hasUserId: !!storedUserId,
+            });
+
+            // Always load registration data first
+            if (storedStep1) {
+                const parsedStep1 = JSON.parse(storedStep1);
+                setStep1Data(parsedStep1);
+                console.log('✅ Loaded step1Data from AsyncStorage');
             }
 
+            if (storedStep2) {
+                const parsedStep2 = JSON.parse(storedStep2);
+                setStep2Data(parsedStep2);
+                console.log('✅ Loaded step2Data from AsyncStorage');
+            }
+
+            if (storedUserId) {
+                setCurrentUserId(storedUserId);
+                console.log('✅ Loaded currentUserId from AsyncStorage:', storedUserId);
+            }
+
+            // Then load user data if logged in
             if (storedUserData && storedLoginStatus === 'true') {
                 const normalizedUserData = normalizeUserData(JSON.parse(storedUserData));
                 setUser(normalizedUserData);
@@ -165,62 +218,281 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    // ---------- Auth Methods ----------
+    // Updated login function in UserContext.tsx
     const login = async (email: string, password: string) => {
         try {
-            setIsLoading(true);
+            // DON'T set isLoading here - let the SignIn component handle its own loading state
+            console.log('🔄 Attempting login for:', email);
+
             const res = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'user_login', email: email.trim(), password: password.trim() }),
+                body: JSON.stringify({
+                    action: 'user_login',
+                    email: email.trim(),
+                    password: password.trim()
+                }),
             });
-            const data: LoginResponse = await res.json();
 
+            const data: LoginResponse = await res.json();
+            console.log('📥 Login response:', data);
+
+            // Check for successful login
             if (data.status === 'success' && data.data) {
+                console.log('✅ Login successful, processing user data...');
+
                 const normalizedUserData = normalizeUserData(data.data);
+
+                // Store user data and update state
                 await storeUserData(normalizedUserData);
                 setUser(normalizedUserData);
                 setIsLoggedIn(true);
-                await clearPendingSignupData();
 
-                return { success: true, message: data.message || 'Login successful!' };
+                // Clear any old registration data
+                await clearRegistrationData();
+
+                // Store FCM token
+                const fcmResult = await storeFcmToken(normalizedUserData.id);
+                console.log('📱 FCM token stored on login:', fcmResult.success);
+
+                console.log('✅ Login completed successfully');
+                return {
+                    success: true,
+                    message: data.message || 'Login successful!'
+                };
             }
-            return { success: false, message: data.message || 'Login failed. Please try again.' };
-        } catch (err) {
-            console.error('❌ Login error:', err);
-            return { success: false, message: 'Network error. Please check your internet connection.' };
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
-    const registerUser = async (signupData: SignupData) => {
+            // Login failed - return error message
+            console.warn('⚠️ Login failed:', data.message);
+            return {
+                success: false,
+                message: data.message || 'Invalid email or password. Please try again.'
+            };
+
+        } catch (err) {
+            console.error('❌ Login network error:', err);
+            return {
+                success: false,
+                message: 'Network error. Please check your internet connection and try again.'
+            };
+        }
+
+    };
+    // ---------- Step 1: Email & Password ----------
+    const registerStep1 = async (data: Step1Data): Promise<{ success: boolean; message: string; userId?: string }> => {
         try {
-            setIsLoading(true);
-            console.log('🔄 Registering user...');
+            console.log('🔄 Step 1: Creating incomplete user...');
 
             const res = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'user_register', ...signupData }),
+                body: JSON.stringify({
+                    action: 'register_step1',
+                    email: data.email.trim(),
+                    password: data.password.trim(),
+                    referral_code: data.referral_code.trim() || '',
+                    user_role: data.user_role,
+                }),
             });
-            const data: SignupResponse = await res.json();
 
-            if (data.status === 'success' && data.data?.user_id) {
-                console.log('✅ User registered successfully, User ID:', data.data.user_id);
-                await storePendingSignupData(signupData, data.data.user_id);
+            const responseText = await res.text();
+            console.log('📊 Step 1 Raw Response:', responseText);
+
+            let responseData: Step1Response;
+            try {
+                responseData = JSON.parse(responseText);
+            } catch (parseErr) {
+                console.error('❌ Invalid JSON response:', responseText, parseErr);
+                return { success: false, message: 'Server error: Invalid response format' };
+            }
+
+            console.log('📊 Step 1 Parsed Response:', responseData);
+
+            // Check if status is success
+            if (responseData.status !== 'success') {
+                console.warn('⚠️ Step 1 API returned non-success status:', responseData.status);
+                return { success: false, message: responseData.message || 'Registration failed. Please try again.' };
+            }
+
+            // Check if data exists
+            if (!responseData.data) {
+                console.error('❌ Step 1 response has no data:', responseData);
+                return { success: false, message: responseData.message || 'No user ID returned from server' };
+            }
+
+            // Check if user_id exists
+            const userId = responseData.data.user_id;
+            if (!userId) {
+                console.error('❌ Step 1 response has no user_id:', responseData.data);
+                return { success: false, message: 'No user ID returned from server' };
+            }
+
+            // All checks passed - store data (WITHOUT setting loading)
+            setStep1Data(data);
+            setCurrentUserId(userId);
+
+            await Promise.all([
+                AsyncStorage.setItem(STORAGE_KEYS.STEP1_DATA, JSON.stringify(data)),
+                AsyncStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, String(userId)),
+            ]);
+
+            console.log('✅ Step 1 completed. User ID:', userId);
+            return {
+                success: true,
+                message: responseData.message || 'Step 1 completed',
+                userId: String(userId),
+            };
+
+        } catch (err) {
+            console.error('❌ Step 1 error:', err);
+            return { success: false, message: 'Network error during Step 1. Please check your internet connection.' };
+        }
+    };
+
+    // ---------- Step 2: KYC Details ----------
+    const registerStep2 = async (data: Step2Data): Promise<{ success: boolean; message: string }> => {
+        try {
+            console.log('🔄 Step 2: Filling KYC details for user:', data.user_id);
+
+            const res = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'register_step2',
+                    user_id: data.user_id,
+                    username: data.username.trim(),
+                    aadharnumber: data.aadharnumber.trim(),
+                    phone_number: data.phone_number.trim(),
+                    age: data.age.trim(),
+                    gender: data.gender.trim(),
+                    occupation: data.occupation.trim(),
+                    city: data.city.trim(),
+                }),
+            });
+
+            const responseText = await res.text();
+            console.log('📊 Step 2 Raw Response:', responseText);
+
+            let responseData: Step2Response;
+            try {
+                responseData = JSON.parse(responseText);
+            } catch {
+                console.error('❌ Invalid JSON response:', responseText);
+                return { success: false, message: 'Server error: Invalid response format' };
+            }
+
+            console.log('📊 Step 2 Parsed Response:', responseData);
+
+            if (responseData.status === 'success') {
+                console.log('✅ Step 2 API returned success, storing data...');
+
+                setStep2Data(data);
+                console.log('✅ step2Data state set to:', data);
+
+                await AsyncStorage.setItem(STORAGE_KEYS.STEP2_DATA, JSON.stringify(data));
+                console.log('✅ step2Data saved to AsyncStorage');
+
+                console.log('✅ Step 2 completed');
+                return { success: true, message: responseData.message || 'Step 2 completed' };
+            }
+
+            console.warn('⚠️ Step 2 API returned non-success status:', responseData.status);
+            return { success: false, message: responseData.message || 'Step 2 failed' };
+        } catch (err) {
+            console.error('❌ Step 2 error:', err);
+            return { success: false, message: 'Network error during Step 2' };
+        }
+    };
+
+    // ---------- Step 3: Additional Details ----------
+    const registerStep3 = async (data: Step3Data): Promise<{ success: boolean; message: string; userId?: string }> => {
+        try {
+            console.log('🔄 Step 3: Finalizing registration for user:', data.user_id);
+
+            const res = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'register_step3',
+                    user_id: data.user_id,
+                    instagram_username: data.instagram_username.trim() || '',
+                    upi: data.upi.trim() || '',
+                    pan_number: data.pan_number.trim() || '',
+                    commission_percent: data.commission_percent || '0',
+                    city: data.city.trim(),
+                }),
+            });
+
+            const responseText = await res.text();
+            let responseData: Step3Response;
+            try {
+                responseData = JSON.parse(responseText);
+            } catch {
+                console.error('❌ Invalid JSON response:', responseText);
+                return { success: false, message: 'Server error: Invalid response format' };
+            }
+
+            if (responseData.status === 'success') {
+                const userId = data.user_id;
+
+                // Store credentials for auto-login after OTP
+                await AsyncStorage.setItem('@new_account_credentials',
+                    JSON.stringify({
+                        email: data.email,
+                        password: data.password,
+                    })
+                );
+
+                console.log('✅ Step 3 completed. Ready for OTP verification');
                 return {
                     success: true,
-                    message: data.message || 'Registration successful! Please verify OTP.',
-                    userId: data.data.user_id,
+                    message: responseData.message || 'Step 3 completed. Please verify OTP.',
+                    userId: String(userId),
                 };
             }
-            return { success: false, message: data.message || 'Registration failed. Please try again.' };
+
+            console.warn('⚠️ Step 3 API returned error:', responseData.message);
+            return { success: false, message: responseData.message || 'Step 3 failed' };
         } catch (err) {
-            console.error('❌ Registration error:', err);
-            return { success: false, message: 'Network error. Please check your internet connection.' };
-        } finally {
-            setIsLoading(false);
+            console.error('❌ Step 3 error:', err);
+            return { success: false, message: 'Network error during Step 3' };
+        }
+    };
+
+    const verifyEmailOtp = async (userId: string, otp: string): Promise<{ success: boolean; message: string }> => {
+        try {
+            console.log('🔄 Verifying OTP for user:', userId);
+
+            const res = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'verify_email_otp',
+                    user_id: userId,
+                    otp: otp.trim(),
+                }),
+            });
+
+            const responseText = await res.text();
+            let responseData: Step3Response;
+            try {
+                responseData = JSON.parse(responseText);
+            } catch {
+                console.error('❌ Invalid JSON response:', responseText);
+                return { success: false, message: 'Server error: Invalid response format' };
+            }
+
+            if (responseData.status === 'success') {
+                console.log('✅ OTP verified successfully');
+                console.log('✅ Registration data kept in context');
+                return { success: true, message: responseData.message || 'OTP verified successfully' };
+            }
+
+            console.warn('⚠️ OTP verification failed:', responseData.message);
+            return { success: false, message: responseData.message || 'OTP verification failed' };
+        } catch (err) {
+            console.error('❌ OTP verification error:', err);
+            return { success: false, message: 'Network error during OTP verification' };
         }
     };
 
@@ -228,19 +500,46 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             setIsLoading(true);
             console.log('🔄 Logging out user...');
+
+            const userId = getUserId();
+            if (userId) {
+                try {
+                    const res = await fetch(API_BASE_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'user_logout',
+                            user_id: userId,
+                        }),
+                    });
+
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        console.log('✅ Backend logout success');
+                    } else {
+                        console.warn('⚠️ Backend logout failed:', data.message);
+                    }
+                } catch (apiErr) {
+                    console.error('❌ API logout error:', apiErr);
+                }
+            }
+
+            // Clear everything on logout
             await clearUserData();
-            await clearPendingSignupData();
+            await clearRegistrationData();
+            await AsyncStorage.removeItem('@new_account_credentials');
+            await AsyncStorage.removeItem('@pending_user_id');
+
             setUser(null);
             setIsLoggedIn(false);
-            console.log('✅ User logged out successfully');
+
+            console.log('✅ User logged out completely, all data cleared');
         } catch (err) {
             console.error('❌ Logout error:', err);
         } finally {
             setIsLoading(false);
         }
     };
-
-    // ---------- User Data ----------
     const refreshUserData = async (userId?: string) => {
         try {
             const id = userId || user?.id;
@@ -289,53 +588,48 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ]);
     };
 
-    const storePendingSignupData = async (signupData: SignupData, userId: string) => {
-        setPendingSignupData(signupData);
-        setPendingUserId(userId);
+    const clearRegistrationData = async () => {
+        setStep1Data(null);
+        setStep2Data(null);
+        setCurrentUserId(null);
         await Promise.all([
-            AsyncStorage.setItem(STORAGE_KEYS.PENDING_SIGNUP_DATA, JSON.stringify(signupData)),
-            AsyncStorage.setItem(STORAGE_KEYS.PENDING_USER_ID, userId),
+            AsyncStorage.removeItem(STORAGE_KEYS.STEP1_DATA),
+            AsyncStorage.removeItem(STORAGE_KEYS.STEP2_DATA),
+            AsyncStorage.removeItem(STORAGE_KEYS.CURRENT_USER_ID),
+            AsyncStorage.removeItem('@new_account_credentials'),
         ]);
-        console.log('📝 Pending signup data stored for user:', userId);
+        console.log('🗑️ Registration data cleared');
     };
 
-    const clearPendingSignupData = async () => {
-        setPendingSignupData(null);
-        setPendingUserId(null);
-        await Promise.all([
-            AsyncStorage.removeItem(STORAGE_KEYS.PENDING_SIGNUP_DATA),
-            AsyncStorage.removeItem(STORAGE_KEYS.PENDING_USER_ID),
-        ]);
-        console.log('🗑️ Pending signup data cleared');
+    const getRegistrationProgress = (): 'step1' | 'step2' | 'step3' | 'none' => {
+        if (step2Data) return 'step3';
+        if (step1Data) return 'step2';
+        if (currentUserId) return 'step1';
+        return 'none';
     };
 
-    // ---------- FCM Token Management ----------
     const storeFcmToken = async (userId: string): Promise<{ success: boolean; message: string }> => {
         try {
             if (!userId) {
-                console.warn('❌ No user ID provided. Cannot store FCM token.');
+                console.warn('❌ No user ID provided');
                 return { success: false, message: 'No user ID provided.' };
             }
 
-            console.log(`🔄 Getting FCM token for user ID: ${userId}`);
+            console.log('🔄 Getting FCM token for user ID:', userId);
 
-            // Try to get fresh token first
             let token = await messaging().getToken();
 
-            // Fallback to stored token if fresh token fails
             if (!token) {
-                console.log('🔄 Fresh token not available, trying stored token...');
                 const storedToken = await AsyncStorage.getItem(STORAGE_KEYS.FCM_TOKEN);
                 token = storedToken || '';
             }
 
             if (!token) {
-                console.warn('❌ No FCM token available.');
+                console.warn('❌ No FCM token available');
                 return { success: false, message: 'No FCM token available.' };
             }
 
-            console.log(`📱 FCM token found: ${token.substring(0, 20)}...`);
-            console.log(`🔄 Storing FCM token in database for user: ${userId}`);
+            console.log('📱 FCM token found:', token.substring(0, 20) + '...');
 
             const res = await fetch(API_BASE_URL, {
                 method: 'POST',
@@ -343,35 +637,26 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 body: JSON.stringify({
                     action: 'add_fcmtoken',
                     user_id: userId,
-                    token: token
+                    token: token,
                 }),
             });
 
             const data = await res.json();
 
             if (data.status === 'success') {
-                console.log('✅ FCM token stored successfully in database:', data.message);
-                if (data.data) {
-                    console.log('📊 Token data:', {
-                        id: data.data.id,
-                        user_id: data.data.user_id,
-                        created_at: data.data.created_at
-                    });
-                }
-                // Store token locally for future reference
+                console.log('✅ FCM token stored successfully');
                 await AsyncStorage.setItem(STORAGE_KEYS.FCM_TOKEN, token);
                 return { success: true, message: data.message || 'FCM token stored successfully!' };
-            } else {
-                console.warn('⚠️ Failed to store FCM token in database:', data.message);
-                return { success: false, message: data.message || 'Failed to store FCM token.' };
             }
+
+            console.warn('⚠️ Failed to store FCM token:', data.message);
+            return { success: false, message: data.message || 'Failed to store FCM token.' };
         } catch (err) {
             console.error('❌ Error storing FCM token:', err);
             return { success: false, message: 'Error storing FCM token.' };
         }
     };
 
-    // ---------- Utilities ----------
     const getUserId = () => user?.id || null;
     const getUserEmail = () => user?.email || null;
     const getUserName = () => user?.username || null;
@@ -382,15 +667,19 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isLoggedIn,
         isAuthenticated: isLoggedIn,
         isLoading,
-        pendingSignupData,
-        pendingUserId,
+        step1Data,
+        step2Data,
+        currentUserId,
         login,
         logout,
-        registerUser,
+        registerStep1,
+        registerStep2,
+        registerStep3,
+        verifyEmailOtp,
         refreshUserData,
         updateUserData,
-        storePendingSignupData,
-        clearPendingSignupData,
+        clearRegistrationData,
+        getRegistrationProgress,
         getUserId,
         getUserEmail,
         getUserName,

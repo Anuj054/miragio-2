@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Image,
     Text,
@@ -7,7 +7,9 @@ import {
     View,
     Dimensions,
     BackHandler,
-    ScrollView
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,10 +22,12 @@ import bg from '../../assets/images/bg.png';
 import logo from '../../assets/images/MIRAGIO--LOGO.png';
 import CustomGradientButton from '../../components/CustomGradientButton';
 import type { AuthStackParamList } from '../../navigation/types';
-// Translation imports - USING OUR CUSTOM COMPONENTS
+
+// Translation imports
 import { TranslatedText } from '../../components/TranslatedText';
 import { useTranslation } from '../../context/TranslationContext';
 import { usePlaceholder } from '../../hooks/useTranslatedText';
+import { useUser } from '../../context/UserContext';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 
@@ -31,39 +35,31 @@ const { width, height } = Dimensions.get('window');
 
 const SignUp = ({ navigation }: Props) => {
     const { currentLanguage } = useTranslation();
+    const { registerStep1, isLoading: contextLoading } = useUser();
+    const scrollViewRef = useRef<ScrollView>(null);
 
-    // State for password visibility toggles
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
-
-    // State for terms and conditions checkbox
     const [isChecked, setChecked] = useState(false);
 
-    // State for form inputs - START EMPTY
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [referralCode, setReferralCode] = useState("");
 
-    // State for error message and loading
     const [errorMessage, setErrorMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    // Using our custom placeholder hooks
     const emailPlaceholder = usePlaceholder('Enter Email', 'ईमेल दर्ज करें');
-
-
 
     useEffect(() => {
         clearAllSignupData();
     }, []);
 
-    // Handle back button properly
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
-                if (!isLoading) {
-                    // Go back to Welcome instead of staying in auth loop
+                if (!isLoading && !contextLoading) {
                     navigation.reset({
                         index: 0,
                         routes: [{ name: 'Welcome' }],
@@ -74,12 +70,11 @@ const SignUp = ({ navigation }: Props) => {
 
             const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
             return () => subscription?.remove();
-        }, [navigation, isLoading])
+        }, [navigation, isLoading, contextLoading])
     );
 
     const clearAllSignupData = async () => {
         try {
-            // Clear all signup-related storage when starting fresh
             await Promise.all([
                 AsyncStorage.removeItem('@signup_data'),
                 AsyncStorage.removeItem('@registration_data'),
@@ -91,24 +86,20 @@ const SignUp = ({ navigation }: Props) => {
         }
     };
 
-    // Toggle password visibility for main password field
     const togglePasswordVisibility = () => {
         setIsPasswordVisible(!isPasswordVisible);
     };
 
-    // Toggle password visibility for confirm password field
     const toggleConfirmPasswordVisibility = () => {
         setIsConfirmPasswordVisible(!isConfirmPasswordVisible);
     };
 
-    // Validate form inputs with translation
     const validateForm = () => {
         if (!email.trim()) {
             setErrorMessage(currentLanguage === 'hi' ? "कृपया अपना ईमेल दर्ज करें" : "Please enter your email");
             return false;
         }
 
-        // Email validation regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email.trim())) {
             setErrorMessage(currentLanguage === 'hi' ? "कृपया वैध ईमेल पता दर्ज करें" : "Please enter a valid email address");
@@ -138,10 +129,8 @@ const SignUp = ({ navigation }: Props) => {
         return true;
     };
 
-    // Navigation handlers
     const handleBackPress = () => {
-        // Go back to Welcome to break the loop
-        if (!isLoading) {
+        if (!isLoading && !contextLoading) {
             navigation.reset({
                 index: 0,
                 routes: [{ name: 'Welcome' }],
@@ -150,468 +139,506 @@ const SignUp = ({ navigation }: Props) => {
     };
 
     const handleSignInPress = () => {
-        // Use replace instead of navigate to prevent stack accumulation
-        if (!isLoading) {
+        if (!isLoading && !contextLoading) {
             navigation.replace('SignIn');
         }
     };
 
-    // Handle next button press - store data and navigate to KYC
     const handleNextPress = async () => {
-        if (isLoading) return;
+        if (isLoading || contextLoading) return;
 
-        // Clear previous error
         setErrorMessage("");
 
-        if (!validateForm()) return;
-
-        setIsLoading(true);
+        // First validate local form
+        if (!validateForm()) {
+            console.log('SignUp - Form validation failed');
+            return;
+        }
 
         try {
-            // Store signup data in AsyncStorage
-            // UPDATED: Ensure referral code is properly handled as optional
-            const signupData = {
+            const step1Data = {
                 email: email.trim(),
                 password: password,
-                referral_code: referralCode.trim() || "", // Empty string if no referral code
+                referral_code: referralCode.trim() || "",
                 user_role: "user",
-                status: "1",
             };
 
-            await AsyncStorage.setItem('@signup_data', JSON.stringify(signupData));
-            console.log('SignUp - Stored data:', signupData);
+            console.log('SignUp - Calling registerStep1 with email:', step1Data.email);
 
-            // Navigate to KYC page directly
-            navigation.navigate('KYC');
+            const result = await registerStep1(step1Data);
+
+            console.log('SignUp - API Response:', { success: result.success, message: result.message, userId: result.userId });
+
+            // Check if result is successful
+            if (result.success === false) {
+                setErrorMessage(result.message || (currentLanguage === 'hi' ? "पंजीकरण विफल। कृपया फिर से कोशिश करें।" : "Registration failed. Please try again."));
+                console.error('SignUp - API returned error:', result.message);
+                return;
+            }
+
+            // Check if userId exists
+            if (!result.userId) {
+                setErrorMessage(currentLanguage === 'hi' ? "उपयोगकर्ता आईडी प्राप्त नहीं हुई। कृपया फिर से कोशिश करें।" : "Failed to get user ID. Please try again.");
+                console.error('SignUp - No userId in response');
+                return;
+            }
+
+            // Everything passed - show loading and navigate to KYC
+            console.log('SignUp - All checks passed, navigating to KYC with userId:', result.userId);
+            setIsLoading(true);
+
+            // Small delay to show loading state, then navigate
+            setTimeout(() => {
+                navigation.navigate('KYC');
+                setIsLoading(false);
+            }, 800);
 
         } catch (error) {
-            console.error('Error storing signup data:', error);
+            console.error('SignUp - Unexpected error:', error);
             setErrorMessage(currentLanguage === 'hi' ? "कुछ गलत हुआ। कृपया फिर से कोशिश करें।" : "Something went wrong. Please try again.");
-        } finally {
-            setIsLoading(false);
         }
     };
 
     return (
-        <ScrollView
-            className="flex-1"
-            contentContainerStyle={{ minHeight: height }}
-            showsVerticalScrollIndicator={false}
-        >
-            <View className="flex-1 items-center">
-                {/* Background Image */}
-                <View style={{
+        <View style={{ flex: 1 }}>
+            <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#000',
+            }}>
+                <Image
+                    source={bg}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        minWidth: width,
+                        minHeight: height,
+                    }}
+                    resizeMode="cover"
+                />
+            </View>
+
+            <View
+                style={{
                     position: 'absolute',
-                    top: 0,
+                    bottom: height * 0.034,
                     left: 0,
                     right: 0,
-                    bottom: 0,
-                    backgroundColor: '#000', // Fallback color
-                }}>
-                    <Image
-                        source={bg}
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            minWidth: width,
-                            minHeight: height,
-                        }}
-                        resizeMode="cover"
-                    />
-                </View>
-                {/* Back Button - responsive positioning */}
-                <TouchableOpacity
-                    className="absolute flex items-center justify-center"
-                    style={{
-                        left: width * 0.04,
-                        top: height * 0.09,
-                        width: width * 0.12,
-                        height: height * 0.06,
-                        zIndex: 10
-                    }}
-                    onPress={handleBackPress}
-                >
-                    {icons && (
-                        <Image
-                            source={icons.back}
-                            style={{
-                                width: width * 0.06,
-                                height: width * 0.07
-                            }}
-                        />
-                    )}
-                </TouchableOpacity>
-
-                {/* Logo - responsive positioning */}
-                <Image
-                    source={logo}
-                    style={{
-                        position: 'absolute',
-                        top: height * 0.08,
-                        width: width * 0.25,
-                        height: width * 0.22
-                    }}
-                />
-
-                {/* Title - USING TranslatedText */}
-                <TranslatedText
+                    alignItems: 'center',
+                    zIndex: 1,
+                    pointerEvents: 'none'
+                }}
+            >
+                <Text
                     style={{
                         color: Colors.light.whiteFfffff,
-                        position: 'absolute',
-                        top: height * 0.23,
-                        fontSize: width * 0.07,
-                        lineHeight: width * 0.09,
-                        width: width * 0.9
+                        fontSize: width * 0.07
                     }}
-                    className="font-extrabold text-center"
+                    className="font-bold"
                 >
-                    Create An Account
-                </TranslatedText>
+                    MIRAGIO
+                </Text>
+            </View>
 
-                {/* Input Fields Container - responsive */}
-                <View
-                    className="absolute items-center"
-                    style={{
-                        top: height * 0.32,
-                        width: '100%',
-                        paddingHorizontal: width * 0.05
-                    }}
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={0}
+            >
+                <ScrollView
+                    ref={scrollViewRef}
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                    bounces={false}
                 >
-                    {/* Email Input - responsive with translation */}
-                    <View
-                        style={{
-                            backgroundColor: Colors.light.whiteFfffff,
-                            width: '100%',
-                            maxWidth: width * 0.9,
-                            height: Math.max(48, height * 0.06),
-                            borderRadius: 15,
-                            marginBottom: height * 0.022
-                        }}
-                        className="flex flex-row items-center"
-                    >
-                        <TextInput
-                            style={{
-                                backgroundColor: 'transparent',
-                                color: Colors.light.blackPrimary,
-                                flex: 1,
-                                fontSize: Math.min(16, width * 0.035),
-                                paddingHorizontal: width * 0.04,
-                                paddingVertical: 0
-                            }}
-                            placeholder={emailPlaceholder}
-                            placeholderTextColor={Colors.light.placeholderColor}
-                            value={email}
-                            onChangeText={(text) => {
-                                setEmail(text);
-                                if (errorMessage) setErrorMessage("");
-                            }}
-                            autoCapitalize="none"
-                            keyboardType="email-address"
-                            editable={!isLoading}
-                        />
-                    </View>
-
-                    {/* Password Input - responsive with translation */}
-                    <View
-                        style={{
-                            backgroundColor: Colors.light.whiteFfffff,
-                            width: '100%',
-                            maxWidth: width * 0.9,
-                            height: Math.max(48, height * 0.06),
-                            borderRadius: 15,
-                            marginBottom: height * 0.02
-                        }}
-                        className="flex flex-row items-center"
-                    >
-                        <TextInput
-                            style={{
-                                backgroundColor: 'transparent',
-                                color: Colors.light.blackPrimary,
-                                flex: 1,
-                                fontSize: Math.min(16, width * 0.035),
-                                paddingLeft: width * 0.04,
-                                paddingRight: width * 0.13,
-                                paddingVertical: 0
-                            }}
-                            placeholder={currentLanguage === 'hi' ? 'पासवर्ड दर्ज करें' : 'Enter Password'}
-                            secureTextEntry={!isPasswordVisible}
-                            placeholderTextColor={Colors.light.placeholderColor}
-                            value={password}
-                            onChangeText={(text) => {
-                                setPassword(text);
-                                if (errorMessage) setErrorMessage("");
-                            }}
-                            autoCapitalize="none"
-                            editable={!isLoading}
-                        />
+                    <View style={{ minHeight: height, paddingHorizontal: width * 0.05, paddingBottom: height * 0.15 }}>
                         <TouchableOpacity
-                            className="absolute right-0 flex items-center justify-center"
                             style={{
+                                position: 'absolute',
+                                left: width * 0.04,
+                                top: height * 0.09,
                                 width: width * 0.12,
-                                height: '100%'
+                                height: height * 0.06,
+                                zIndex: 10,
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
-                            onPress={togglePasswordVisibility}
-                            disabled={isLoading}
+                            onPress={handleBackPress}
+                            disabled={isLoading || contextLoading}
                         >
                             {icons && (
                                 <Image
-                                    source={isPasswordVisible ? icons.eyeopen : icons.eye}
+                                    source={icons.back}
                                     style={{
-                                        width: width * 0.04,
-                                        height: width * 0.03
+                                        width: width * 0.06,
+                                        height: width * 0.07,
+                                        opacity: (isLoading || contextLoading) ? 0.5 : 1
                                     }}
                                 />
                             )}
                         </TouchableOpacity>
-                    </View>
 
-                    {/* Confirm Password Input - responsive with translation */}
-                    <View
-                        style={{
-                            backgroundColor: Colors.light.whiteFfffff,
-                            width: '100%',
-                            maxWidth: width * 0.9,
-                            height: Math.max(48, height * 0.06),
-                            borderRadius: 15,
-                            marginBottom: height * 0.022
-                        }}
-                        className="flex flex-row items-center"
-                    >
-                        <TextInput
-                            style={{
-                                backgroundColor: 'transparent',
-                                color: Colors.light.blackPrimary,
-                                flex: 1,
-                                fontSize: Math.min(16, width * 0.035),
-                                paddingLeft: width * 0.04,
-                                paddingRight: width * 0.13,
-                                paddingVertical: 0
-                            }}
-                            placeholder={currentLanguage === 'hi' ? 'पासवर्ड की पुष्टि करें' : 'Confirm Password'}
-                            placeholderTextColor={Colors.light.placeholderColor}
-                            secureTextEntry={!isConfirmPasswordVisible}
-                            value={confirmPassword}
-                            onChangeText={(text) => {
-                                setConfirmPassword(text);
-                                if (errorMessage) setErrorMessage("");
-                            }}
-                            autoCapitalize="none"
-                            editable={!isLoading}
-                        />
-                        <TouchableOpacity
-                            className="absolute right-0 flex items-center justify-center"
-                            style={{
-                                width: width * 0.12,
-                                height: '100%'
-                            }}
-                            onPress={toggleConfirmPasswordVisibility}
-                            disabled={isLoading}
-                        >
-                            {icons && (
-                                <Image
-                                    source={isConfirmPasswordVisible ? icons.eyeopen : icons.eye}
-                                    style={{
-                                        width: width * 0.04,
-                                        height: width * 0.03
-                                    }}
-                                />
-                            )}
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Referral Code Input - with translation */}
-                    <View
-                        style={{
-                            backgroundColor: Colors.light.whiteFfffff,
-                            width: '100%',
-                            maxWidth: width * 0.9,
-                            height: Math.max(48, height * 0.06),
-                            borderRadius: 15
-                        }}
-                        className="flex flex-row items-center"
-                    >
-                        <TextInput
-                            style={{
-                                backgroundColor: 'transparent',
-                                color: Colors.light.blackPrimary,
-                                flex: 1,
-                                fontSize: Math.min(16, width * 0.035),
-                                paddingHorizontal: width * 0.04,
-                                paddingVertical: 0
-                            }}
-                            placeholder={currentLanguage === 'hi' ? 'रेफरल कोड (वैकल्पिक)' : 'Referral Code (Optional)'}
-                            placeholderTextColor={Colors.light.placeholderColor}
-                            value={referralCode}
-                            onChangeText={(text) => {
-                                setReferralCode(text);
-                                if (errorMessage) setErrorMessage("");
-                            }}
-                            autoCapitalize="characters"
-                            editable={!isLoading}
-                        />
-                    </View>
-
-                    {/* Error Message - responsive */}
-                    {errorMessage ? (
-                        <View
-                            style={{
-                                marginTop: height * 0.015,
-                                width: '100%',
-                                maxWidth: width * 0.85
-                            }}
-                        >
-                            <Text
+                        <View style={{
+                            alignItems: 'center',
+                            marginTop: height * 0.08,
+                            zIndex: 5
+                        }}>
+                            <Image
+                                source={logo}
                                 style={{
-                                    color: '#EF4444',
-                                    fontSize: width * 0.030
+                                    width: width * 0.25,
+                                    height: width * 0.22
                                 }}
-                                className="text-center font-medium"
-                            >
-                                {errorMessage}
-                            </Text>
+                            />
                         </View>
-                    ) : null}
-                </View>
 
-                {/* Terms and Conditions Section - responsive with translation */}
-                <View
-                    className="absolute flex flex-row items-start w-full"
-                    style={{
-                        top: height * 0.756,
-                        paddingHorizontal: width * 0.08
-                    }}
-                >
-                    <CheckBox
-                        value={isChecked}
-                        onValueChange={(value) => {
-                            setChecked(value);
-                            if (errorMessage) setErrorMessage("");
-                        }}
-                        style={{
-                            marginTop: 3,
-                            marginRight: width * 0.02,
-                            height: Math.max(20, width * 0.06),
-                            width: Math.max(20, width * 0.06)
-                        }}
-                        tintColors={{ true: Colors.light.blueTheme, false: Colors.light.whiteFfffff }}
-                        disabled={isLoading}
-                    />
-
-                    <View className="flex flex-col flex-1">
-                        <View className='flex flex-row flex-wrap'>
-                            <Text
+                        <View style={{
+                            alignItems: 'center',
+                            marginTop: height * 0.04,
+                            marginBottom: height * 0.04,
+                            zIndex: 5
+                        }}>
+                            <TranslatedText
                                 style={{
                                     color: Colors.light.whiteFfffff,
-                                    fontSize: width * 0.047
+                                    fontSize: width * 0.07,
+                                    lineHeight: width * 0.09,
+                                    textAlign: 'center'
                                 }}
-                                className="font-semibold"
+                                className="font-extrabold"
                             >
-                                {currentLanguage === 'hi' ? 'मैं सहमत हूं' : 'I agree to'}
-                                <Text className="font-bold"> MIRAGIO</Text>
-                            </Text>
-                            <TouchableOpacity>
-                                <Text
-                                    style={{
-                                        color: Colors.light.blueTheme,
-                                        fontSize: width * 0.047
-                                    }}
-                                    className="font-bold"
-                                >
-                                    {currentLanguage === 'hi' ? ' नियम और' : ' terms &'}
-                                </Text>
-                            </TouchableOpacity>
+                                Create An Account
+                            </TranslatedText>
                         </View>
 
-                        <Text
-                            style={{
-                                color: Colors.light.blueTheme,
-                                fontSize: width * 0.047
-                            }}
-                            className="font-bold"
-                        >
-                            {currentLanguage === 'hi' ? 'शर्तें से' : 'conditions'}
-                        </Text>
+                        <View style={{ alignItems: 'center', zIndex: 5 }}>
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    width: '100%',
+                                    maxWidth: width * 0.9,
+                                    height: Math.max(48, height * 0.06),
+                                    borderRadius: 15,
+                                    marginBottom: height * 0.022,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        flex: 1,
+                                        fontSize: Math.min(16, width * 0.035),
+                                        paddingHorizontal: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={emailPlaceholder}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    value={email}
+                                    onChangeText={(text) => {
+                                        setEmail(text);
+                                        if (errorMessage) setErrorMessage("");
+                                    }}
+                                    autoCapitalize="none"
+                                    keyboardType="email-address"
+                                    editable={!isLoading && !contextLoading}
+                                />
+                            </View>
+
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    width: '100%',
+                                    maxWidth: width * 0.9,
+                                    height: Math.max(48, height * 0.06),
+                                    borderRadius: 15,
+                                    marginBottom: height * 0.02,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        flex: 1,
+                                        fontSize: Math.min(16, width * 0.035),
+                                        paddingLeft: width * 0.04,
+                                        paddingRight: width * 0.13,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={currentLanguage === 'hi' ? 'पासवर्ड दर्ज करें' : 'Enter Password'}
+                                    secureTextEntry={!isPasswordVisible}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    value={password}
+                                    onChangeText={(text) => {
+                                        setPassword(text);
+                                        if (errorMessage) setErrorMessage("");
+                                    }}
+                                    autoCapitalize="none"
+                                    editable={!isLoading && !contextLoading}
+                                />
+                                <TouchableOpacity
+                                    style={{
+                                        position: 'absolute',
+                                        right: 0,
+                                        width: width * 0.12,
+                                        height: '100%',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                    onPress={togglePasswordVisibility}
+                                    disabled={isLoading || contextLoading}
+                                >
+                                    {icons && (
+                                        <Image
+                                            source={isPasswordVisible ? icons.eyeopen : icons.eye}
+                                            style={{
+                                                width: width * 0.04,
+                                                height: width * 0.03
+                                            }}
+                                        />
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    width: '100%',
+                                    maxWidth: width * 0.9,
+                                    height: Math.max(48, height * 0.06),
+                                    borderRadius: 15,
+                                    marginBottom: height * 0.022,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        flex: 1,
+                                        fontSize: Math.min(16, width * 0.035),
+                                        paddingLeft: width * 0.04,
+                                        paddingRight: width * 0.13,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={currentLanguage === 'hi' ? 'पासवर्ड की पुष्टि करें' : 'Confirm Password'}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    secureTextEntry={!isConfirmPasswordVisible}
+                                    value={confirmPassword}
+                                    onChangeText={(text) => {
+                                        setConfirmPassword(text);
+                                        if (errorMessage) setErrorMessage("");
+                                    }}
+                                    autoCapitalize="none"
+                                    editable={!isLoading && !contextLoading}
+                                />
+                                <TouchableOpacity
+                                    style={{
+                                        position: 'absolute',
+                                        right: 0,
+                                        width: width * 0.12,
+                                        height: '100%',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                    onPress={toggleConfirmPasswordVisibility}
+                                    disabled={isLoading || contextLoading}
+                                >
+                                    {icons && (
+                                        <Image
+                                            source={isConfirmPasswordVisible ? icons.eyeopen : icons.eye}
+                                            style={{
+                                                width: width * 0.04,
+                                                height: width * 0.03
+                                            }}
+                                        />
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+
+                            <View
+                                style={{
+                                    backgroundColor: Colors.light.whiteFfffff,
+                                    width: '100%',
+                                    maxWidth: width * 0.9,
+                                    height: Math.max(48, height * 0.06),
+                                    borderRadius: 15,
+                                    marginBottom: height * 0.03,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <TextInput
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: Colors.light.blackPrimary,
+                                        flex: 1,
+                                        fontSize: Math.min(16, width * 0.035),
+                                        paddingHorizontal: width * 0.04,
+                                        paddingVertical: 0
+                                    }}
+                                    placeholder={currentLanguage === 'hi' ? 'रेफरल कोड (वैकल्पिक)' : 'Referral Code (Optional)'}
+                                    placeholderTextColor={Colors.light.placeholderColor}
+                                    value={referralCode}
+                                    onChangeText={(text) => {
+                                        setReferralCode(text);
+                                        if (errorMessage) setErrorMessage("");
+                                    }}
+                                    autoCapitalize="characters"
+                                    editable={!isLoading && !contextLoading}
+                                />
+                            </View>
+
+                            {errorMessage ? (
+                                <View
+                                    style={{
+                                        marginBottom: height * 0.02,
+                                        width: '100%',
+                                        maxWidth: width * 0.85
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: '#EF4444',
+                                            fontSize: width * 0.030,
+                                            textAlign: 'center'
+                                        }}
+                                        className="font-medium"
+                                    >
+                                        {errorMessage}
+                                    </Text>
+                                </View>
+                            ) : null}
+
+                            <View style={{ alignItems: 'center', marginBottom: height * 0.03 }}>
+                                <CustomGradientButton
+                                    text={isLoading || contextLoading ? (currentLanguage === 'hi' ? "सेव कर रहे हैं..." : "Saving...") : (currentLanguage === 'hi' ? "अगला" : "Next")}
+                                    width={Math.min(width * 0.9, 500)}
+                                    height={Math.max(48, height * 0.06)}
+                                    borderRadius={28}
+                                    fontSize={Math.min(18, width * 0.045)}
+                                    fontWeight="600"
+                                    onPress={handleNextPress}
+                                    disabled={!isChecked || isLoading || contextLoading}
+                                    textColor={isChecked ? Colors.light.whiteFfffff : Colors.light.secondaryText}
+                                    style={{
+                                        opacity: isChecked && !isLoading && !contextLoading ? 1 : 0.6,
+                                    }}
+                                />
+                            </View>
+
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'flex-start',
+                                    paddingHorizontal: width * 0.02,
+                                    marginBottom: height * 0.03,
+                                    width: '100%',
+                                    maxWidth: width * 0.9
+                                }}
+                            >
+                                <CheckBox
+                                    value={isChecked}
+                                    onValueChange={(value) => {
+                                        setChecked(value);
+                                        if (errorMessage) setErrorMessage("");
+                                    }}
+                                    style={{
+                                        marginTop: 3,
+                                        marginRight: width * 0.02,
+                                        height: Math.max(20, width * 0.06),
+                                        width: Math.max(20, width * 0.06)
+                                    }}
+                                    tintColors={{ true: Colors.light.blueTheme, false: Colors.light.whiteFfffff }}
+                                    disabled={isLoading || contextLoading}
+                                />
+
+                                <View style={{ flex: 1, flexDirection: 'column' }}>
+                                    <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                                        <Text
+                                            style={{
+                                                color: Colors.light.whiteFfffff,
+                                                fontSize: width * 0.047
+                                            }}
+                                            className="font-semibold"
+                                        >
+                                            {currentLanguage === 'hi' ? 'मैं सहमत हूं' : 'I agree to'}
+                                            <Text className="font-bold"> MIRAGIO</Text>
+                                        </Text>
+                                        <TouchableOpacity>
+                                            <Text
+                                                style={{
+                                                    color: Colors.light.blueTheme,
+                                                    fontSize: width * 0.047
+                                                }}
+                                                className="font-bold"
+                                            >
+                                                {currentLanguage === 'hi' ? ' नियम और' : ' terms &'}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <Text
+                                        style={{
+                                            color: Colors.light.blueTheme,
+                                            fontSize: width * 0.047
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        {currentLanguage === 'hi' ? 'शर्तें से' : 'conditions'}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    paddingHorizontal: width * 0.02,
+                                    marginBottom: height * 0.05,
+                                    width: '100%'
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFfffff,
+                                        fontSize: width * 0.05
+                                    }}
+                                    className="font-semibold"
+                                >
+                                    {currentLanguage === 'hi' ? 'क्या आपके पास पहले से खाता है?' : 'Already have an account ?'}
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={handleSignInPress}
+                                    disabled={isLoading || contextLoading}
+                                    style={{ marginLeft: 4 }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: Colors.light.blueTheme,
+                                            fontSize: width * 0.045
+                                        }}
+                                        className="font-bold"
+                                    >
+                                        {currentLanguage === 'hi' ? 'लॉगिन' : 'Login'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
-                </View>
-
-                {/* Next Button - responsive with translation */}
-                <View
-                    className="absolute items-center"
-                    style={{
-                        top: height * 0.67,
-                        width: '100%',
-                        paddingHorizontal: width * 0.02
-                    }}
-                >
-                    <CustomGradientButton
-                        text={isLoading ? (currentLanguage === 'hi' ? "सेव कर रहे हैं..." : "Saving...") : (currentLanguage === 'hi' ? "अगला" : "Next")}
-                        width={Math.min(width * 0.9, 500)}
-                        height={Math.max(48, height * 0.06)}
-                        borderRadius={28}
-                        fontSize={Math.min(18, width * 0.045)}
-                        fontWeight="600"
-                        onPress={handleNextPress}
-                        disabled={!isChecked || isLoading}
-                        textColor={isChecked ? Colors.light.whiteFfffff : Colors.light.secondaryText}
-                        style={{
-                            opacity: isChecked && !isLoading ? 1 : 0.6,
-                        }}
-                    />
-                </View>
-
-                {/* Sign In Navigation Link - responsive with translation */}
-                <View
-                    className="absolute flex flex-row items-center"
-                    style={{
-                        top: height * 0.85,
-                        paddingHorizontal: width * 0.04
-                    }}
-                >
-                    <Text
-                        style={{
-                            color: Colors.light.whiteFfffff,
-                            fontSize: width * 0.05
-                        }}
-                        className="font-semibold"
-                    >
-                        {currentLanguage === 'hi' ? 'क्या आपके पास पहले से खाता है?' : 'Already have an account ?'}
-                    </Text>
-                    <TouchableOpacity
-                        onPress={handleSignInPress}
-                        disabled={isLoading}
-                        className="ml-1"
-                    >
-                        <Text
-                            style={{
-                                color: Colors.light.blueTheme,
-                                fontSize: width * 0.045
-                            }}
-                            className="font-bold"
-                        >
-                            {currentLanguage === 'hi' ? 'लॉगिन' : 'Login'}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Footer Brand Name - responsive */}
-                <View
-                    className="absolute items-center"
-                    style={{
-                        bottom: height * 0.034
-                    }}
-                >
-                    <Text
-                        style={{
-                            color: Colors.light.whiteFfffff,
-                            fontSize: width * 0.07
-                        }}
-                        className="font-bold"
-                    >
-                        MIRAGIO
-                    </Text>
-                </View>
-            </View>
-        </ScrollView>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </View>
     );
 };
 

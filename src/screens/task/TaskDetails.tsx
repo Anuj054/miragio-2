@@ -13,6 +13,7 @@ import {
     ImageBackground,
     Dimensions
 } from 'react-native';
+import { PermissionsAndroid, Platform, } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import type {
@@ -62,6 +63,8 @@ interface ApiTask {
     created_at: string;
     status: string;
     documents: string | null;
+    hashtag: string | null;
+    tag: string | null;
     assigned_users: AssignedUser[];
 }
 
@@ -84,11 +87,7 @@ interface SubmissionResponse {
     };
 }
 
-// ✅ Usage example inside your component
-// const { currentLanguage } = useTranslation();
-// const isHi = currentLanguage === 'hi';
-// Then wrap UI strings like:
-// Alert.alert(isHi ? 'त्रुटि' : 'Error', isHi ? 'नेटवर्क समस्या' : 'Network issue');
+
 
 
 const TaskDetails = () => {
@@ -220,7 +219,7 @@ const TaskDetails = () => {
 
             let downloadUrl = taskDetail.documents!.trim();
             if (!downloadUrl.startsWith('http')) {
-                downloadUrl = `https://netinnovatus.tech/miragio_task/api/${downloadUrl}`;
+                downloadUrl = `https://miragiofintech.org/api/${downloadUrl}`;
             }
 
             const supported = await Linking.canOpenURL(downloadUrl);
@@ -276,7 +275,6 @@ const TaskDetails = () => {
     };
 
     // Updated function to get download file type for display
-    // Updated function to get download file type for display
     const getDownloadFileType = () => {
         if (!taskDetail || !taskDetail.documents) return isHi ? 'दस्तावेज़' : 'Document';
 
@@ -310,11 +308,11 @@ const TaskDetails = () => {
                 return;
             }
 
-            if (!taskUrl && !taskImage) {
+            if (!taskUrl || !taskImage) {
                 setSubmitError(
                     isHi
-                        ? 'कृपया एक URL दें या एक छवि अपलोड करें'
-                        : 'Please provide either a URL or upload an image'
+                        ? 'कृपया कार्य पूरा करने से पहले URL जोड़ें और एक छवि अपलोड करें'
+                        : 'Please provide BOTH a URL and an image before submitting the task'
                 );
                 return;
             }
@@ -326,39 +324,21 @@ const TaskDetails = () => {
             formData.append('user_id', String(USER_ID));
             formData.append('task_url', taskUrl || '');
 
-            // Add image file if selected
             if (taskImage) {
-                const getFileExtension = (filename: string): string => {
-                    if (!filename) return 'jpg';
-                    const parts = filename.split('.');
-                    return parts.length > 1 ? parts.pop()?.toLowerCase() || 'jpg' : 'jpg';
-                };
-
-                const timestamp = Math.floor(Date.now() / 1000);
-                const extension = getFileExtension(selectedImageName);
-                const originalName = selectedImageName
-                    ? selectedImageName.replace(/\.[^/.]+$/, '')
-                    : 'image';
-                const fileName = `${timestamp}_${originalName}.${extension}`;
-
-                const getMimeType = (ext: string): string => {
-                    switch (ext.toLowerCase()) {
-                        case 'png': return 'image/png';
-                        case 'jpg':
-                        case 'jpeg': return 'image/jpeg';
-                        case 'gif': return 'image/gif';
-                        case 'webp': return 'image/webp';
-                        default: return 'image/jpeg';
-                    }
-                };
+                const extension = selectedImageName.split('.').pop()?.toLowerCase() || 'jpg';
+                const fileName = `${Date.now()}_${selectedImageName}`;
+                const mimeType =
+                    extension === 'png'
+                        ? 'image/png'
+                        : extension === 'jpg' || extension === 'jpeg'
+                            ? 'image/jpeg'
+                            : 'application/octet-stream';
 
                 formData.append('task_image', {
-                    uri: taskImage,
-                    type: getMimeType(extension),
-                    name: fileName
+                    uri: taskImage.startsWith('file://') ? taskImage : `file://${taskImage}`,
+                    type: mimeType,
+                    name: fileName,
                 } as any);
-
-                console.log('Uploading file:', fileName);
             }
 
             const response = await fetch(
@@ -456,40 +436,55 @@ const TaskDetails = () => {
         });
     };
 
-    // Updated camera function
-    const openCamera = () => {
-        const options: CameraOptions = {
-            mediaType: 'photo' as MediaType,
-            includeBase64: false,
-            maxHeight: 2000,
-            maxWidth: 2000,
-            quality: 0.8,
-            includeExtra: true,
-        };
+    const openCamera = async () => {
+        try {
+            // ⚙️ Request permission only on Android
+            if (Platform.OS === 'android') {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.CAMERA,
+                    {
+                        title: 'Camera Permission',
+                        message: 'This app requires access to your camera to take photos.',
+                        buttonPositive: 'OK',
+                        buttonNegative: 'Cancel',
+                    }
+                );
 
-        launchCamera(options, (response: ImagePickerResponse) => {
-            if (response.didCancel || response.errorMessage) {
-                if (response.errorMessage) {
-                    Alert.alert(isHi ? 'त्रुटि' : 'Error', response.errorMessage);
+                if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+                    Alert.alert('Permission Denied', 'Camera access is required to take photos.');
+                    return;
                 }
-                return;
             }
 
-            if (response.assets && response.assets[0]) {
-                const asset = response.assets[0];
+            // ✅ If permission granted, open camera
+            const options: CameraOptions = {
+                mediaType: 'photo',
+                includeBase64: false,
+                maxHeight: 2000,
+                maxWidth: 2000,
+                quality: 0.8,
+                includeExtra: true,
+                saveToPhotos: true,
+            };
 
-                if (asset.uri) {
-                    setTaskImage(asset.uri);
+            launchCamera(options, (response: ImagePickerResponse) => {
+                if (response.didCancel) return;
+                if (response.errorCode || response.errorMessage) {
+                    Alert.alert('Error', response.errorMessage || response.errorCode);
+                    return;
+                }
+
+                if (response.assets && response.assets[0]?.uri) {
+                    const asset = response.assets[0];
+                    setTaskImage(asset.uri as string);
                     setSelectedImageName(asset.fileName || `photo_${Date.now()}.jpg`);
-                    Alert.alert(isHi ? 'सफलता' : 'Success',
-                        isHi ? 'फोटो सफलतापूर्वक कैप्चर हुआ!' : 'Photo captured successfully!');
-                } else {
-                    Alert.alert(isHi ? 'त्रुटि' : 'Error',
-                        isHi ? 'फोटो कैप्चर करने में विफल। कृपया पुनः प्रयास करें।'
-                            : 'Failed to capture photo. Please try again.');
+                    Alert.alert('Success', 'Photo captured successfully!');
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error('Camera Error:', error);
+            Alert.alert('Error', 'Unable to open camera. Please try again.');
+        }
     };
 
     // Show camera/gallery options
@@ -526,14 +521,15 @@ const TaskDetails = () => {
 
     // Handler to mark task as complete
     const handleMarkComplete = () => {
-        if (!taskUrl && !taskImage) {
+        if (!taskUrl || !taskImage) {
             setSubmitError(
                 isHi
-                    ? 'कृपया पूर्ण करने से पहले URL जोड़ें या छवि अपलोड करें'
-                    : 'Please provide either a URL or upload an image before marking as complete'
+                    ? 'कृपया कार्य पूरा करने से पहले URL जोड़ें और एक छवि अपलोड करें'
+                    : 'Please provide BOTH a URL and an image before marking as complete'
             );
             return;
         }
+
         setSubmitError(null);
         submitTask();
     };
@@ -768,64 +764,110 @@ const TaskDetails = () => {
                         {taskDetail.task_description}
                     </Text>
                 </View>
-
                 {/* =================== HASHTAGS SECTION =================== */}
-                <View style={{ paddingVertical: height * 0.02 }}>
-                    <Text
-                        style={{
-                            color: Colors.light.whiteFefefe,
-                            fontSize: width * 0.045,
-                            marginBottom: height * 0.015,
-                        }}
-                        className="font-semibold"
-                    >
-                        {currentLanguage === 'hi' ? 'हैशटैग इस्तेमाल करें' : 'Hashtags to Use'}
-                    </Text>
-
-                    <View className="flex-row flex-wrap">
-                        {(currentLanguage === 'hi'
-                            ? ['#मिराजिओकॉइन', '#टास्कपूरा', '#कॉइनकमाओ', '#क्रिप्टोरिवॉर्ड']
-                            : ['#MiragioCoin', '#TaskCompleted', '#EarnCoins', '#CryptoRewards']
-                        ).map((hashtag, index) => (
-                            <View
-                                key={index}
+                {taskDetail.hashtag &&
+                    taskDetail.hashtag.trim() &&
+                    taskDetail.hashtag.toLowerCase() !== 'null' && (
+                        <View style={{ paddingVertical: height * 0.02 }}>
+                            <Text
                                 style={{
-                                    backgroundColor: Colors.light.backlight2,
-                                    borderColor: Colors.light.bgBlueBtn,
-                                    borderWidth: 1,
-                                    borderRadius: 15,
-                                    paddingHorizontal: width * 0.03,
-                                    paddingVertical: height * 0.005,
-                                    marginRight: width * 0.02,
-                                    marginBottom: height * 0.01,
+                                    color: Colors.light.whiteFefefe,
+                                    fontSize: width * 0.045,
+                                    marginBottom: height * 0.015,
+                                }}
+                                className="font-semibold"
+                            >
+                                {currentLanguage === 'hi' ? 'हैशटैग इस्तेमाल करें' : 'Hashtags to Use'}
+                            </Text>
+
+                            <View className="flex-row flex-wrap">
+                                {taskDetail.hashtag
+                                    .split(/[\s,]+/)          // split on spaces or commas
+                                    .filter(tag => tag.startsWith('#'))
+                                    .map((hashtag, index) => (
+                                        <View
+                                            key={index}
+                                            style={{
+                                                backgroundColor: Colors.light.backlight2,
+                                                borderColor: Colors.light.bgBlueBtn,
+                                                borderWidth: 1,
+                                                borderRadius: 15,
+                                                paddingHorizontal: width * 0.03,
+                                                paddingVertical: height * 0.005,
+                                                marginRight: width * 0.02,
+                                                marginBottom: height * 0.01,
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: Colors.light.bgBlueBtn,
+                                                    fontSize: width * 0.035,
+                                                }}
+                                                className="font-medium"
+                                            >
+                                                {hashtag}
+                                            </Text>
+                                        </View>
+                                    ))}
+                            </View>
+
+                            <Text
+                                style={{
+                                    color: Colors.light.placeholderColorOp70,
+                                    fontSize: width * 0.035,
+                                    marginTop: height * 0.01,
                                 }}
                             >
-                                <Text
-                                    style={{
-                                        color: Colors.light.bgBlueBtn,
-                                        fontSize: width * 0.035,
-                                    }}
-                                    className="font-medium"
-                                >
-                                    {hashtag}
-                                </Text>
-                            </View>
-                        ))}
-                    </View>
+                                {currentLanguage === 'hi'
+                                    ? 'पोस्ट करते समय इन हैशटैग का उपयोग करें'
+                                    : 'Copy and use these hashtags when posting about this task'}
+                            </Text>
+                        </View>
+                    )}
 
-                    <Text
+                {/* =================== TASK TAG CARD (if available) =================== */}
+                {taskDetail.tag && taskDetail.tag.trim() && taskDetail.tag.toLowerCase() !== 'null' && (
+                    <View
                         style={{
-                            color: Colors.light.placeholderColorOp70,
-                            fontSize: width * 0.035,
-                            marginTop: height * 0.01,
+                            backgroundColor: Colors.light.backlight2,
+                            borderLeftColor: Colors.light.bgBlueBtn,
+                            borderLeftWidth: 4,
+                            borderRadius: 12,
+                            marginBottom: height * 0.015,
                         }}
                     >
-                        {currentLanguage === 'hi'
-                            ? 'पोस्ट करते समय इन हैशटैग का उपयोग करें'
-                            : 'Copy and use these hashtags when posting about this task'}
-                    </Text>
-                </View>
+                        <View className="flex-row" style={{ padding: width * 0.03 }}>
+                            <View className="items-center justify-center" style={{ marginRight: width * 0.03 }}>
+                                <Image
+                                    source={icons.assignicon}
+                                    style={{ height: width * 0.08, width: width * 0.08 }}
+                                    resizeMode="contain"
+                                />
+                            </View>
 
+                            <View className="flex-1">
+                                <Text
+                                    style={{
+                                        color: Colors.light.whiteFefefe,
+                                        fontSize: width * 0.04,
+                                        marginBottom: height * 0.005,
+                                    }}
+                                    className="font-bold"
+                                >
+                                    {currentLanguage === 'hi' ? 'कार्य टैग' : 'Task Tag'}
+                                </Text>
+                                <Text
+                                    style={{
+                                        color: Colors.light.placeholderColorOp70,
+                                        fontSize: width * 0.035,
+                                    }}
+                                >
+                                    {taskDetail.tag}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+                )}
 
 
                 {/* =================== TASK DETAILS CARDS SECTION =================== */}

@@ -75,6 +75,7 @@ interface Transaction {
     date: string;
     taskId: string;
     taskUrl: string;
+    extraDate?: string;
 }
 
 interface GroupedTransactions {
@@ -263,10 +264,12 @@ const TransactionsPage = () => {
                                 amount: parseFloat(w.withdraw_amount) || 0,
                                 iconColor: '#FF6B6B',
                                 icon: icons.withdraw || icons.wallet,
-                                date: w.withdrawal_date,
-                                taskId: w.transaction_id,
+                                date: w.withdrawal_date,      // Request Date
+                                extraDate: w.updated_at,      // ✅ Transfer Date
+                                taskId: w.transaction_id,     // Transaction No
                                 taskUrl: w.remarks || '',
                             }));
+
                         allData = [...allData, ...withdraws];
                     }
                 }
@@ -355,95 +358,153 @@ const TransactionsPage = () => {
             </Text>
         </TouchableOpacity>
     );
+    const renderTransactionItem = (t: Transaction) => {
+        const isWithdraw = t.type === 'Withdraw';
 
-    const renderTransactionItem = (t: Transaction) => (
-        <View
-            key={t.id}
-            style={{
-                marginHorizontal: width * 0.04,
-                marginBottom: height * 0.02,
-                padding: width * 0.04,
-                borderRadius: 16,
-                backgroundColor: 'rgba(255,255,255,0.06)',
-                borderLeftWidth: 3,
-                borderLeftColor: t.type === 'Withdraw' ? '#FF6B6B' : Colors.light.bgBlueBtn,
-            }}
-        >
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <View style={{ flexDirection: 'row', flex: 1 }}>
-                    <View
-                        style={{
-                            width: width * 0.12,
-                            height: width * 0.12,
-                            borderRadius: 12,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginRight: width * 0.04,
-                            backgroundColor: 'rgba(255,255,255,0.15)',
-                        }}
-                    >
-                        <Image source={t.icon} style={{ width: width * 0.08, height: width * 0.08 }} />
+        return (
+            <View
+                key={t.id}
+                style={{
+                    marginHorizontal: width * 0.04,
+                    marginBottom: height * 0.02,
+                    padding: width * 0.04,
+                    borderRadius: 16,
+                    backgroundColor: 'rgba(255,255,255,0.06)',
+                    borderLeftWidth: 3,
+                    borderLeftColor: isWithdraw ? '#FF6B6B' : Colors.light.bgBlueBtn,
+                }}
+            >
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View style={{ flexDirection: 'row', flex: 1 }}>
+                        {/* Icon */}
+                        <View
+                            style={{
+                                width: width * 0.12,
+                                height: width * 0.12,
+                                borderRadius: 12,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                marginRight: width * 0.04,
+                                backgroundColor: 'rgba(255,255,255,0.15)',
+                            }}
+                        >
+                            <Image source={t.icon} style={{ width: width * 0.08, height: width * 0.08 }} />
+                        </View>
+
+                        {/* Content */}
+                        <View style={{ flex: 1 }}>
+                            <Text
+                                style={{
+                                    color: Colors.light.whiteFfffff,
+                                    fontSize: width * 0.045,
+                                    fontWeight: '600',
+                                    marginBottom: height * 0.005,
+                                }}
+                            >
+                                {t.title}
+                            </Text>
+
+                            {isWithdraw ? (
+                                <>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFefefe,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.003,
+                                        }}
+                                    >
+                                        Request Date: {formatDateTime(t.date)} {/* withdrawal_date */}
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFefefe,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.003,
+                                        }}
+                                    >
+                                        Transfer Date:{' '}
+                                        {t.extraDate
+                                            ? formatDateTime(t.extraDate) // ✅ updated_at
+                                            : 'N/A'}
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: Colors.light.whiteFefefe,
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.003,
+                                        }}
+                                    >
+                                        Transaction No: {t.taskId || 'N/A'}
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color:
+                                                t.description.toLowerCase().includes('paid')
+                                                    ? Colors.light.bgGreen
+                                                    : '#87CEEB',
+                                            fontSize: width * 0.04,
+                                            fontWeight: '700',
+                                        }}
+                                    >
+                                        Status {t.description.split('-')[0].trim().toUpperCase()}
+                                    </Text>
+                                </>
+                            ) : (
+                                <>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={{
+                                            color: 'rgba(255,255,255,0.7)',
+                                            fontSize: width * 0.035,
+                                            marginBottom: height * 0.003,
+                                        }}
+                                    >
+                                        {t.description}
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: 'rgba(255,255,255,0.5)',
+                                            fontSize: width * 0.03,
+                                        }}
+                                    >
+                                        {formatDateTime(t.date)}
+                                    </Text>
+                                </>
+                            )}
+                        </View>
                     </View>
-                    <View style={{ flex: 1 }}>
+
+                    {/* Amount */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: width * 0.02 }}>
                         <Text
                             style={{
-                                color: Colors.light.whiteFfffff,
+                                color: isWithdraw ? '#FF6B6B' : Colors.light.bgGreen,
+                                fontSize: width * 0.04,
+                                marginRight: width * 0.01,
+                                fontWeight: '700',
+                            }}
+                        >
+                            {isWithdraw ? '-' : '+'}
+                        </Text>
+                        <Image source={icons.maincoin} style={{ width: width * 0.05, height: width * 0.05 }} />
+                        <Text
+                            style={{
+                                color: isWithdraw ? '#FF6B6B' : Colors.light.bgGreen,
                                 fontSize: width * 0.045,
-                                fontWeight: '600',
-                                marginBottom: height * 0.005,
+                                marginLeft: width * 0.01,
+                                fontWeight: '700',
                             }}
                         >
-                            {t.title}
-                        </Text>
-                        <Text
-                            numberOfLines={1}
-                            style={{
-                                color: 'rgba(255,255,255,0.7)',
-                                fontSize: width * 0.035,
-                                marginBottom: height * 0.003,
-                            }}
-                        >
-                            {t.description}
-                        </Text>
-                        <Text
-                            style={{
-                                color: 'rgba(255,255,255,0.5)',
-                                fontSize: width * 0.03,
-                            }}
-                        >
-                            {formatDateTime(t.date)}
+                            {t.amount}
                         </Text>
                     </View>
-                </View>
-
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: width * 0.02 }}>
-                    <Text
-                        style={{
-                            color: t.type === 'Withdraw' ? '#FF6B6B' : Colors.light.bgGreen,
-                            fontSize: width * 0.04,
-                            marginRight: width * 0.01,
-                            fontWeight: '700',
-                        }}
-                    >
-                        {t.type === 'Withdraw' ? '-' : '+'}
-                    </Text>
-                    <Image source={icons.maincoin} style={{ width: width * 0.05, height: width * 0.05 }} />
-                    <Text
-                        style={{
-                            color: t.type === 'Withdraw' ? '#FF6B6B' : Colors.light.bgGreen,
-                            fontSize: width * 0.045,
-                            marginLeft: width * 0.01,
-                            fontWeight: '700',
-                        }}
-                    >
-                        {t.amount}
-                    </Text>
                 </View>
             </View>
+        );
+    };
 
 
-        </View>
-    );
+
 
     const handleCloseModal = () => setShowNoTransactionModal(false);
     const clearSearch = () => {

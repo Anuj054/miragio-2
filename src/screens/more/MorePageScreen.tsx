@@ -53,7 +53,7 @@ const MorePagesScreen = ({ navigation }: Props) => {
     const [isLoading, setIsLoading] = useState(false);
 
     // Get user context for logout functionality
-    const { logout } = useUser();
+    const { logout, getUserId } = useUser();
 
     // Using custom placeholder hook for search
     const searchPlaceholder = usePlaceholder('Search settings...', 'सेटिंग्स खोजें...');
@@ -74,13 +74,35 @@ const MorePagesScreen = ({ navigation }: Props) => {
                     onPress: async () => {
                         setIsLoading(true);
                         try {
+                            const userId = getUserId();
+                            if (userId) {
+                                const res = await fetch("https://miragiofintech.org/api/api.php", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        action: "user_logout",
+                                        user_id: userId
+                                    }),
+                                });
+                                const data = await res.json();
+                                if (data.status === "success") {
+                                    console.log("✅ Backend logout:", data.message);
+                                } else {
+                                    console.warn("⚠️ Backend logout failed:", data.message);
+                                }
+                            }
+
+                            // Clear context & storage
                             await logout();
-                            console.log('Logout successful');
+
+                            console.log("✅ Logout completed, RootNavigator should redirect");
                         } catch (error) {
-                            console.error('Logout error:', error);
+                            console.error("Logout error:", error);
                             Alert.alert(
                                 currentLanguage === 'hi' ? "त्रुटि" : "Error",
-                                currentLanguage === 'hi' ? "लॉगआउट करने में असफल। कृपया फिर से कोशिश करें।" : "Failed to logout. Please try again."
+                                currentLanguage === 'hi'
+                                    ? "लॉगआउट करने में असफल। कृपया फिर से कोशिश करें।"
+                                    : "Failed to logout. Please try again."
                             );
                         } finally {
                             setIsLoading(false);

@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Dimensions } from 'react-native';
 import { Colors } from '../constants/Colors';
-// Translation imports - USING CUSTOM COMPONENTS
 import { TranslatedText } from './TranslatedText';
 import { useTranslation } from '../context/TranslationContext';
 
-// Get screen dimensions
 const { width, height } = Dimensions.get('window');
 
 interface PaymentMethodModalProps {
@@ -26,10 +24,8 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
     const [modalStep, setModalStep] = useState<'select' | 'upi' | 'bank'>('select');
     const [formLoading, setFormLoading] = useState<boolean>(false);
 
-    // UPI form state
     const [upiId, setUpiId] = useState<string>("");
 
-    // Bank form state - Updated to match API requirements
     const [bankDetails, setBankDetails] = useState({
         accountNumber: "",
         confirmAccountNumber: "",
@@ -60,7 +56,6 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
         onClose();
     };
 
-    // Validation functions
     const validateUPI = (upi: string) => {
         const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
         return upiRegex.test(upi);
@@ -110,7 +105,24 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                 }),
             });
 
-            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const responseText = await response.text();
+            console.log("UPI Response:", responseText);
+
+            if (responseText.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON');
+            }
+
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error("JSON Parse Error:", parseError);
+                throw new Error('Invalid JSON response from server');
+            }
 
             if (data.status === "success") {
                 Alert.alert(
@@ -130,11 +142,26 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                 const errorMessage = data.message || (currentLanguage === 'hi' ? "UPI ID जोड़ने में असफल" : "Failed to add UPI ID");
                 Alert.alert(currentLanguage === 'hi' ? "त्रुटि" : "Error", errorMessage);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error adding UPI:", error);
+
+            let errorMessage = currentLanguage === 'hi' ?
+                "कुछ गलत हुआ। कृपया फिर से कोशिश करें।" :
+                "Something went wrong. Please try again.";
+
+            if (error.message && error.message.includes('Network request failed')) {
+                errorMessage = currentLanguage === 'hi' ?
+                    "नेटवर्क त्रुटि। कृपया अपना इंटरनेट कनेक्शन जांचें।" :
+                    "Network error. Please check your internet connection.";
+            } else if (error.message && error.message.includes('HTML instead of JSON')) {
+                errorMessage = currentLanguage === 'hi' ?
+                    "सर्वर त्रुटि। कृपया बाद में पुनः प्रयास करें।" :
+                    "Server error. Please try again later.";
+            }
+
             Alert.alert(
                 currentLanguage === 'hi' ? "त्रुटि" : "Error",
-                currentLanguage === 'hi' ? "कुछ गलत हुआ। कृपया फिर से कोशिश करें।" : "Something went wrong. Please try again."
+                errorMessage
             );
         } finally {
             setFormLoading(false);
@@ -144,7 +171,6 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
     const submitBankForm = async () => {
         const { accountNumber, confirmAccountNumber, ifscCode, bankName, branch, panNumber, accountHolderName } = bankDetails;
 
-        // Validation
         if (!accountNumber || !confirmAccountNumber || !ifscCode || !bankName || !branch || !panNumber || !accountHolderName) {
             Alert.alert(
                 currentLanguage === 'hi' ? "त्रुटि" : "Error",
@@ -202,7 +228,24 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                 }),
             });
 
-            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const responseText = await response.text();
+            console.log("Bank Details Response:", responseText);
+
+            if (responseText.trim().startsWith('<')) {
+                throw new Error('Server returned HTML instead of JSON');
+            }
+
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error("JSON Parse Error:", parseError);
+                throw new Error('Invalid JSON response from server');
+            }
 
             if (data.status === "success") {
                 Alert.alert(
@@ -224,11 +267,26 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                 const errorMessage = data.message || (currentLanguage === 'hi' ? "बैंक विवरण जोड़ने में असफल" : "Failed to add bank details");
                 Alert.alert(currentLanguage === 'hi' ? "त्रुटि" : "Error", errorMessage);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error adding bank details:", error);
+
+            let errorMessage = currentLanguage === 'hi' ?
+                "कुछ गलत हुआ। कृपया फिर से कोशिश करें।" :
+                "Something went wrong. Please try again.";
+
+            if (error.message && error.message.includes('Network request failed')) {
+                errorMessage = currentLanguage === 'hi' ?
+                    "नेटवर्क त्रुटि। कृपया अपना इंटरनेट कनेक्शन जांचें।" :
+                    "Network error. Please check your internet connection.";
+            } else if (error.message && error.message.includes('HTML instead of JSON')) {
+                errorMessage = currentLanguage === 'hi' ?
+                    "सर्वर त्रुटि। कृपया बाद में पुनः प्रयास करें।" :
+                    "Server error. Please try again later.";
+            }
+
             Alert.alert(
                 currentLanguage === 'hi' ? "त्रुटि" : "Error",
-                currentLanguage === 'hi' ? "कुछ गलत हुआ। कृपया फिर से कोशिश करें।" : "Something went wrong. Please try again."
+                errorMessage
             );
         } finally {
             setFormLoading(false);
@@ -243,8 +301,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
             onRequestClose={handleClose}
         >
             <View
-                className="flex-1 justify-end"
-                style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}
+                style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0, 0, 0, 0.25)' }}
             >
                 <View
                     style={{
@@ -260,17 +317,15 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                         maxHeight: height * 0.8
                     }}
                 >
-                    {/* Modal Header */}
                     <View
-                        className="flex-row items-center justify-between"
-                        style={{ marginBottom: height * 0.02 }}
+                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: height * 0.02 }}
                     >
                         <Text
                             style={{
                                 color: Colors.light.whiteFfffff,
-                                fontSize: width * 0.045
+                                fontSize: width * 0.045,
+                                fontWeight: 'bold'
                             }}
-                            className="font-bold"
                         >
                             {modalStep === 'select' ?
                                 (currentLanguage === 'hi' ? 'पेमेंट मेथड जोड़ें' : 'Add Payment Method') :
@@ -284,23 +339,23 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                                 width: width * 0.06,
                                 height: width * 0.06,
-                                borderRadius: (width * 0.06) / 2
+                                borderRadius: (width * 0.06) / 2,
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
-                            className="items-center justify-center"
                         >
                             <Text
                                 style={{
                                     color: Colors.light.whiteFfffff,
-                                    fontSize: width * 0.045
+                                    fontSize: width * 0.045,
+                                    fontWeight: 'bold'
                                 }}
-                                className="font-bold"
                             >
                                 ×
                             </Text>
                         </TouchableOpacity>
                     </View>
 
-                    {/* Modal Content */}
                     {modalStep === 'select' && (
                         <View>
                             <TranslatedText
@@ -314,7 +369,6 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                 Choose a payment method to add for withdrawals
                             </TranslatedText>
 
-                            {/* UPI Option */}
                             <TouchableOpacity
                                 onPress={() => setModalStep('upi')}
                                 style={{
@@ -323,9 +377,10 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     borderColor: 'rgba(255, 255, 255, 0.1)',
                                     borderRadius: 8,
                                     padding: width * 0.04,
-                                    marginBottom: height * 0.015
+                                    marginBottom: height * 0.015,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
                                 }}
-                                className="flex-row items-center"
                             >
                                 <View
                                     style={{
@@ -333,19 +388,20 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         width: width * 0.09,
                                         height: width * 0.09,
                                         borderRadius: (width * 0.09) / 2,
-                                        marginRight: width * 0.03
+                                        marginRight: width * 0.03,
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
                                     }}
-                                    className="items-center justify-center"
                                 >
                                     <Text style={{ fontSize: width * 0.045 }}>💰</Text>
                                 </View>
-                                <View className="flex-1">
+                                <View style={{ flex: 1 }}>
                                     <Text
                                         style={{
                                             color: Colors.light.whiteFfffff,
-                                            fontSize: width * 0.04
+                                            fontSize: width * 0.04,
+                                            fontWeight: 'bold'
                                         }}
-                                        className="font-bold"
                                     >
                                         UPI ID
                                     </Text>
@@ -369,7 +425,6 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                 </Text>
                             </TouchableOpacity>
 
-                            {/* Bank Option */}
                             <TouchableOpacity
                                 onPress={() => setModalStep('bank')}
                                 style={{
@@ -377,9 +432,10 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     borderWidth: 1,
                                     borderColor: 'rgba(255, 255, 255, 0.1)',
                                     borderRadius: 8,
-                                    padding: width * 0.04
+                                    padding: width * 0.04,
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
                                 }}
-                                className="flex-row items-center"
                             >
                                 <View
                                     style={{
@@ -387,19 +443,20 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         width: width * 0.09,
                                         height: width * 0.09,
                                         borderRadius: (width * 0.09) / 2,
-                                        marginRight: width * 0.03
+                                        marginRight: width * 0.03,
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
                                     }}
-                                    className="items-center justify-center"
                                 >
                                     <Text style={{ fontSize: width * 0.045 }}>🏦</Text>
                                 </View>
-                                <View className="flex-1">
+                                <View style={{ flex: 1 }}>
                                     <TranslatedText
                                         style={{
                                             color: Colors.light.whiteFfffff,
-                                            fontSize: width * 0.04
+                                            fontSize: width * 0.04,
+                                            fontWeight: 'bold'
                                         }}
-                                        className="font-bold"
                                     >
                                         Bank Account
                                     </TranslatedText>
@@ -425,7 +482,6 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                         </View>
                     )}
 
-                    {/* UPI Form */}
                     {modalStep === 'upi' && (
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View>
@@ -445,9 +501,9 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                         style={{
                                             color: Colors.light.whiteFfffff,
                                             fontSize: width * 0.035,
-                                            marginBottom: height * 0.01
+                                            marginBottom: height * 0.01,
+                                            fontWeight: 'bold'
                                         }}
-                                        className="font-bold"
                                     >
                                         {currentLanguage === 'hi' ? 'UPI ID *' : 'UPI ID *'}
                                     </Text>
@@ -491,10 +547,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     </TranslatedText>
                                 </View>
 
-                                <View
-                                    className="flex-row"
-                                    style={{ gap: width * 0.02 }}
-                                >
+                                <View style={{ flexDirection: 'row', gap: width * 0.02 }}>
                                     <TouchableOpacity
                                         onPress={() => setModalStep('select')}
                                         style={{
@@ -508,9 +561,9 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             style={{
                                                 color: Colors.light.whiteFfffff,
                                                 fontSize: width * 0.035,
-                                                textAlign: 'center'
+                                                textAlign: 'center',
+                                                fontWeight: 'bold'
                                             }}
-                                            className="font-bold"
                                         >
                                             Back
                                         </TranslatedText>
@@ -530,9 +583,9 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             style={{
                                                 color: Colors.light.whiteFfffff,
                                                 fontSize: width * 0.035,
-                                                textAlign: 'center'
+                                                textAlign: 'center',
+                                                fontWeight: 'bold'
                                             }}
-                                            className="font-bold"
                                         >
                                             {formLoading ?
                                                 (currentLanguage === 'hi' ? "जोड़ रहे हैं..." : "Adding...") :
@@ -544,7 +597,6 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                         </ScrollView>
                     )}
 
-                    {/* Bank Form */}
                     {modalStep === 'bank' && (
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View>
@@ -559,16 +611,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     Enter your bank details and PAN for verification
                                 </TranslatedText>
 
-                                {/* Form fields with responsive sizing */}
-                                {/* Account Holder Name */}
                                 <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
                                         style={{
                                             color: Colors.light.whiteFfffff,
                                             fontSize: width * 0.035,
-                                            marginBottom: height * 0.01
+                                            marginBottom: height * 0.01,
+                                            fontWeight: 'bold'
                                         }}
-                                        className="font-bold"
                                     >
                                         {currentLanguage === 'hi' ? 'खाता धारक का नाम *' : 'Account Holder Name *'}
                                     </Text>
@@ -592,15 +642,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     />
                                 </View>
 
-                                {/* Account Number */}
                                 <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
                                         style={{
                                             color: Colors.light.whiteFfffff,
                                             fontSize: width * 0.035,
-                                            marginBottom: height * 0.01
+                                            marginBottom: height * 0.01,
+                                            fontWeight: 'bold'
                                         }}
-                                        className="font-bold"
                                     >
                                         {currentLanguage === 'hi' ? 'खाता नंबर *' : 'Account Number *'}
                                     </Text>
@@ -626,15 +675,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     />
                                 </View>
 
-                                {/* Confirm Account Number */}
                                 <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
                                         style={{
                                             color: Colors.light.whiteFfffff,
                                             fontSize: width * 0.035,
-                                            marginBottom: height * 0.01
+                                            marginBottom: height * 0.01,
+                                            fontWeight: 'bold'
                                         }}
-                                        className="font-bold"
                                     >
                                         {currentLanguage === 'hi' ? 'खाता नंबर कन्फर्म करें *' : 'Confirm Account Number *'}
                                     </Text>
@@ -661,15 +709,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     />
                                 </View>
 
-                                {/* Bank Name */}
                                 <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
                                         style={{
                                             color: Colors.light.whiteFfffff,
                                             fontSize: width * 0.035,
-                                            marginBottom: height * 0.01
+                                            marginBottom: height * 0.01,
+                                            fontWeight: 'bold'
                                         }}
-                                        className="font-bold"
                                     >
                                         {currentLanguage === 'hi' ? 'बैंक का नाम *' : 'Bank Name *'}
                                     </Text>
@@ -693,15 +740,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     />
                                 </View>
 
-                                {/* Branch */}
                                 <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
                                         style={{
                                             color: Colors.light.whiteFfffff,
                                             fontSize: width * 0.035,
-                                            marginBottom: height * 0.01
+                                            marginBottom: height * 0.01,
+                                            fontWeight: 'bold'
                                         }}
-                                        className="font-bold"
                                     >
                                         {currentLanguage === 'hi' ? 'शाखा *' : 'Branch *'}
                                     </Text>
@@ -725,15 +771,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     />
                                 </View>
 
-                                {/* IFSC Code */}
                                 <View style={{ marginBottom: height * 0.015 }}>
                                     <Text
                                         style={{
                                             color: Colors.light.whiteFfffff,
                                             fontSize: width * 0.035,
-                                            marginBottom: height * 0.01
+                                            marginBottom: height * 0.01,
+                                            fontWeight: 'bold'
                                         }}
-                                        className="font-bold"
                                     >
                                         {currentLanguage === 'hi' ? 'IFSC कोड *' : 'IFSC Code *'}
                                     </Text>
@@ -757,15 +802,14 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     />
                                 </View>
 
-                                {/* PAN Number */}
                                 <View style={{ marginBottom: height * 0.02 }}>
                                     <Text
                                         style={{
                                             color: Colors.light.whiteFfffff,
                                             fontSize: width * 0.035,
-                                            marginBottom: height * 0.01
+                                            marginBottom: height * 0.01,
+                                            fontWeight: 'bold'
                                         }}
-                                        className="font-bold"
                                     >
                                         {currentLanguage === 'hi' ? 'PAN नंबर *' : 'PAN Number *'}
                                     </Text>
@@ -810,10 +854,7 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                     </TranslatedText>
                                 </View>
 
-                                <View
-                                    className="flex-row"
-                                    style={{ gap: width * 0.02 }}
-                                >
+                                <View style={{ flexDirection: 'row', gap: width * 0.02 }}>
                                     <TouchableOpacity
                                         onPress={() => setModalStep('select')}
                                         style={{
@@ -827,9 +868,9 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             style={{
                                                 color: Colors.light.whiteFfffff,
                                                 fontSize: width * 0.035,
-                                                textAlign: 'center'
+                                                textAlign: 'center',
+                                                fontWeight: 'bold'
                                             }}
-                                            className="font-bold"
                                         >
                                             Back
                                         </TranslatedText>
@@ -849,9 +890,9 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({
                                             style={{
                                                 color: Colors.light.whiteFfffff,
                                                 fontSize: width * 0.035,
-                                                textAlign: 'center'
+                                                textAlign: 'center',
+                                                fontWeight: 'bold'
                                             }}
-                                            className="font-bold"
                                         >
                                             {formLoading ?
                                                 (currentLanguage === 'hi' ? "जोड़ रहे हैं..." : "Adding...") :
